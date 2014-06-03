@@ -3,8 +3,8 @@
 
 #include "car.h"
 
-const int SCREEN_WIDTH  = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH  = 1024;
+const int SCREEN_HEIGHT = 768;
 
 // Not defined with ansi C
 #define PI 3.14159265
@@ -42,16 +42,16 @@ Point rotate_point(int x, int y, const Point center, int angle)
 	return point;
 }
 
-int is_on_track(const Point pos, const SDL_Surface *background)
+int is_on_track(const Point pos, const SDL_Surface *map)
 {
-	if (pos.x < 0 || pos.y < 0 || pos.x >= background->w || pos.y >= background->h) {
+	if (pos.x < 0 || pos.y < 0 || pos.x >= map->w || pos.y >= map->h) {
 		return 0;
 	}
 
-	int bpp = background->format->BytesPerPixel;
+	int bpp = map->format->BytesPerPixel;
 	Uint8 r, g, b;
 	Uint32 pixel;
-	Uint8 *p = (Uint8 *)background->pixels + pos.y * background->pitch + pos.x * bpp;
+	Uint8 *p = (Uint8 *)map->pixels + pos.y * map->pitch + pos.x * bpp;
 	switch(bpp) {
 		case 1:
 			pixel = *p;
@@ -73,12 +73,12 @@ int is_on_track(const Point pos, const SDL_Surface *background)
 			break;
 
 		default:
-			printf("unsupported format for background\n");
+			printf("unsupported format for map\n");
 			exit(1);
 			pixel = 0;       /* shouldn't happen, but avoids warnings */
 	}
 
-	SDL_GetRGB(pixel, background->format, &r, &g, &b);
+	SDL_GetRGB(pixel, map->format, &r, &g, &b);
 
 	if (r == 0 && g == 0 && b == 0) {
 		return 1;
@@ -87,25 +87,25 @@ int is_on_track(const Point pos, const SDL_Surface *background)
 	}
 }
 
-int check_car_off_track(Car *car, SDL_Surface *background)
+int check_car_off_track(Car *car, SDL_Surface *map)
 {
 	Point center;
 	center.x = car->x + car->width/2;
 	center.y = car->y + car->height/2;
 
-	if (!is_on_track(rotate_point(car->x, car->y, center, car->angle), background)) {
+	if (!is_on_track(rotate_point(car->x, car->y, center, car->angle), map)) {
 		return 1;
 	}
 
-	if (!is_on_track(rotate_point(car->x + car->width, car->y, center, car->angle), background)) {
+	if (!is_on_track(rotate_point(car->x + car->width, car->y, center, car->angle), map)) {
 		return 1;
 	}
 
-	if (!is_on_track(rotate_point(car->x, car->y + car->height, center, car->angle), background)) {
+	if (!is_on_track(rotate_point(car->x, car->y + car->height, center, car->angle), map)) {
 		return 1;
 	}
 
-	if (!is_on_track(rotate_point(car->x + car->width, car->y + car->height, center, car->angle), background)) {
+	if (!is_on_track(rotate_point(car->x + car->width, car->y + car->height, center, car->angle), map)) {
 		return 1;
 	}
 
@@ -122,6 +122,53 @@ void render_car(SDL_Renderer *ren, Car *car)
 	SDL_RenderCopyEx(ren, car->texture, 0, &target, car->angle, 0, 0);
 }
 
+void car_move(Car *car, SDL_Surface *map)
+{
+	// Normalize rotation and speed
+	if (car->speed > 5) {
+		car->speed = 5;
+	}
+	if (car->speed < -2) {
+		car->speed = -2;
+	}
+	if (car->angle < 0) {
+		car->angle += 360;
+	}
+	if (car->angle > 360) {
+		car->angle -= 360;
+	}
+
+	// Penalize for driving off piste
+	if (check_car_off_track(car, map)) {
+		if (car->speed > 1) {
+			car->speed = 1;
+		}
+	}
+
+	// Update position
+	car->x += car->speed * cos(PI * car->angle / 180);
+	car->y += car->speed * sin(PI * car->angle / 180);
+
+	// Bounds checking
+	if (car->x < 0) {
+		car->speed = -1;
+		car->x = 0;
+	}
+	if (car->x > map->w - car->width) {
+		car->speed = -1;
+		car->x = map->w - car->width;
+	}
+
+	if (car->y < 0) {
+		car->speed = -1;
+		car->y = 0;
+	}
+	if (car->y > map->h - car->height) {
+		car->speed = -1;
+		car->y = map->h - car->height;
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc > 1) {
@@ -134,41 +181,62 @@ int main(int argc, char *argv[])
 		printf("SDL init failed: %s\n", SDL_GetError());
 		return 1;
 	}
-
 	SDL_Window *win = SDL_CreateWindow("The Kartering", 100, 100, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-	if (win == 0){
+	if (win == NULL){
 		printf("SDL error creating window: %s\n", SDL_GetError());
 		return 1;
 	}
-
 	SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	if (ren == 0){
+	if (ren == NULL){
 		printf("SDL error while creating renderer: %s\n", SDL_GetError());
 		return 1;
 	}
 
-	// Load background
-	SDL_Surface *background = SDL_LoadBMP("background.bmp");
-	if (background == 0) {
+	// Load map
+	SDL_Surface *map = SDL_LoadBMP("background.bmp");
+	if (map == NULL) {
 		printf("SDL error while loading BMP: %s\n", SDL_GetError());
-		return 0;
-	}
-	SDL_Texture *backgroundTexture = SDL_CreateTextureFromSurface(ren, background);
-	if (backgroundTexture == 0) {
-		printf("SDL error while creating background texture: %s\n", SDL_GetError());
-	}
-
-	// Initialize car
-	Car car;
-	car.x = 0;
-	car.y = 0;
-	car.angle = 45;
-	car.speed = 0;
-	car.texture = load_texture(ren, "car1.bmp");
-	if (backgroundTexture == 0 || car.texture == 0) {
 		return 1;
 	}
-	SDL_QueryTexture(car.texture, 0, 0, &car.width, &car.height);
+	SDL_Texture *mapTexture = SDL_CreateTextureFromSurface(ren, map);
+	if (mapTexture == NULL) {
+		printf("SDL error while creating map texture: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	// Create cars
+	int car_count = 1;
+	Car *cars = malloc(sizeof(Car) * car_count);
+
+	for (int i=0; i<car_count; i++) {
+		// Initialize car
+		cars[i].x = 0;
+		cars[i].y = 0;
+		cars[i].angle = 45;
+		cars[i].speed = 0;
+
+		SDL_Surface *image = SDL_LoadBMP("car1.bmp");
+		if (image == NULL) {
+			printf("SDL error while loading BMP: %s\n", SDL_GetError());
+			return 0;
+		}
+		cars[i].width = image->w;
+		cars[i].height = image->h;
+
+		printf("width: %d height: %d\n", image->w, image->h);
+
+		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
+
+		cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
+		SDL_FreeSurface(image);
+
+		if (cars[i].texture == NULL) {
+			printf("SDL error while creating texture: %s\n", SDL_GetError());
+			return 0;
+		}
+	}
+
+	int human_player = 0;
 
 	int quit = 0;
 	SDL_Event event;
@@ -182,85 +250,51 @@ int main(int argc, char *argv[])
 			//If user presses any key
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
-				case SDLK_UP:
-					car.speed++;
-					break;
-				case SDLK_DOWN:
-					car.speed--;
-					break;
-				case SDLK_LEFT:
-					car.angle -= 5;
-					break;
-				case SDLK_RIGHT:
-					car.angle += 5;
-					break;
 				case SDLK_ESCAPE:
 					quit = 1;
 					break;
 				}
 			}
-			//If user clicks the mouse
-			if (event.type == SDL_MOUSEBUTTONDOWN) {
-				quit = 1;
+		}
+		if (human_player != -1) {
+			const Uint8 *keystates = SDL_GetKeyboardState(NULL);
+			if (keystates[SDL_SCANCODE_UP]) {
+				cars[human_player].speed += 3;
+			}
+			if (keystates[SDL_SCANCODE_DOWN]) {
+				cars[human_player].speed -= 3;
+			}
+			if (keystates[SDL_SCANCODE_LEFT]) {
+				cars[human_player].angle -= 5;
+			}
+			if (keystates[SDL_SCANCODE_RIGHT]) {
+				cars[human_player].angle += 5;
 			}
 		}
 
-		// Normalize rotation and speed
-		if (car.speed > 5) {
-			car.speed = 5;
-		}
-		if (car.speed < -2) {
-			car.speed = -2;
-		}
-		if (car.angle < 0) {
-			car.angle += 360;
-		}
-		if (car.angle > 360) {
-			car.angle -= 360;
-		}
-
-		// Penalize for driving off piste
-		if (check_car_off_track(&car, background)) {
-			if (car.speed > 1) {
-				car.speed = 1;
-			}
-		}
-
-		// Update position
-		car.x += car.speed * cos(PI * car.angle / 180);
-		car.y += car.speed * sin(PI * car.angle / 180);
-
-		// Bounds checking
-		if (car.x < 0) {
-			car.speed = -1;
-			car.x = 0;
-		}
-		if (car.x > SCREEN_WIDTH - car.width) {
-			car.speed = -1;
-			car.x = SCREEN_WIDTH - car.width;
-		}
-
-		if (car.y < 0) {
-			car.speed = -1;
-			car.y = 0;
-		}
-		if (car.y > SCREEN_HEIGHT - car.height) {
-			car.speed = -1;
-			car.y = SCREEN_HEIGHT - car.height;
-		}
-
-		// Render
 		SDL_RenderClear(ren);
-		SDL_RenderCopy(ren, backgroundTexture, NULL, NULL);
-		render_car(ren, &car);
+		SDL_Rect rect;
+		rect.x = 0;
+		rect.y = 0;
+		rect.w = map->w;
+		rect.h = map->h;
+		SDL_RenderCopy(ren, mapTexture, NULL, &rect);
+
+		for (int i=0; i<car_count; i++) {
+			car_move(&cars[i], map);
+			render_car(ren, &cars[i]);
+		}
+
 		SDL_RenderPresent(ren);
 	}
 
 
 	// Clean up
-	SDL_FreeSurface(background);
-	SDL_DestroyTexture(backgroundTexture);
-	SDL_DestroyTexture(car.texture);
+	SDL_FreeSurface(map);
+	SDL_DestroyTexture(mapTexture);
+	for (int i=0; i<car_count; i++) {
+		SDL_DestroyTexture(cars[i].texture);
+	}
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 	SDL_Quit();

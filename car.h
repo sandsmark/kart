@@ -9,4 +9,4 @@ typedef struct {
     SDL_Texture *texture;
 } Car;
 
-
+/* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/
