@@ -1,5 +1,5 @@
 OBJECTS=main.o
-CFLAGS+=-std=c99 -Wall -Wextra -pedantic -O2 -g -D_POSIX_C_SOURCE=200112L
+CFLAGS+=-std=c99 -Wall -Wextra -pedantic -O2 -g
 LDFLAGS+=-lSDL2 -lm
 ALL = kart
 
