@@ -90,26 +90,36 @@ int is_on_track(const Point pos, const SDL_Surface *background)
 int check_car_off_track(Car *car, SDL_Surface *background)
 {
 	Point center;
-	center.x = car->rect.x + car->rect.w/2;
-	center.y = car->rect.y + car->rect.h/2;
+	center.x = car->x + car->width/2;
+	center.y = car->y + car->height/2;
 
-	if (!is_on_track(rotate_point(car->rect.x, car->rect.y, center, car->angle), background)) {
+	if (!is_on_track(rotate_point(car->x, car->y, center, car->angle), background)) {
 		return 1;
 	}
 
-	if (!is_on_track(rotate_point(car->rect.x + car->rect.w, car->rect.y, center, car->angle), background)) {
+	if (!is_on_track(rotate_point(car->x + car->width, car->y, center, car->angle), background)) {
 		return 1;
 	}
 
-	if (!is_on_track(rotate_point(car->rect.x, car->rect.y + car->rect.h, center, car->angle), background)) {
+	if (!is_on_track(rotate_point(car->x, car->y + car->height, center, car->angle), background)) {
 		return 1;
 	}
 
-	if (!is_on_track(rotate_point(car->rect.x + car->rect.w, car->rect.y + car->rect.h, center, car->angle), background)) {
+	if (!is_on_track(rotate_point(car->x + car->width, car->y + car->height, center, car->angle), background)) {
 		return 1;
 	}
 
 	return 0;
+}
+
+void render_car(SDL_Renderer *ren, Car *car)
+{
+	SDL_Rect target;
+	target.x = car->x;
+	target.y = car->y;
+	target.w = car->width;
+	target.h = car->height;
+	SDL_RenderCopyEx(ren, car->texture, 0, &target, car->angle, 0, 0);
 }
 
 int main(int argc, char *argv[])
@@ -125,7 +135,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	SDL_Window *win = SDL_CreateWindow("The Kartering", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
+	SDL_Window *win = SDL_CreateWindow("The Kartering", 100, 100, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (win == 0){
 		printf("SDL error creating window: %s\n", SDL_GetError());
 		return 1;
@@ -150,15 +160,15 @@ int main(int argc, char *argv[])
 
 	// Initialize car
 	Car car;
-	car.rect.x = SCREEN_WIDTH / 4;
-	car.rect.y = SCREEN_HEIGHT / 4;
+	car.x = 0;
+	car.y = 0;
 	car.angle = 45;
 	car.speed = 0;
 	car.texture = load_texture(ren, "car1.bmp");
-	SDL_QueryTexture(car.texture, 0, 0, &car.rect.w, &car.rect.h);
 	if (backgroundTexture == 0 || car.texture == 0) {
 		return 1;
 	}
+	SDL_QueryTexture(car.texture, 0, 0, &car.width, &car.height);
 
 	int quit = 0;
 	SDL_Event event;
@@ -211,39 +221,38 @@ int main(int argc, char *argv[])
 
 		// Penalize for driving off piste
 		if (check_car_off_track(&car, background)) {
-			if (car.speed > 2) {
-				car.speed = 2;
+			if (car.speed > 1) {
+				car.speed = 1;
 			}
 		}
 
-
 		// Update position
-		car.rect.x += car.speed * cos(PI * car.angle / 180);
-		car.rect.y += car.speed * sin(PI * car.angle / 180);
+		car.x += car.speed * cos(PI * car.angle / 180);
+		car.y += car.speed * sin(PI * car.angle / 180);
 
 		// Bounds checking
-		if (car.rect.x < 0) {
+		if (car.x < 0) {
 			car.speed = -1;
-			car.rect.x = 0;
+			car.x = 0;
 		}
-		if (car.rect.x > SCREEN_WIDTH - car.rect.w) {
+		if (car.x > SCREEN_WIDTH - car.width) {
 			car.speed = -1;
-			car.rect.x = SCREEN_WIDTH - car.rect.w;
+			car.x = SCREEN_WIDTH - car.width;
 		}
 
-		if (car.rect.y < 0) {
+		if (car.y < 0) {
 			car.speed = -1;
-			car.rect.y = 0;
+			car.y = 0;
 		}
-		if (car.rect.y > SCREEN_HEIGHT - car.rect.h) {
+		if (car.y > SCREEN_HEIGHT - car.height) {
 			car.speed = -1;
-			car.rect.y = SCREEN_HEIGHT - car.rect.h;
+			car.y = SCREEN_HEIGHT - car.height;
 		}
 
 		// Render
 		SDL_RenderClear(ren);
 		SDL_RenderCopy(ren, backgroundTexture, NULL, NULL);
-		SDL_RenderCopyEx(ren, car.texture, 0, &car.rect, car.angle, 0, 0);
+		render_car(ren, &car);
 		SDL_RenderPresent(ren);
 	}
 

@@ -1,10 +1,11 @@
-#include <SDL2/SDL.h>
+struct SDL_Texture;
 
 typedef struct {
     int angle; // 0-360 degrees
-    int speed;
+    float speed;
+    float x, y;
+    int width, height;
 
-    SDL_Rect rect;
     SDL_Texture *texture;
 } Car;
 
