@@ -6,6 +6,9 @@ typedef struct {
     float x, y;
     int width, height;
 
+    int wheelX[4];
+    int wheelY[4];
+
     SDL_Texture *texture;
 } Car;
 
