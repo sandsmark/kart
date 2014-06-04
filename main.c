@@ -86,9 +86,6 @@ void render_car(SDL_Renderer *ren, Car *car)
 
 void car_move(Car *car, SDL_Surface *map)
 {
-	Point center;
-	center.x = car->x + car->width/2;
-	center.y = car->y + car->height/2;
 
 	// Normalize rotation and speed
 	if (car->speed > 5) {
@@ -104,9 +101,16 @@ void car_move(Car *car, SDL_Surface *map)
 		car->angle -= 360;
 	}
 
-	AreaType type;
+	// Calculate next position
+	int newX = car->x + car->speed * cos(PI * car->angle / 180);
+	int newY = car->y + car->speed * sin(PI * car->angle / 180);
+
+	// Check if we're passing over something funny
+	Point center;
+	center.x = newX + car->width/2;
+	center.y = newY + car->height/2;
 	for (int i=0; i<4; i++) {
-		type = map_get_type(rotate_point(car->x + car->wheelX[i], car->y + car->wheelY[i], center, car->angle), map);
+		AreaType type = map_get_type(rotate_point(newX + car->wheelX[i], newY + car->wheelY[i], center, car->angle), map);
 
 		switch(type){
 		case MAP_GRASS:
@@ -125,6 +129,8 @@ void car_move(Car *car, SDL_Surface *map)
 		case MAP_WALL:
 			//TODO moar stuffs
 			car->speed = -car->speed;
+			car->angle = car->oldAngle;
+			i=5;
 			break;
 		case MAP_OIL:
 			car->angle += 3;
@@ -142,11 +148,10 @@ void car_move(Car *car, SDL_Surface *map)
 		}
 	}
 
-
-
-	// Update position
 	car->x += car->speed * cos(PI * car->angle / 180);
-	car->y += car->speed * sin(PI * car->angle / 180);
+        car->y += car->speed * sin(PI * car->angle / 180);
+
+	car->oldAngle = car->angle;
 
 	// Bounds checking
 	if (car->x < 0) {
@@ -204,14 +209,15 @@ int main(int argc, char *argv[])
 	}
 
 	// Create cars
-	int car_count = 1;
+	int car_count = 2;
 	Car *cars = malloc(sizeof(Car) * car_count);
 
 	for (int i=0; i<car_count; i++) {
 		// Initialize car
-		cars[i].x = 240;
-		cars[i].y = 40;
+		cars[i].x = 250;
+		cars[i].y = 30 + i*20;
 		cars[i].angle = 0;
+		cars[i].oldAngle = 0;
 		cars[i].speed = 0;
 
 		SDL_Surface *image = SDL_LoadBMP("car1.bmp");

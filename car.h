@@ -2,6 +2,7 @@ struct SDL_Texture;
 
 typedef struct {
     int angle; // 0-360 degrees
+    int oldAngle;
     float speed;
     float x, y;
     int width, height;
