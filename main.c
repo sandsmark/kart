@@ -37,8 +37,8 @@ typedef struct {
 Point rotate_point(int x, int y, const Point center, int angle)
 {
 	Point point;
-	point.x = cos(angle * PI / 180) * (x - center.x) - sin(angle * PI / 180) * (y - center.y) + x;
-	point.y = sin(angle * PI / 180) * (x - center.x) + cos(angle * PI / 180) * (y - center.y) + y;
+	point.x = cos(angle * PI / 180) * (x - center.x) - sin(angle * PI / 180) * (y - center.y) + center.x;
+	point.y = sin(angle * PI / 180) * (x - center.x) + cos(angle * PI / 180) * (y - center.y) + center.y;
 	return point;
 }
 
