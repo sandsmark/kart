@@ -6,6 +6,18 @@
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
 
+typedef enum {
+	MAP_TRACK     = 0x808080, // rgb: 128,128,128
+	MAP_GRASS     = 0x00ff00, // rgb: 000,255,000
+	MAP_WALL      = 0x00ffff, // rgb: 255,255,000
+	MAP_ICE       = 0xffffff, // rgb: 255,255,255
+	MAP_OIL       = 0x000000, // rgb: 000,000,000
+	MAP_BOOST     = 0x0000ff, // rgb: 255,000,000
+	MAP_STARTAREA = 0xc0c0c0, // rgb: 192,192,192
+	MAP_MUD       = 0x004080, // rgb: 128,064,000
+	MAP_WATER     = 0xff0000  // rgb: 000,000,255
+} AreaType;
+
 // Not defined with ansi C
 #define PI 3.14159265
 
@@ -42,74 +54,24 @@ Point rotate_point(int x, int y, const Point center, int angle)
 	return point;
 }
 
-int is_on_track(const Point pos, const SDL_Surface *map)
+AreaType map_get_type(const Point pos, const SDL_Surface *map)
 {
 	if (pos.x < 0 || pos.y < 0 || pos.x >= map->w || pos.y >= map->h) {
 		return 0;
 	}
 
-	int bpp = map->format->BytesPerPixel;
-	Uint8 r, g, b;
-	Uint32 pixel;
-	Uint8 *p = (Uint8 *)map->pixels + pos.y * map->pitch + pos.x * bpp;
-	switch(bpp) {
-		case 1:
-			pixel = *p;
-			break;
-
-		case 2:
-			pixel = *(Uint16 *)p;
-			break;
-
-		case 3:
-			if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-				pixel = p[0] << 16 | p[1] << 8 | p[2];
-			else
-				pixel= p[0] | p[1] << 8 | p[2] << 16;
-			break;
-
-		case 4:
-			pixel = *(Uint32 *)p;
-			break;
-
-		default:
-			printf("unsupported format for map\n");
-			exit(1);
-			pixel = 0;       /* shouldn't happen, but avoids warnings */
+	if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+		printf("TODO: port to big endian.\n");
+		exit(1);
 	}
 
-	SDL_GetRGB(pixel, map->format, &r, &g, &b);
-
-	if (r == 0 && g == 0 && b == 0) {
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-int check_car_off_track(Car *car, SDL_Surface *map)
-{
-	Point center;
-	center.x = car->x + car->width/2;
-	center.y = car->y + car->height/2;
-
-	if (!is_on_track(rotate_point(car->x, car->y, center, car->angle), map)) {
-		return 1;
+	if (map->format->BytesPerPixel != 3) {
+		printf("Unexpected map format.\n");
+		exit(1);
 	}
 
-	if (!is_on_track(rotate_point(car->x + car->width, car->y, center, car->angle), map)) {
-		return 1;
-	}
-
-	if (!is_on_track(rotate_point(car->x, car->y + car->height, center, car->angle), map)) {
-		return 1;
-	}
-
-	if (!is_on_track(rotate_point(car->x + car->width, car->y + car->height, center, car->angle), map)) {
-		return 1;
-	}
-
-	return 0;
+	Uint8 *p = (Uint8 *)map->pixels + pos.y * map->pitch + pos.x * 3;
+	return p[0] << 16 | p[1] << 8 | p[2];
 }
 
 void render_car(SDL_Renderer *ren, Car *car)
@@ -124,6 +86,10 @@ void render_car(SDL_Renderer *ren, Car *car)
 
 void car_move(Car *car, SDL_Surface *map)
 {
+	Point center;
+	center.x = car->x + car->width/2;
+	center.y = car->y + car->height/2;
+
 	// Normalize rotation and speed
 	if (car->speed > 5) {
 		car->speed = 5;
@@ -138,12 +104,45 @@ void car_move(Car *car, SDL_Surface *map)
 		car->angle -= 360;
 	}
 
-	// Penalize for driving off piste
-	if (check_car_off_track(car, map)) {
-		if (car->speed > 1) {
-			car->speed = 1;
+	AreaType type;
+	for (int i=0; i<4; i++) {
+		type = map_get_type(rotate_point(car->x + car->wheelX[i], car->y + car->wheelY[i], center, car->angle), map);
+
+		switch(type){
+		case MAP_GRASS:
+			if (car->speed > 1) {
+				car->speed = 1;
+			}
+			break;
+		case MAP_BOOST:
+			car->speed *= 2;
+			break;
+		case MAP_MUD:
+			if (car->speed > 2) {
+				car->speed = 2;
+			}
+			break;
+		case MAP_WALL:
+			//TODO moar stuffs
+			car->speed = -car->speed;
+			break;
+		case MAP_OIL:
+			car->angle += 3;
+			car->speed++;
+			break;
+		case MAP_ICE:
+			if ((rand() % 2) == 1) {
+				car->angle += 2;
+			} else {
+				car->angle -= 2;
+			}
+			break;
+		default:
+			break;
 		}
 	}
+
+
 
 	// Update position
 	car->x += car->speed * cos(PI * car->angle / 180);
@@ -210,9 +209,9 @@ int main(int argc, char *argv[])
 
 	for (int i=0; i<car_count; i++) {
 		// Initialize car
-		cars[i].x = 0;
-		cars[i].y = 0;
-		cars[i].angle = 45;
+		cars[i].x = 240;
+		cars[i].y = 40;
+		cars[i].angle = 0;
 		cars[i].speed = 0;
 
 		SDL_Surface *image = SDL_LoadBMP("car1.bmp");
@@ -223,7 +222,15 @@ int main(int argc, char *argv[])
 		cars[i].width = image->w;
 		cars[i].height = image->h;
 
-		printf("width: %d height: %d\n", image->w, image->h);
+		// Store wheel positions individually
+		cars[i].wheelX[0] = 0;
+		cars[i].wheelY[0] = 0;
+		cars[i].wheelX[1] = cars[i].width;
+		cars[i].wheelY[1] = 0;
+		cars[i].wheelX[2] = 0;
+		cars[i].wheelY[2] = cars[i].height;
+		cars[i].wheelX[3] = cars[i].width;
+		cars[i].wheelY[3] = cars[i].height;
 
 		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
 
