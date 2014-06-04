@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 		printf("SDL init failed: %s\n", SDL_GetError());
 		return 1;
 	}
-	SDL_Window *win = SDL_CreateWindow("The Kartering", 100, 100, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	SDL_Window *win = SDL_CreateWindow("The Kartering", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 	if (win == NULL){
 		printf("SDL error creating window: %s\n", SDL_GetError());
 		return 1;
@@ -220,7 +220,9 @@ int main(int argc, char *argv[])
 		cars[i].oldAngle = 0;
 		cars[i].speed = 0;
 
-		SDL_Surface *image = SDL_LoadBMP("car1.bmp");
+		char filename[10];
+		sprintf(filename, "car%d.bmp", i);
+		SDL_Surface *image = SDL_LoadBMP(filename);
 		if (image == NULL) {
 			printf("SDL error while loading BMP: %s\n", SDL_GetError());
 			return 0;
