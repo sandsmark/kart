@@ -1,10 +1,13 @@
-OBJECTS=main.o
+CFILES=$(wildcard *.c)
+OBJECTS=$(patsubst %.c, %.o, $(CFILES))
 CFLAGS+=-std=c99 -Wall -Wextra -pedantic -O2 -g
 LDFLAGS+=-lSDL2 -lm
-ALL = kart
+EXECUTABLE=kart
 
-kart: $(OBJECTS)
+all: $(EXECUTABLE)
+
+$(EXECUTABLE): $(OBJECTS)
 	gcc -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f kart $(OBJECTS)
+	rm -f $(EXECUTABLE) $(OBJECTS)
