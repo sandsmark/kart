@@ -2,27 +2,19 @@
 #include <math.h>
 
 #include "car.h"
-#include "map.h"
 #include "defines.h"
+#include "map.h"
+#include "vector.h"
 
-Point rotate_point(int x, int y, const Point center, int angle)
+void apply_force(Car *car, vec2 force)
 {
-	Point point;
-	point.x = cos(angle * PI / 180) * (x - center.x) - sin(angle * PI / 180) * (y - center.y) + center.x;
-	point.y = sin(angle * PI / 180) * (x - center.x) + cos(angle * PI / 180) * (y - center.y) + center.y;
-	return point;
+	car->force.x += force.x;
+	car->force.y += force.y;
 }
 
 void move_car(Car *car, SDL_Surface *map)
 {
-	// Normalize rotation and speed
-	if (car->angle < 0) {
-		car->angle += 360;
-	}
-	else if (car->angle > 360) {
-		car->angle -= 360;
-	}
-
+	/*
 	if (car->speed > CAR_TOPSPEED) {
 		car->acceleration = 0;
 	}
@@ -84,13 +76,21 @@ void move_car(Car *car, SDL_Surface *map)
 			break;
 		}
 	}
+	*/
 
-	car->speed += car->acceleration * TIME_CONSTANT;
-	car->x += car->speed * cos(PI * car->angle / 180);
-        car->y += car->speed * sin(PI * car->angle / 180);
-}
+	/* Add up forces, resistances etc. */
+	/* Drag */
+	car->force.x += -CAR_DRAG_COEFF * car->velocity.x * length(car->velocity);
+	car->force.y += -CAR_DRAG_COEFF * car->velocity.y * length(car->velocity);
+	/* Roll resistance */
+	car->force.x += -CAR_ROLL_COEFF * car->velocity.x;
+	car->force.y += -CAR_ROLL_COEFF * car->velocity.y;
 
-void friction(Car *car)
-{
-	car->speed *= 0.95;
+	vec2 acceleration = {car->force.x/CAR_MASS, car->force.y/CAR_MASS};
+
+	car->velocity.x += acceleration.x * TIME_CONSTANT;
+	car->velocity.y += acceleration.y * TIME_CONSTANT;
+
+	car->pos.x += car->velocity.x * TIME_CONSTANT;
+        car->pos.y += car->velocity.y * TIME_CONSTANT;;
 }

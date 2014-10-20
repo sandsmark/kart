@@ -1,6 +1,6 @@
 #include "map.h"
 
-AreaType map_get_type(const Point pos, const SDL_Surface *map)
+AreaType map_get_type(const ivec2 pos, const SDL_Surface *map)
 {
 	if (pos.x < 0 || pos.y < 0 || pos.x >= map->w || pos.y >= map->h) {
 		return 0;

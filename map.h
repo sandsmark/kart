@@ -16,5 +16,5 @@ typedef enum {
 	MAP_WATER     = 0xff0000  // rgb: 000,000,255
 } AreaType;
 
-AreaType map_get_type(const Point pos, const SDL_Surface *map);
+AreaType map_get_type(const ivec2 pos, const SDL_Surface *map);
 #endif

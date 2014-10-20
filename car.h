@@ -6,11 +6,11 @@
 #include "defines.h"
 
 typedef struct {
-	int angle; // 0-360 degrees
+	vec2 direction;
 
-	float acceleration;
-	float speed;
-	float x, y;
+	vec2 force;
+	vec2 velocity;
+	vec2 pos;
 
 	int width, height;
 	int wheel_x[4];
@@ -19,9 +19,8 @@ typedef struct {
 	SDL_Texture *texture;
 } Car;
 
-Point rotate_point(int x, int y, const Point center, int angle);
+void apply_force(Car *car, vec2 force);
 void move_car(Car *car, SDL_Surface *map);
-void friction(Car *car);
 
 #endif
 

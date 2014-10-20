@@ -2,9 +2,11 @@
 
 #include "car.h"
 #include "map.h"
+#include "vector.h"
 
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
+const vec2 start = {1.0, 0.0};
 
 SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filepath)
 {
@@ -29,11 +31,11 @@ SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filepath)
 void render_car(SDL_Renderer *ren, Car *car)
 {
 	SDL_Rect target;
-	target.x = car->x;
-	target.y = car->y;
+	target.x = car->pos.x;
+	target.y = car->pos.y;
 	target.w = car->width;
 	target.h = car->height;
-	SDL_RenderCopyEx(ren, car->texture, 0, &target, car->angle, 0, 0);
+	SDL_RenderCopyEx(ren, car->texture, 0, &target, vec_angle(start, car->direction), 0, 0);
 }
 
 int main(int argc, char *argv[])
@@ -73,15 +75,14 @@ int main(int argc, char *argv[])
 
 	// Create cars
 	int car_count = 2;
-	Car *cars = malloc(sizeof(Car) * car_count);
+	Car *cars = calloc(car_count, sizeof(Car));
 
 	for (int i=0; i<car_count; i++) {
 		// Initialize car
-		cars[i].x = 250;
-		cars[i].y = 30 + i*20;
-		cars[i].angle = 0;
-		cars[i].speed = 0;
-		cars[i].acceleration = 0;
+		cars[i].pos.x = 250;
+		cars[i].pos.y = 30 + i*20;
+		cars[i].direction.x = start.x;
+		cars[i].direction.y = start.y;
 
 		char filename[10];
 		sprintf(filename, "car%d.bmp", i);
@@ -136,19 +137,26 @@ int main(int argc, char *argv[])
 		}
 		if (human_player != -1) {
 			const Uint8 *keystates = SDL_GetKeyboardState(NULL);
+			Car *car = &cars[human_player];
 			if (keystates[SDL_SCANCODE_UP]) {
-				cars[human_player].acceleration = 10;
+				vec2 force = car->direction;
+				force.x *= 2500;
+				force.y *= 2500;
+				apply_force(car, force);
 			}
 			if (keystates[SDL_SCANCODE_DOWN]) {
-				cars[human_player].acceleration = -10;
+				vec2 force = car->direction;
+				force.x *= -2500;
+				force.y *= -2500;
+				apply_force(car, force);
 			}
 			if (keystates[SDL_SCANCODE_LEFT]) {
-				if (cars[human_player].speed > 0)
-				cars[human_player].angle -= 5;
+				rotate(&car->direction, -3);
+				rotate(&car->velocity, -3);
 			}
 			if (keystates[SDL_SCANCODE_RIGHT]) {
-				if (cars[human_player].speed > 0)
-				cars[human_player].angle += 5;
+				rotate(&car->direction, 3);
+				rotate(&car->velocity, 3);
 			}
 		}
 
@@ -162,9 +170,8 @@ int main(int argc, char *argv[])
 
 		for (int i=0; i<car_count; i++) {
 			move_car(&cars[i], map);
-			friction(&cars[i]);
-			cars[i].acceleration = 0;
 			render_car(ren, &cars[i]);
+			memset(&cars[i].force, 0, sizeof(cars[i].force));
 		}
 
 		SDL_RenderPresent(ren);
