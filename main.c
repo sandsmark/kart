@@ -38,6 +38,43 @@ void render_car(SDL_Renderer *ren, Car *car)
 	SDL_RenderCopyEx(ren, car->texture, 0, &target, vec_angle(start, car->direction), 0, 0);
 }
 
+void draw_circle(SDL_Surface *surface, int cx, int cy, int radius, Uint8 pixel)
+{
+	// Note that there is more to altering the bitrate of this 
+	// method than just changing this value.  See how pixels are
+	// altered at the following web page for tips:
+	//   http://www.libsdl.org/intro.en/usingvideo.html
+	static const int BPP = 1;
+
+	double r = (double)radius;
+
+	for (double dy = 1; dy <= r; dy += 1.0)
+	{
+		// This loop is unrolled a bit, only iterating through half of the
+		// height of the circle.  The result is used to draw a scan line and
+		// its mirror image below it.
+
+		// The following formula has been simplified from our original.  We
+		// are using half of the width of the circle because we are provided
+		// with a center and we need left/right coordinates.
+
+		double dx = floor(sqrt((2.0 * r * dy) - (dy * dy)));
+		int x = cx - dx;
+
+		// Grab a pointer to the left-most pixel for each half of the circle
+		Uint8 *target_pixel_a = (Uint8 *)surface->pixels + ((int)(cy + r - dy)) * surface->pitch + x * sizeof(Uint8);
+		Uint8 *target_pixel_b = (Uint8 *)surface->pixels + ((int)(cy - r + dy)) * surface->pitch + x * sizeof(Uint8);
+
+		for (; x <= cx + dx; x++)
+		{
+			*target_pixel_a = pixel;
+			*target_pixel_b = pixel;
+			target_pixel_a += BPP;
+			target_pixel_b += BPP;
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc > 1) {
@@ -67,6 +104,7 @@ int main(int argc, char *argv[])
 		printf("SDL error while loading BMP: %s\n", SDL_GetError());
 		return 1;
 	}
+	draw_circle(map, 100, 100, 50, MAP_BOOST);
 	SDL_Texture *mapTexture = SDL_CreateTextureFromSurface(ren, map);
 	if (mapTexture == NULL) {
 		printf("SDL error while creating map texture: %s\n", SDL_GetError());
@@ -105,6 +143,7 @@ int main(int argc, char *argv[])
 		cars[i].wheel_y[3] = cars[i].height;
 
 		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
+
 
 		cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
 		SDL_FreeSurface(image);
