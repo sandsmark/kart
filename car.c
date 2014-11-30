@@ -13,77 +13,56 @@ void car_apply_force(Car *car, vec2 force)
 
 void car_move(Car *car, SDL_Surface *map)
 {
-	/*
-	if (car->speed > CAR_TOPSPEED) {
-		car->acceleration = 0;
-	}
-	else if (car->speed < CAR_TOPSPEED_REV) {
-		car->acceleration = 0;
-	}
+	float drag_coeff = CAR_DRAG_COEFF;
+	float roll_coeff = CAR_ROLL_COEFF;
 
 	// Check if we're passing over something funny
-	Point center;
-	center.x = car->x + car->width/2;
-	center.y = car->y + car->height/2;
-	for (int i=0; i<4; i++) {
-		AreaType type = map_get_type(rotate_point(car->x + car->wheel_x[i], car->y + car->wheel_y[i], center, car->angle), map);
+	ivec2 center;
+	center.x = car->pos.x + car->width/2;
+	center.y = car->pos.y + car->height/2;
 
-		switch(type){
-		case MAP_WALL:
-			//TODO moar stuffs
-			if (car->speed > 0) {
-				car->speed = -5;
-				car->acceleration = 0;
-			}
-			else if (car->speed < 0) {
-				car->speed = 5;
-				car->acceleration = 0;
-			}
-			i=5;
-			break;
-		case MAP_GRASS:
-			if (car->speed > 1) {
-				car->acceleration -= 5;
-			}
-			else if (car->speed < -1) {
-				car->acceleration += 5;
-			}
-			break;
-		case MAP_BOOST:
-			car->acceleration += 20;
-			break;
-		case MAP_MUD:
-			if (car->speed > 0.5) {
-				car->acceleration -= 7;
-			}
-			else if (car->speed < -0.5) {
-				car->acceleration += 7;
-			}
-			break;
-		case MAP_OIL:
-			car->angle += 3;
-			car->acceleration += 2;
-			break;
-		case MAP_ICE:
-			if ((rand() % 2) == 1) {
-				car->angle += 2;
-			} else {
-				car->angle -= 2;
-			}
-			break;
-		default:
-			break;
+	AreaType type = map_get_type(center, map);
+
+	switch(type){
+	case MAP_WALL:
+		car->velocity.x *= -5;
+		car->velocity.y *= -5;
+		break;
+	case MAP_GRASS:
+		roll_coeff *= 10;
+		drag_coeff *= 10;
+		break;
+	case MAP_BOOST:
+		roll_coeff = 0;
+		drag_coeff = 0;
+		car->velocity.x *= 1.2;
+		car->velocity.y *= 1.2;
+		break;
+	case MAP_MUD:
+		roll_coeff *= 7;
+		drag_coeff *= 7;
+		break;
+	case MAP_OIL:
+		vec_rotate(&car->direction, 3);
+		break;
+	case MAP_ICE:
+		if ((rand() % 2) == 1) {
+			vec_rotate(&car->direction, 4);
+		} else {
+			vec_rotate(&car->direction, -4);
 		}
+		break;
+	default:
+		break;
 	}
-	*/
 
 	/* Add up forces, resistances etc. */
 	/* Drag */
-	car->force.x += -CAR_DRAG_COEFF * car->velocity.x * length(car->velocity);
-	car->force.y += -CAR_DRAG_COEFF * car->velocity.y * length(car->velocity);
+	car->force.x += -drag_coeff * car->velocity.x * vec_length(car->velocity);
+	car->force.y += -drag_coeff * car->velocity.y * vec_length(car->velocity);
 	/* Roll resistance */
-	car->force.x += -CAR_ROLL_COEFF * car->velocity.x;
-	car->force.y += -CAR_ROLL_COEFF * car->velocity.y;
+	car->force.x += -roll_coeff * car->velocity.x;
+	car->force.y += -roll_coeff * car->velocity.y;
 
 	vec2 acceleration = {car->force.x/CAR_MASS, car->force.y/CAR_MASS};
 
@@ -91,5 +70,5 @@ void car_move(Car *car, SDL_Surface *map)
 	car->velocity.y += acceleration.y * TIME_CONSTANT;
 
 	car->pos.x += car->velocity.x * TIME_CONSTANT;
-        car->pos.y += car->velocity.y * TIME_CONSTANT;;
+	car->pos.y += car->velocity.y * TIME_CONSTANT;
 }
