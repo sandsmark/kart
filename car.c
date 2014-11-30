@@ -25,8 +25,7 @@ void car_move(Car *car, SDL_Surface *map)
 
 	switch(type){
 	case MAP_WALL:
-		car->velocity.x *= -5;
-		car->velocity.y *= -5;
+		vec_scale(car->velocity, -5);
 		break;
 	case MAP_GRASS:
 		roll_coeff *= 10;
@@ -35,8 +34,7 @@ void car_move(Car *car, SDL_Surface *map)
 	case MAP_BOOST:
 		roll_coeff = 0;
 		drag_coeff = 0;
-		car->velocity.x *= 1.2;
-		car->velocity.y *= 1.2;
+		vec_scale(car->velocity, 1.2);
 		break;
 	case MAP_MUD:
 		roll_coeff *= 7;

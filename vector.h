@@ -39,4 +39,10 @@ inline void vec_rotate(vec2 *v, float angle)
 	v->y = old_x * sn + old_y * cs;
 }
 
+inline void vec_scale(vec2 *v, float s)
+{
+	v->x *= s;
+	v->y *= s;
+}
+
 #endif /*VECTOR_H*/
