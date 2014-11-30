@@ -98,16 +98,16 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	// Load map
-	SDL_Surface *map = SDL_LoadBMP("background.bmp");
-	if (map == NULL) {
-		printf("SDL error while loading BMP: %s\n", SDL_GetError());
+//	SDL_RenderSetScale(ren, 2, 2);
+
+	if (!map_load_tiles(ren)) {
+		printf("Failed to load all map tiles, dying\n");
 		return 1;
 	}
-	draw_circle(map, 100, 100, 50, MAP_BOOST);
-	SDL_Texture *mapTexture = SDL_CreateTextureFromSurface(ren, map);
-	if (mapTexture == NULL) {
-		printf("SDL error while creating map texture: %s\n", SDL_GetError());
+
+	const char *map_file = "map1.map";
+	if (!map_load_file(map_file)) {
+		printf("Failed to load map file %s\n", map_file);
 		return 1;
 	}
 
@@ -197,20 +197,14 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		SDL_RenderClear(ren);
-		SDL_Rect rect;
-		rect.x = 0;
-		rect.y = 0;
-		rect.w = map->w;
-		rect.h = map->h;
-		SDL_RenderCopy(ren, mapTexture, NULL, &rect);
+		map_render(ren);
 
 		for (int i=0; i<car_count; i++) {
 			for (int j=i+1; j<car_count; j++)
 			{
 				car_collison(&cars[i], &cars[j]);
 			}
-			car_move(&cars[i], map);
+			car_move(&cars[i]);
 			render_car(ren, &cars[i]);
 			memset(&cars[i].force, 0, sizeof(cars[i].force));
 		}
@@ -219,8 +213,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Clean up
-	SDL_FreeSurface(map);
-	SDL_DestroyTexture(mapTexture);
+	map_unload_tiles();
 	for (int i=0; i<car_count; i++) {
 		SDL_DestroyTexture(cars[i].texture);
 	}

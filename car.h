@@ -21,7 +21,7 @@ typedef struct {
 
 void car_apply_force(Car *car, vec2 force);
 void car_collison(Car *car1, Car *car2);
-void car_move(Car *car, SDL_Surface *map);
+void car_move(Car *car);
 
 #endif
 

@@ -34,7 +34,7 @@ void car_collison(Car *car1, Car *car2)
 	}
 }
 
-void car_move(Car *car, SDL_Surface *map)
+void car_move(Car *car)
 {
 	float drag_coeff = CAR_DRAG_COEFF;
 	float roll_coeff = CAR_ROLL_COEFF;
@@ -44,7 +44,7 @@ void car_move(Car *car, SDL_Surface *map)
 	center.x = car->pos.x + car->width/2;
 	center.y = car->pos.y + car->height/2;
 
-	AreaType type = map_get_type(center, map);
+	AreaType type = map_get_type(center);
 
 	switch(type){
 	case MAP_WALL:

@@ -16,5 +16,22 @@ typedef enum {
 	MAP_WATER     = 0xff0000  // rgb: 000,000,255
 } AreaType;
 
-AreaType map_get_type(const ivec2 pos, const SDL_Surface *map);
+typedef enum {
+	TILE_HORIZONTAL = 0,
+	TILE_VERTICAL,
+	TILE_UPPERLEFT,
+	TILE_UPPERRIGHT,
+	TILE_BOTTOMLEFT,
+	TILE_BOTTOMRIGHT,
+	TILE_NONE
+} TileType;
+
+int map_load_tiles(SDL_Renderer *ren);
+void map_unload_tiles();
+int map_load_file(const char *file);
+
+void map_render(SDL_Renderer *ren);
+
+AreaType map_get_type(const ivec2 pos);
 #endif
+/* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/
