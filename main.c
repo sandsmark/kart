@@ -179,12 +179,12 @@ int main(int argc, char *argv[])
 			Car *car = &cars[human_player];
 			if (keystates[SDL_SCANCODE_UP]) {
 				vec2 force = car->direction;
-				vec_scale(force, 2500);
+				vec_scale(&force, 2500);
 				car_apply_force(car, force);
 			}
 			if (keystates[SDL_SCANCODE_DOWN]) {
 				vec2 force = car->direction;
-				vec_scale(force, -2500);
+				vec_scale(&force, -2500);
 				car_apply_force(car, force);
 			}
 			if (keystates[SDL_SCANCODE_LEFT]) {
