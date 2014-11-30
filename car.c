@@ -48,7 +48,7 @@ void car_move(Car *car)
 
 	switch(type){
 	case MAP_WALL:
-		vec_scale(&car->velocity, -3);
+		vec_scale(&car->velocity, -1);
 		break;
 	case MAP_GRASS:
 		roll_coeff *= 10;
