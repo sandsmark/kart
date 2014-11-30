@@ -11,6 +11,29 @@ void car_apply_force(Car *car, vec2 force)
 	car->force.y += force.y;
 }
 
+void car_collison(Car *car1, Car *car2)
+{
+	ivec2 car1_center, car2_center;
+	car1_center.x = car1->pos.x + car1->width/2;
+	car1_center.y = car1->pos.y + car1->height/2;
+	car2_center.x = car2->pos.x + car2->width/2;
+	car2_center.y = car2->pos.y + car2->height/2;
+
+	vec2 difference;
+	difference.x = car1_center.x - car2_center.x;
+	difference.y = car1_center.y - car2_center.y;
+
+	if (abs(difference.x) < (car1->width/2 + car2->width/2) &&
+	    abs(difference.y) < (car1->height/2 + car2->height/2))
+	{
+		vec_normalize(&difference);
+		vec_scale(&difference, 3000);
+		car_apply_force(car1, difference);
+		vec_scale(&difference, -1);
+		car_apply_force(car2, difference);
+	}
+}
+
 void car_move(Car *car, SDL_Surface *map)
 {
 	float drag_coeff = CAR_DRAG_COEFF;

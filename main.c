@@ -206,6 +206,10 @@ int main(int argc, char *argv[])
 		SDL_RenderCopy(ren, mapTexture, NULL, &rect);
 
 		for (int i=0; i<car_count; i++) {
+			for (int j=i+1; j<car_count; j++)
+			{
+				car_collison(&cars[i], &cars[j]);
+			}
 			car_move(&cars[i], map);
 			render_car(ren, &cars[i]);
 			memset(&cars[i].force, 0, sizeof(cars[i].force));
