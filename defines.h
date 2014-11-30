@@ -12,8 +12,8 @@ typedef struct {
 } ivec2;
 
 #define CAR_MASS 20 /*in kg*/
-#define CAR_DRAG_COEFF 0.2
-#define CAR_ROLL_COEFF 0.03
+#define CAR_DRAG_COEFF 0.1
+#define CAR_ROLL_COEFF 3.0
 
 // Not defined with ansi C
 #define PI 3.14159265

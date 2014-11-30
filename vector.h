@@ -17,7 +17,6 @@ inline float vec_length(vec2 v)
 
 inline float vec_angle(vec2 a, vec2 b)
 {
-	/*return acos(dot(a,b)) * 180 / PI;*/
 	return (atan2(b.y, b.x) - atan2(a.y, a.x)) * 180 / PI;
 }
 
