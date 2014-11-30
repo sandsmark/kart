@@ -148,9 +148,7 @@ int map_load_file(const char *filename)
 
 	char buf[128] = { 0 };
 	for (unsigned int y=0; y<height; y++) {
-		fgets(buf, sizeof(buf), file);
-
-		if (strlen(buf) < width) {
+		if (fgets(buf, sizeof(buf), file) == NULL || strlen(buf) < width) {
 			printf("line length %lu is less than map width %u\n", strlen(buf), width);
 			return 0;
 		}
