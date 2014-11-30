@@ -90,6 +90,20 @@ void car_move(Car *car)
 	car->velocity.x += acceleration.x * TIME_CONSTANT;
 	car->velocity.y += acceleration.y * TIME_CONSTANT;
 
+	/* Kill orthogonal velocity */
+	float drift = 0.8;
+	vec2 fw, side, fw_velo, side_velo;
+	vec_copy(car->direction, &fw);
+	vec_normalize(&fw);
+	vec_copy(fw, &side);
+	vec_rotate(&side, 90);
+	fw_velo.x = fw.x * vec_dot(car->velocity, fw);
+	fw_velo.y = fw.y * vec_dot(car->velocity, fw);
+	side_velo.x = side.x * vec_dot(car->velocity, side);
+	side_velo.y = side.y * vec_dot(car->velocity, side);
+	car->velocity.x = fw_velo.x + side_velo.x * drift;
+	car->velocity.y = fw_velo.y + side_velo.y * drift;
+
 	car->pos.x += car->velocity.x * TIME_CONSTANT;
 	car->pos.y += car->velocity.y * TIME_CONSTANT;
 }

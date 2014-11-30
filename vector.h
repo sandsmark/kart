@@ -20,6 +20,12 @@ inline float vec_angle(vec2 a, vec2 b)
 	return (atan2(b.y, b.x) - atan2(a.y, a.x)) * 180 / PI;
 }
 
+inline void vec_copy(vec2 in, vec2 *out)
+{
+	out->x = in.x;
+	out->y = in.y;
+}
+
 inline void vec_normalize(vec2 *v)
 {
 	v->x /= vec_length(*v);
