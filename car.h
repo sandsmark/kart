@@ -19,8 +19,8 @@ typedef struct {
 	SDL_Texture *texture;
 } Car;
 
-void apply_force(Car *car, vec2 force);
-void move_car(Car *car, SDL_Surface *map);
+void car_apply_force(Car *car, vec2 force);
+void car_move(Car *car, SDL_Surface *map);
 
 #endif
 

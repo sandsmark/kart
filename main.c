@@ -181,21 +181,21 @@ int main(int argc, char *argv[])
 				vec2 force = car->direction;
 				force.x *= 2500;
 				force.y *= 2500;
-				apply_force(car, force);
+				car_apply_force(car, force);
 			}
 			if (keystates[SDL_SCANCODE_DOWN]) {
 				vec2 force = car->direction;
 				force.x *= -2500;
 				force.y *= -2500;
-				apply_force(car, force);
+				car_apply_force(car, force);
 			}
 			if (keystates[SDL_SCANCODE_LEFT]) {
-				rotate(&car->direction, -3);
-				rotate(&car->velocity, -3);
+				vec_rotate(&car->direction, -3);
+				vec_rotate(&car->velocity, -3);
 			}
 			if (keystates[SDL_SCANCODE_RIGHT]) {
-				rotate(&car->direction, 3);
-				rotate(&car->velocity, 3);
+				vec_rotate(&car->direction, 3);
+				vec_rotate(&car->velocity, 3);
 			}
 		}
 
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 		SDL_RenderCopy(ren, mapTexture, NULL, &rect);
 
 		for (int i=0; i<car_count; i++) {
-			move_car(&cars[i], map);
+			car_move(&cars[i], map);
 			render_car(ren, &cars[i]);
 			memset(&cars[i].force, 0, sizeof(cars[i].force));
 		}

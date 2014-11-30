@@ -1,4 +1,3 @@
-#include <SDL2/SDL.h>
 #include <math.h>
 
 #include "car.h"
@@ -6,13 +5,13 @@
 #include "map.h"
 #include "vector.h"
 
-void apply_force(Car *car, vec2 force)
+void car_apply_force(Car *car, vec2 force)
 {
 	car->force.x += force.x;
 	car->force.y += force.y;
 }
 
-void move_car(Car *car, SDL_Surface *map)
+void car_move(Car *car, SDL_Surface *map)
 {
 	/*
 	if (car->speed > CAR_TOPSPEED) {

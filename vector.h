@@ -5,14 +5,14 @@
 
 #include "defines.h"
 
-inline float dot(vec2 a, vec2 b)
+inline float vec_dot(vec2 a, vec2 b)
 {
 	return a.x * b.x + a.y * b.y;
 }
 
-inline float length(vec2 v)
+inline float vec_length(vec2 v)
 {
-	return sqrt(dot(v, v));
+	return sqrt(vec_dot(v, v));
 }
 
 inline float vec_angle(vec2 a, vec2 b)
@@ -21,13 +21,13 @@ inline float vec_angle(vec2 a, vec2 b)
 	return (atan2(b.y, b.x) - atan2(a.y, a.x)) * 180 / PI;
 }
 
-inline void normalize(vec2 *v)
+inline void vec_normalize(vec2 *v)
 {
-	v->x /= length(*v);
-	v->y /= length(*v);
+	v->x /= vec_length(*v);
+	v->y /= vec_length(*v);
 }
 
-inline void rotate(vec2 *v, float angle)
+inline void vec_rotate(vec2 *v, float angle)
 {
 	float theta = angle * PI / 180;
 	float cs = cos(theta);
