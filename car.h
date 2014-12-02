@@ -12,6 +12,8 @@ typedef struct {
 	vec2 velocity;
 	vec2 pos;
 
+	char drift;
+
 	int width, height;
 	int wheel_x[4];
 	int wheel_y[4];

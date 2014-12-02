@@ -91,7 +91,12 @@ void car_move(Car *car)
 	car->velocity.y += acceleration.y * TIME_CONSTANT;
 
 	/* Kill orthogonal velocity */
-	float drift = 0.8;
+	float drift = 0.9;
+	if (car->drift)
+	{
+		drift = 0.97;
+	}
+	car->drift = 0;
 	vec2 fw, side, fw_velo, side_velo;
 	vec_copy(car->direction, &fw);
 	vec_normalize(&fw);

@@ -189,11 +189,12 @@ int main(int argc, char *argv[])
 			}
 			if (keystates[SDL_SCANCODE_LEFT]) {
 				vec_rotate(&car->direction, -3);
-				vec_rotate(&car->velocity, -3);
 			}
 			if (keystates[SDL_SCANCODE_RIGHT]) {
 				vec_rotate(&car->direction, 3);
-				vec_rotate(&car->velocity, 3);
+			}
+			if (keystates[SDL_SCANCODE_SPACE]) {
+				car->drift = 1;
 			}
 		}
 
