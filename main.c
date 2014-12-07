@@ -2,11 +2,14 @@
 
 #include "car.h"
 #include "map.h"
+#include "net.h"
 #include "vector.h"
 
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
 const vec2 start = {1.0, 0.0};
+
+static int sockfd;
 
 SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filepath)
 {
@@ -77,9 +80,44 @@ void draw_circle(SDL_Surface *surface, int cx, int cy, int radius, Uint8 pixel)
 
 int main(int argc, char *argv[])
 {
-	if (argc > 1) {
-		printf("Usage: %s\n", argv[0]);
+	if (argc < 2)
+	{
+		printf("Usage: %s [server|client|local] [address] <port>\n", argv[0]);
 		return 1;
+	}
+
+	if (strcmp(argv[1], "server") == 0)
+	{
+		if (argc != 3)
+		{
+			printf("Usage: %s server <port>\n", argv[0]);
+			return 1;
+		}
+		sockfd = start_server(atoi(argv[2]));
+	}
+	else if (strcmp(argv[1], "client") == 0)
+	{
+		if (argc != 4)
+		{
+			printf("Usage: %s client <address> <port>\n", argv[0]);
+			return 1;
+		}
+		if (strcmp(argv[2], "localhost") == 0)
+			sockfd = start_client("127.0.0.1", atoi(argv[3]));
+		else
+			sockfd = start_client(argv[2], atoi(argv[3]));
+	}
+	else if (strcmp(argv[1], "local") == 0)
+	{
+		if (argc != 2)
+		{
+			printf("Usage: %s local\n", argv[0]);
+			return 1;
+		}
+	}
+	else
+	{
+		printf("Invalid argument: %s\n", argv[1]);
 	}
 
 	// Set up SDL
