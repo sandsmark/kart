@@ -138,16 +138,11 @@ int main(int argc, char *argv[])
 
 //	SDL_RenderSetScale(ren, 2, 2);
 
-	if (!map_load_tiles(ren)) {
-		printf("Failed to load all map tiles, dying\n");
+	if (!map_init(ren, "map1.map")) {
+		printf("unable to initialize map!\n");
 		return 1;
 	}
 
-	const char *map_file = "map1.map";
-	if (!map_load_file(map_file)) {
-		printf("Failed to load map file %s\n", map_file);
-		return 1;
-	}
 
 	// Create cars
 	int car_count = 2;
@@ -252,7 +247,7 @@ int main(int argc, char *argv[])
 	}
 
 	// Clean up
-	map_unload_tiles();
+	map_destroy();
 	for (int i=0; i<car_count; i++) {
 		SDL_DestroyTexture(cars[i].texture);
 	}

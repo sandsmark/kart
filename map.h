@@ -16,21 +16,10 @@ typedef enum {
 	MAP_WATER     = 0xff0000  // rgb: 000,000,255
 } AreaType;
 
-typedef enum {
-	TILE_HORIZONTAL = 0,
-	TILE_VERTICAL,
-	TILE_UPPERLEFT,
-	TILE_UPPERRIGHT,
-	TILE_BOTTOMLEFT,
-	TILE_BOTTOMRIGHT,
-	TILE_NONE
-} TileType;
-
-int map_load_tiles(SDL_Renderer *ren);
-void map_unload_tiles();
-int map_load_file(const char *file);
-
+int map_init(SDL_Renderer *ren, const char *map_file);
+void map_destroy();
 void map_render(SDL_Renderer *ren);
+int map_add_modifier(ivec2 pos, AreaType type);
 
 AreaType map_get_type(const ivec2 pos);
 #endif
