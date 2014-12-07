@@ -78,71 +78,12 @@ void draw_circle(SDL_Surface *surface, int cx, int cy, int radius, Uint8 pixel)
 	}
 }
 
-int main(int argc, char *argv[])
+int run_game(SDL_Renderer *ren)
 {
-	if (argc < 2)
-	{
-		sockfd = start_server(54321);
-	} else {
-
-		if (strcmp(argv[1], "server") == 0)
-		{
-			if (argc != 3)
-			{
-				printf("Usage: %s server <port>\n", argv[0]);
-				return 1;
-			}
-			sockfd = start_server(atoi(argv[2]));
-		}
-		else if (strcmp(argv[1], "client") == 0)
-		{
-			if (argc != 4)
-			{
-				printf("Usage: %s client <address> <port>\n", argv[0]);
-				return 1;
-			}
-			if (strcmp(argv[2], "localhost") == 0)
-				sockfd = start_client("127.0.0.1", atoi(argv[3]));
-			else
-				sockfd = start_client(argv[2], atoi(argv[3]));
-		}
-		else if (strcmp(argv[1], "local") == 0)
-		{
-			if (argc != 2)
-			{
-				printf("Usage: %s local\n", argv[0]);
-				return 1;
-			}
-		}
-		else
-		{
-			printf("Invalid argument: %s\n", argv[1]);
-		}
-	}
-
-	// Set up SDL
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		printf("SDL init failed: %s\n", SDL_GetError());
-		return 1;
-	}
-	SDL_Window *win = SDL_CreateWindow("The Kartering", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-	if (win == NULL){
-		printf("SDL error creating window: %s\n", SDL_GetError());
-		return 1;
-	}
-	SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	if (ren == NULL){
-		printf("SDL error while creating renderer: %s\n", SDL_GetError());
-		return 1;
-	}
-
-//	SDL_RenderSetScale(ren, 2, 2);
-
 	if (!map_init(ren, "map1.map")) {
 		printf("unable to initialize map!\n");
 		return 1;
 	}
-
 
 	// Create cars
 	int car_count = 2;
@@ -165,25 +106,14 @@ int main(int argc, char *argv[])
 		cars[i].width = image->w;
 		cars[i].height = image->h;
 
-		// Store wheel positions individually
-		cars[i].wheel_x[0] = 0;
-		cars[i].wheel_y[0] = 0;
-		cars[i].wheel_x[1] = cars[i].width;
-		cars[i].wheel_y[1] = 0;
-		cars[i].wheel_x[2] = 0;
-		cars[i].wheel_y[2] = cars[i].height;
-		cars[i].wheel_x[3] = cars[i].width;
-		cars[i].wheel_y[3] = cars[i].height;
-
 		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
-
 
 		cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
 		SDL_FreeSurface(image);
 
 		if (cars[i].texture == NULL) {
 			printf("SDL error while creating texture: %s\n", SDL_GetError());
-			return 0;
+			return 1;
 		}
 	}
 
@@ -251,6 +181,139 @@ int main(int argc, char *argv[])
 	for (int i=0; i<car_count; i++) {
 		SDL_DestroyTexture(cars[i].texture);
 	}
+	free(cars);
+	return 0;
+}
+
+void show_menu(SDL_Renderer *ren)
+{
+	SDL_Surface *surface = SDL_LoadBMP("startscreen.bmp");
+	if (surface == NULL) {
+		printf("SDL error while loading BMP: %s\n", SDL_GetError());
+		return;
+	}
+	SDL_Texture *image = SDL_CreateTextureFromSurface(ren, surface);
+	if (image == NULL) {
+		printf("SDL error while creating start screen texture from image: %s\n", SDL_GetError());
+		SDL_FreeSurface(surface);
+		return;
+	}
+	SDL_FreeSurface(surface);
+	SDL_Event event;
+	SDL_Rect target;
+	target.x = 0;
+	target.y = 0;
+	target.w = SCREEN_WIDTH;
+	target.h = SCREEN_HEIGHT;
+	int quit = 0;
+	int choice = 0;
+	while (!quit) {
+		while (SDL_PollEvent(&event)){
+			//If user closes the window
+			if (event.type == SDL_QUIT) {
+				return;
+			}
+			//If user presses any key
+			if (event.type == SDL_KEYDOWN) {
+				switch (event.key.keysym.sym) {
+				case SDLK_RETURN:
+					if (choice != 1) {
+						quit = 1;
+					}
+					break;
+				case SDLK_DOWN:
+					choice = (choice + 1) % 3;
+					break;
+				case SDLK_UP:
+					choice--;
+					if (choice < 0) choice = 2;
+					break;
+				}
+			}
+		}
+
+
+		SDL_RenderCopy(ren, image, 0, &target);
+
+		                          //r    g     b     a
+		SDL_SetRenderDrawColor(ren, 0x0, 0xff, 0xff, 0xff);
+		SDL_Rect selection_rect;
+		selection_rect.x = 364;
+		selection_rect.y = 320 + choice * 62;
+		selection_rect.h = 10;
+		selection_rect.w = 10;
+		SDL_RenderFillRect(ren, &selection_rect);
+
+		SDL_RenderPresent(ren);
+	}
+
+	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
+	SDL_RenderClear(ren);
+	if (choice == 0) {
+		run_game(ren);
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	if (argc < 2)
+	{
+		sockfd = start_server(54321);
+	} else {
+
+		if (strcmp(argv[1], "server") == 0)
+		{
+			if (argc != 3)
+			{
+				printf("Usage: %s server <port>\n", argv[0]);
+				return 1;
+			}
+			sockfd = start_server(atoi(argv[2]));
+		}
+		else if (strcmp(argv[1], "client") == 0)
+		{
+			if (argc != 4)
+			{
+				printf("Usage: %s client <address> <port>\n", argv[0]);
+				return 1;
+			}
+			if (strcmp(argv[2], "localhost") == 0)
+				sockfd = start_client("127.0.0.1", atoi(argv[3]));
+			else
+				sockfd = start_client(argv[2], atoi(argv[3]));
+		}
+		else if (strcmp(argv[1], "local") == 0)
+		{
+			if (argc != 2)
+			{
+				printf("Usage: %s local\n", argv[0]);
+				return 1;
+			}
+		}
+		else
+		{
+			printf("Invalid argument: %s\n", argv[1]);
+		}
+	}
+
+	// Set up SDL
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		printf("SDL init failed: %s\n", SDL_GetError());
+		return 1;
+	}
+	SDL_Window *win = SDL_CreateWindow("The Kartering", 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	if (win == NULL){
+		printf("SDL error creating window: %s\n", SDL_GetError());
+		return 1;
+	}
+	SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	if (ren == NULL){
+		printf("SDL error while creating renderer: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	show_menu(ren);
+
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 	SDL_Quit();
