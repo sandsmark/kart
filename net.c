@@ -4,9 +4,9 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#ifdef WIN32
+#ifdef __MINGW32__
 #include <winsock2.h>
-#include "inet_v6defs.h"
+#include "windowssucks/inet_v6defs.h"
 #else
 #include <arpa/inet.h>
 #include <sys/socket.h>
