@@ -7,7 +7,7 @@ EXECUTABLE=kart
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	gcc -o $@ $^ $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f $(EXECUTABLE) $(OBJECTS)

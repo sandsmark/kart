@@ -1,10 +1,16 @@
-#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include <sys/socket.h>
 #include <unistd.h>
+
+#ifdef WIN32
+#include <winsock2.h>
+#include "inet_v6defs.h"
+#else
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#endif
 
 static void die(const char *msg)
 {
