@@ -3,6 +3,7 @@
 #include "car.h"
 #include "map.h"
 #include "net.h"
+#include "sound.h"
 #include "vector.h"
 
 const int SCREEN_WIDTH  = 1024;
@@ -117,6 +118,8 @@ int run_game(SDL_Renderer *ren)
 		}
 	}
 
+	//sound_init();
+
 	int human_player = 0;
 
 	int quit = 0;
@@ -159,6 +162,11 @@ int run_game(SDL_Renderer *ren)
 			if (keystates[SDL_SCANCODE_SPACE]) {
 				car->drift = 1;
 			}
+			int freq = vec_length(car->velocity);
+			if (freq < 10) freq = 10;
+			freq = sqrt(freq);
+			freq = 1500 / freq;
+			sound_set_car_freq(freq);
 		}
 
 		map_render(ren);
@@ -311,6 +319,7 @@ int main(int argc, char *argv[])
 		printf("SDL error while creating renderer: %s\n", SDL_GetError());
 		return 1;
 	}
+
 
 	show_menu(ren);
 
