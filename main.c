@@ -266,11 +266,12 @@ void show_menu(SDL_Renderer *ren)
 
 int main(int argc, char *argv[])
 {
+	printf("kartering " REVISION " launching...\n");
+	net_init();
 	if (argc < 2)
 	{
 		sockfd = start_server(54321);
 	} else {
-
 		if (strcmp(argv[1], "server") == 0)
 		{
 			if (argc != 3)
@@ -325,6 +326,7 @@ int main(int argc, char *argv[])
 
 	show_menu(ren);
 
+	net_cleanup();
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
 	SDL_Quit();

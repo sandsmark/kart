@@ -52,3 +52,42 @@ int start_client(const char *addr, int port)
 	printf("Connected to server on %s:%d\n", addr, port);
 	return sockfd;
 }
+
+int net_init()
+{
+    // fuck you, windows
+#ifdef __MINGW32__
+    WORD wVersionRequested;
+    WSADATA wsaData;
+    int err;
+
+    wVersionRequested = MAKEWORD(2, 2);
+
+    err = WSAStartup(wVersionRequested, &wsaData);
+    if (err != 0) {
+        /* Tell the user that we could not find a usable */
+        /* Winsock DLL.                                  */
+        printf("WSAStartup failed with error: %d\n", err);
+        exit(1);
+    }
+    if (LOBYTE(wsaData.wVersion) != 2 || HIBYTE(wsaData.wVersion) != 2) {
+        /* Tell the user that we could not find a usable */
+        /* WinSock DLL.                                  */
+        printf("Could not find a usable version of Winsock.dll\n");
+        WSACleanup();
+        exit(1);
+    }
+    else
+        printf("The Winsock 2.2 dll was found okay\n");
+
+#endif
+    return 0;
+}
+
+void net_cleanup()
+{
+    // fuck windows for realz, do I have to clean up everything after you
+#ifdef __MINGW32__
+    WSACleanup();
+#endif
+}
