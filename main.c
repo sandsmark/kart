@@ -11,7 +11,8 @@
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
 const vec2 start = {1.0, 0.0};
-
+static netmode_t netmode;
+static unsigned long long tic = 0;
 static int sockfd;
 
 SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filepath)
@@ -88,41 +89,47 @@ int run_game(SDL_Renderer *ren)
 		return 1;
 	}
 
-	// Create cars
 	int car_count = 2;
 	Car *cars = calloc(car_count, sizeof(Car));
 
-	for (int i=0; i<car_count; i++) {
-		// Initialize car
-		cars[i].pos.x = 250;
-		cars[i].pos.y = 30 + i*20;
-		cars[i].direction.x = start.x;
-		cars[i].direction.y = start.y;
+	if (netmode == SERVER || netmode == LOCAL)
+	{
+		// Create cars
+		for (int i=0; i<car_count; i++) {
+			// Initialize car
+			cars[i].pos.x = 250;
+			cars[i].pos.y = 30 + i*20;
+			cars[i].direction.x = start.x;
+			cars[i].direction.y = start.y;
 
-		char filename[10];
-		sprintf(filename, "car%d.bmp", i);
-		SDL_Surface *image = SDL_LoadBMP(filename);
-		if (image == NULL) {
-			printf("SDL error while loading BMP: %s\n", SDL_GetError());
-			return 0;
-		}
-		cars[i].width = image->w;
-		cars[i].height = image->h;
+			char filename[10];
+			sprintf(filename, "car%d.bmp", i);
+			SDL_Surface *image = SDL_LoadBMP(filename);
+			if (image == NULL) {
+				printf("SDL error while loading BMP: %s\n", SDL_GetError());
+				return 0;
+			}
+			cars[i].width = image->w;
+			cars[i].height = image->h;
 
-		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
+			SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
 
-		cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
-		SDL_FreeSurface(image);
+			cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
+			SDL_FreeSurface(image);
 
-		if (cars[i].texture == NULL) {
-			printf("SDL error while creating texture: %s\n", SDL_GetError());
-			return 1;
+			if (cars[i].texture == NULL) {
+				printf("SDL error while creating texture: %s\n", SDL_GetError());
+				return 1;
+			}
+
 		}
 	}
 
-	//sound_init();
-
-	int human_player = 0;
+	int clientfd = -1;
+	if (netmode == SERVER && clientfd < 0)
+	{
+		clientfd = net_accept(sockfd);
+	}
 
 	int quit = 0;
 	SDL_Event event;
@@ -142,9 +149,9 @@ int run_game(SDL_Renderer *ren)
 				}
 			}
 		}
-		if (human_player != -1) {
+		if (netmode == LOCAL) {
 			const Uint8 *keystates = SDL_GetKeyboardState(NULL);
-			Car *car = &cars[human_player];
+			Car *car = &cars[0];
 			if (keystates[SDL_SCANCODE_UP]) {
 				vec2 force = car->direction;
 				vec_scale(&force, 2500);
@@ -170,23 +177,79 @@ int run_game(SDL_Renderer *ren)
 			freq = 1500 / freq;
 			sound_set_car_freq(freq);
 		}
+		else if (netmode == CLIENT)
+		{
+			const Uint8 *keystates = SDL_GetKeyboardState(NULL);
+			if (keystates[SDL_SCANCODE_UP]) net_set_input(NET_INPUT_UP);
+			if (keystates[SDL_SCANCODE_DOWN]) net_set_input(NET_INPUT_DOWN);
+			if (keystates[SDL_SCANCODE_LEFT]) net_set_input(NET_INPUT_LEFT);
+			if (keystates[SDL_SCANCODE_RIGHT]) net_set_input(NET_INPUT_RIGHT);
+			if (keystates[SDL_SCANCODE_SPACE]) net_set_input(NET_INPUT_SPACE);
+			net_send_input(sockfd, tic);
+		}
+		else if (netmode == SERVER)
+		{
+			char recv[64];
+			int n = net_recv(clientfd, recv, 64);
+			if (n > 0)
+			{
+				unsigned commands = atoi(strtok(recv, NET_DELIM));
+				unsigned long long recv_tic = atoll(strtok(0, NET_DELIM));
+				printf("Received: %d @ %lld\n", commands, recv_tic);
+				/* Todo: Each client own car */
+				Car *car = &cars[0];
+				if (commands & NET_INPUT_UP)
+				{
+					vec2 force = car->direction;
+					vec_scale(&force, 2500);
+					car_apply_force(car, force);
+				}
+				if (commands & NET_INPUT_DOWN)
+				{
+					vec2 force = car->direction;
+					vec_scale(&force, -2500);
+					car_apply_force(car, force);
+				}
+				if (commands & NET_INPUT_LEFT)
+				{
+					vec_rotate(&car->direction, -3);
+				}
+				if (commands & NET_INPUT_RIGHT)
+				{
+					vec_rotate(&car->direction, 3);
+				}
+				if (commands & NET_INPUT_SPACE)
+				{
+					car->drift = 1;
+				}
+			}
+		}
 
 		map_render(ren);
 
 		for (int i=0; i<car_count; i++) {
-			for (int j=i+1; j<car_count; j++)
+			if (netmode == LOCAL || netmode == SERVER)
 			{
-				car_collison(&cars[i], &cars[j]);
+				for (int j=i+1; j<car_count; j++)
+				{
+					car_collison(&cars[i], &cars[j]);
+				}
+				car_move(&cars[i]);
+				memset(&cars[i].force, 0, sizeof(cars[i].force));
 			}
-			car_move(&cars[i]);
 			render_car(ren, &cars[i]);
-			memset(&cars[i].force, 0, sizeof(cars[i].force));
 		}
 
 		SDL_RenderPresent(ren);
+
+		// Server increases tics
+		if (netmode == SERVER)
+			tic++;
 	}
 
 	// Clean up
+	net_close(sockfd);
+	sockfd = 0;
 	map_destroy();
 	for (int i=0; i<car_count; i++) {
 		SDL_DestroyTexture(cars[i].texture);
@@ -270,41 +333,45 @@ int main(int argc, char *argv[])
 	net_init();
 	if (argc < 2)
 	{
-		sockfd = start_server(54321);
-	} else {
-		if (strcmp(argv[1], "server") == 0)
+		printf("Usage: %s [server|client|local] [address] <port>\n", argv[0]);
+		return 1;
+	}
+
+	if (strcmp(argv[1], "server") == 0)
+	{
+		if (argc != 3)
 		{
-			if (argc != 3)
-			{
-				printf("Usage: %s server <port>\n", argv[0]);
-				return 1;
-			}
-			sockfd = start_server(atoi(argv[2]));
+			printf("Usage: %s server <port>\n", argv[0]);
+			return 1;
 		}
-		else if (strcmp(argv[1], "client") == 0)
+		sockfd = net_start_server(atoi(argv[2]));
+		netmode = SERVER;
+	}
+	else if (strcmp(argv[1], "client") == 0)
+	{
+		if (argc != 4)
 		{
-			if (argc != 4)
-			{
-				printf("Usage: %s client <address> <port>\n", argv[0]);
-				return 1;
-			}
-			if (strcmp(argv[2], "localhost") == 0)
-				sockfd = start_client("127.0.0.1", atoi(argv[3]));
-			else
-				sockfd = start_client(argv[2], atoi(argv[3]));
+			printf("Usage: %s client <address> <port>\n", argv[0]);
+			return 1;
 		}
-		else if (strcmp(argv[1], "local") == 0)
-		{
-			if (argc != 2)
-			{
-				printf("Usage: %s local\n", argv[0]);
-				return 1;
-			}
-		}
+		if (strcmp(argv[2], "localhost") == 0)
+			sockfd = net_start_client("127.0.0.1", atoi(argv[3]));
 		else
+			sockfd = net_start_client(argv[2], atoi(argv[3]));
+		netmode = CLIENT;
+	}
+	else if (strcmp(argv[1], "local") == 0)
+	{
+		if (argc != 2)
 		{
-			printf("Invalid argument: %s\n", argv[1]);
+			printf("Usage: %s local\n", argv[0]);
+			return 1;
 		}
+		netmode = LOCAL;
+	}
+	else
+	{
+		printf("Invalid argument: %s\n", argv[1]);
 	}
 
 	// Set up SDL

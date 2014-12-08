@@ -1,3 +1,5 @@
+#include <fcntl.h>
+#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,18 +14,21 @@
 #include <sys/socket.h>
 #endif
 
+static unsigned input_mask = 0;
+
 static void die(const char *msg)
 {
 	fprintf(stderr, "%s\n", msg);
 	exit(1);
 }
 
-int start_server(int port)
+int net_start_server(int port)
 {
 	int sockfd, err;
 	struct sockaddr_in serv_addr;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		die("Failed to create socket");
+	fcntl(sockfd, F_SETFL, O_NONBLOCK);
 	memset(&serv_addr, 0, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
@@ -36,7 +41,7 @@ int start_server(int port)
 	return sockfd;
 }
 
-int start_client(const char *addr, int port)
+int net_start_client(const char *addr, int port)
 {
 	int sockfd, err;
 	struct sockaddr_in serv_addr;
@@ -90,4 +95,48 @@ void net_cleanup()
 #ifdef __MINGW32__
     WSACleanup();
 #endif
+}
+
+int net_accept(int sockfd)
+{
+	struct pollfd pfd;
+	pfd.fd = sockfd;
+	pfd.events = POLLIN;
+	/* Wait for client */
+	printf("Waiting for connection\n");
+	poll(&pfd, 1, -1);
+	int clientfd = accept(sockfd, (struct sockaddr*)NULL, NULL);
+	printf("Got connection: %d\n", clientfd);
+	if (clientfd < 0)
+		printf("accept failed\n");
+	return clientfd;
+}
+
+int net_recv(int sockfd, char *buf, int buf_len)
+{
+	int n;
+	n = recv(sockfd, buf, buf_len, 0);
+	if (n > 0)
+		buf[n] = '\0';
+	return n;
+}
+
+void net_set_input(unsigned input)
+{
+	input_mask |= input;
+}
+
+void net_send_input(int sockfd, unsigned long long tic)
+{
+	if (input_mask == 0)
+		return;
+	char send_buf[64];
+	sprintf(send_buf, "%d" ":" "%lld", input_mask, tic);
+	write(sockfd, send_buf, strlen(send_buf));
+	input_mask = 0;
+}
+
+void net_close(int sockfd)
+{
+	close(sockfd);
 }
