@@ -14,6 +14,17 @@ const vec2 start = {1.0, 0.0};
 static netmode_t netmode;
 static unsigned long long tic = 0;
 static int sockfd;
+#define NUM_CLIENTS 1
+struct client {
+	int idx;
+	int fd;
+	Car *car;
+	SDL_mutex *cmd_lock;
+	unsigned cmd;
+	SDL_Thread *thr;
+};
+static struct client clients[NUM_CLIENTS];
+SDL_atomic_t net_listen;
 
 SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filepath)
 {
@@ -82,6 +93,29 @@ void draw_circle(SDL_Surface *surface, int cx, int cy, int radius, Uint8 pixel)
 	}
 }
 
+static int recv_loop(void *data)
+{
+	struct client *me = (struct client *)data;
+	char buf[64];
+	ssize_t n = 1;
+	while (SDL_AtomicGet(&net_listen) && n)
+	{
+		n = net_recv(me->fd, buf, 64);
+		if (n > 0)
+		{
+			/* TODO: sanitization */
+			unsigned cmd = atoi(buf);
+			printf("T%d: Received: %d\n", me->idx, cmd);
+			if (SDL_LockMutex(me->cmd_lock) == 0)
+			{
+				me->cmd = cmd;
+				SDL_UnlockMutex(me->cmd_lock);
+			}
+		}
+	}
+	return 0;
+}
+
 int run_server(SDL_Renderer *ren)
 {
 	if (!map_init(ren, "map1.map")) {
@@ -89,50 +123,69 @@ int run_server(SDL_Renderer *ren)
 		return 1;
 	}
 
-	int car_count = 2;
-	Car *cars = calloc(car_count, sizeof(Car));
-
-	// Create cars
-	for (int i=0; i<car_count; i++) {
-		// Initialize car
-		cars[i].pos.x = 250;
-		cars[i].pos.y = 30 + i*20;
-		cars[i].direction.x = start.x;
-		cars[i].direction.y = start.y;
-
+	SDL_AtomicSet(&net_listen, 1);
+	printf("Waiting for clients...\n");
+	/* Set up each client */
+	for (int i = 0; i < NUM_CLIENTS; i++)
+	{
+		clients[i].fd = net_accept(sockfd);
+		if (clients[i].fd < 0)
+		{
+			printf("Accept failed\n");
+			return 1;
+		}
+		clients[i].car = calloc(1, sizeof(*(clients[i].car)));
+		if (clients[i].car == NULL)
+		{
+			printf("Could not allocate memory for car\n");
+			return 1;
+		}
+		/* TODO: Move car creation into own function */
+		Car *car = clients[i].car;
+		car->pos.x = 250;
+		car->pos.y = 30 + i*20;
+		car->direction.x = start.x;
+		car->direction.y = start.y;
 		char filename[10];
 		sprintf(filename, "car%d.bmp", i);
 		SDL_Surface *image = SDL_LoadBMP(filename);
 		if (image == NULL) {
 			printf("SDL error while loading BMP: %s\n", SDL_GetError());
-			return 0;
+			return 1;
 		}
-		cars[i].width = image->w;
-		cars[i].height = image->h;
-
+		car->width = image->w;
+		car->height = image->h;
 		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
-
-		cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
+		car->texture = SDL_CreateTextureFromSurface(ren, image);
 		SDL_FreeSurface(image);
-
-		if (cars[i].texture == NULL) {
+		if (car->texture == NULL) {
 			printf("SDL error while creating texture: %s\n", SDL_GetError());
 			return 1;
 		}
 
-	}
+		clients[i].cmd_lock = SDL_CreateMutex();
+		if (clients[i].cmd_lock == NULL)
+		{
+			printf("Failed to create mutex\n");
+			return 1;
+		}
 
-	int clientfd = -1;
-	if (clientfd < 0)
-	{
-		clientfd = net_accept(sockfd);
+		clients[i].thr = SDL_CreateThread(recv_loop, "Recv Client", &clients[i]);
+		if (clients[i].thr == NULL)
+		{
+			printf("Failed to create recv thread\n");
+			return 1;
+		}
+		printf("Num clients: %d\n", i+1);
 	}
+	printf("All clients connected\n");
 
 	int quit = 0;
 	SDL_Event event;
 
 	while (!quit) {
-		while (SDL_PollEvent(&event)){
+		while (SDL_PollEvent(&event))
+		{
 			//If user closes the window
 			if (event.type == SDL_QUIT) {
 				quit = 1;
@@ -146,51 +199,52 @@ int run_server(SDL_Renderer *ren)
 				}
 			}
 		}
-		char recv[64];
-		int n = net_recv(clientfd, recv, 64);
-		if (n > 0)
+
+		for (int i = 0; i < NUM_CLIENTS; i++)
 		{
-			unsigned commands = atoi(strtok(recv, NET_DELIM));
-			unsigned long long recv_tic = atoll(strtok(0, NET_DELIM));
-			printf("Received: %d @ %lld\n", commands, recv_tic);
-			/* Todo: Each client own car */
-			Car *car = &cars[0];
-			if (commands & NET_INPUT_UP)
+			Car *car = clients[i].car;
+			if (SDL_LockMutex(clients[i].cmd_lock) == 0)
 			{
-				vec2 force = car->direction;
-				vec_scale(&force, 2500);
-				car_apply_force(car, force);
-			}
-			if (commands & NET_INPUT_DOWN)
-			{
-				vec2 force = car->direction;
-				vec_scale(&force, -2500);
-				car_apply_force(car, force);
-			}
-			if (commands & NET_INPUT_LEFT)
-			{
-				vec_rotate(&car->direction, -3);
-			}
-			if (commands & NET_INPUT_RIGHT)
-			{
-				vec_rotate(&car->direction, 3);
-			}
-			if (commands & NET_INPUT_SPACE)
-			{
-				car->drift = 1;
+				unsigned cmd = clients[i].cmd;
+				if (cmd & NET_INPUT_UP)
+				{
+					vec2 force = car->direction;
+					vec_scale(&force, 2500);
+					car_apply_force(car, force);
+				}
+				if (cmd & NET_INPUT_DOWN)
+				{
+					vec2 force = car->direction;
+					vec_scale(&force, -2500);
+					car_apply_force(car, force);
+				}
+				if (cmd & NET_INPUT_LEFT)
+				{
+					vec_rotate(&car->direction, -3);
+				}
+				if (cmd & NET_INPUT_RIGHT)
+				{
+					vec_rotate(&car->direction, 3);
+				}
+				if (cmd & NET_INPUT_SPACE)
+				{
+					car->drift = 1;
+				}
+				SDL_UnlockMutex(clients[i].cmd_lock);
 			}
 		}
 
 		map_render(ren);
 
-		for (int i=0; i<car_count; i++) {
-			for (int j=i+1; j<car_count; j++)
+		for (int i = 0; i < NUM_CLIENTS; i++)
+		{
+			for (int j = i+1; j < NUM_CLIENTS; j++)
 			{
-				car_collison(&cars[i], &cars[j]);
+				car_collison(clients[i].car, clients[j].car);
 			}
-			car_move(&cars[i]);
-			memset(&cars[i].force, 0, sizeof(cars[i].force));
-			render_car(ren, &cars[i]);
+			car_move(clients[i].car);
+			memset(&clients[i].car->force, 0, sizeof(clients[i].car->force));
+			render_car(ren, clients[i].car);
 		}
 
 		SDL_RenderPresent(ren);
@@ -200,13 +254,17 @@ int run_server(SDL_Renderer *ren)
 	}
 
 	// Clean up
-	net_close(clientfd);
-	sockfd = 0;
-	map_destroy();
-	for (int i=0; i<car_count; i++) {
-		SDL_DestroyTexture(cars[i].texture);
+	SDL_AtomicSet(&net_listen, 0);
+	for (int i = 0; i < NUM_CLIENTS; i++)
+	{
+		int t_status;
+		SDL_WaitThread(clients[i].thr, &t_status);
+		SDL_DestroyMutex(clients[i].cmd_lock);
+		SDL_DestroyTexture(clients[i].car->texture);
+		free(clients[i].car);
+		net_close(clients[i].fd);
 	}
-	free(cars);
+	map_destroy();
 	return 0;
 }
 

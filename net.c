@@ -1,5 +1,3 @@
-#include <fcntl.h>
-#include <poll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +28,6 @@ int net_start_server(int port)
 	struct sockaddr_in serv;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		die("Failed to create socket");
-	fcntl(sockfd, F_SETFL, O_NONBLOCK);
 	memset(&serv, 0, sizeof(serv));
 	serv.sin_family = AF_INET;
 	serv.sin_addr.s_addr = INADDR_ANY;
@@ -101,18 +98,10 @@ void net_cleanup()
 
 int net_accept(int sockfd)
 {
-	struct pollfd pfd;
-	pfd.fd = sockfd;
-	pfd.events = POLLIN;
-	/* Wait for client */
-	printf("Waiting for connection\n");
-	poll(&pfd, 1, -1);
 	int clientfd = accept(sockfd, (struct sockaddr*)NULL, NULL);
 	printf("Got connection: %d\n", clientfd);
 	if (clientfd < 0)
 		printf("accept failed\n");
-	else
-		fcntl(clientfd, F_SETFL, O_NONBLOCK);
 	return clientfd;
 }
 
