@@ -27,15 +27,15 @@ static void die(const char *msg)
 int net_start_server(int port)
 {
 	int sockfd, err;
-	struct sockaddr_in serv_addr;
+	struct sockaddr_in serv;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		die("Failed to create socket");
 	fcntl(sockfd, F_SETFL, O_NONBLOCK);
-	memset(&serv_addr, 0, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = INADDR_ANY;
-	serv_addr.sin_port = htons(port);
-	if ((err = bind(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr))) < 0)
+	memset(&serv, 0, sizeof(serv));
+	serv.sin_family = AF_INET;
+	serv.sin_addr.s_addr = INADDR_ANY;
+	serv.sin_port = htons(port);
+	if ((err = bind(sockfd, (struct sockaddr *)&serv, sizeof(serv))) < 0)
 		die("Failed to bind to port");
 	if ((err = listen(sockfd, 10)) < 0)
 		die("Failed to call listen on socket");
@@ -46,15 +46,15 @@ int net_start_server(int port)
 int net_start_client(const char *addr, int port)
 {
 	int sockfd, err;
-	struct sockaddr_in serv_addr;
+	struct sockaddr_in serv;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		die("Failed to create socket");
-	memset(&serv_addr, 0, sizeof(serv_addr));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(port);
-	if ((err = inet_pton(AF_INET, addr, &serv_addr.sin_addr)) < 1)
+	memset(&serv, 0, sizeof(serv));
+	serv.sin_family = AF_INET;
+	serv.sin_port = htons(port);
+	if ((err = inet_pton(AF_INET, addr, &serv.sin_addr)) < 1)
 		die("inet_ptons failed, inet address probably not valid");
-	if ((err = connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr))) < 0)
+	if ((err = connect(sockfd, (struct sockaddr *)&serv, sizeof(serv))) < 0)
 		die("Failed to connect to server");
 	printf("Connected to server on %s:%d\n", addr, port);
 	return sockfd;
