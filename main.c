@@ -317,6 +317,17 @@ void show_menu(SDL_Renderer *ren)
 		selection_rect.w = 10;
 		SDL_RenderFillRect(ren, &selection_rect);
 
+		// fancy useless effect
+		for (int i=1; i<140; i++) {
+			Uint32 t = SDL_GetTicks() / 10.0;
+			SDL_Rect r;
+			r.x = i * 5 + 105;
+			r.y = sinf(t * ((i - 85)/500.0 + 0.02)) * 10 + 135;
+			r.w = 2;
+			r.h = 2;
+			SDL_RenderFillRect(ren, &r);
+		}
+
 		SDL_RenderPresent(ren);
 	}
 
