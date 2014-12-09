@@ -497,6 +497,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		printf("Invalid argument: %s\n", argv[1]);
+		return 1;
 	}
 
 	// Set up SDL
