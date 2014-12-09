@@ -111,6 +111,8 @@ int net_accept(int sockfd)
 	printf("Got connection: %d\n", clientfd);
 	if (clientfd < 0)
 		printf("accept failed\n");
+	else
+		fcntl(clientfd, F_SETFL, O_NONBLOCK);
 	return clientfd;
 }
 
