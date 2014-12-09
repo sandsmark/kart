@@ -82,7 +82,7 @@ void draw_circle(SDL_Surface *surface, int cx, int cy, int radius, Uint8 pixel)
 	}
 }
 
-int run_game(SDL_Renderer *ren)
+int run_server(SDL_Renderer *ren)
 {
 	if (!map_init(ren, "map1.map")) {
 		printf("unable to initialize map!\n");
@@ -92,41 +92,38 @@ int run_game(SDL_Renderer *ren)
 	int car_count = 2;
 	Car *cars = calloc(car_count, sizeof(Car));
 
-	if (netmode == SERVER || netmode == LOCAL)
-	{
-		// Create cars
-		for (int i=0; i<car_count; i++) {
-			// Initialize car
-			cars[i].pos.x = 250;
-			cars[i].pos.y = 30 + i*20;
-			cars[i].direction.x = start.x;
-			cars[i].direction.y = start.y;
+	// Create cars
+	for (int i=0; i<car_count; i++) {
+		// Initialize car
+		cars[i].pos.x = 250;
+		cars[i].pos.y = 30 + i*20;
+		cars[i].direction.x = start.x;
+		cars[i].direction.y = start.y;
 
-			char filename[10];
-			sprintf(filename, "car%d.bmp", i);
-			SDL_Surface *image = SDL_LoadBMP(filename);
-			if (image == NULL) {
-				printf("SDL error while loading BMP: %s\n", SDL_GetError());
-				return 0;
-			}
-			cars[i].width = image->w;
-			cars[i].height = image->h;
-
-			SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
-
-			cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
-			SDL_FreeSurface(image);
-
-			if (cars[i].texture == NULL) {
-				printf("SDL error while creating texture: %s\n", SDL_GetError());
-				return 1;
-			}
-
+		char filename[10];
+		sprintf(filename, "car%d.bmp", i);
+		SDL_Surface *image = SDL_LoadBMP(filename);
+		if (image == NULL) {
+			printf("SDL error while loading BMP: %s\n", SDL_GetError());
+			return 0;
 		}
+		cars[i].width = image->w;
+		cars[i].height = image->h;
+
+		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
+
+		cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
+		SDL_FreeSurface(image);
+
+		if (cars[i].texture == NULL) {
+			printf("SDL error while creating texture: %s\n", SDL_GetError());
+			return 1;
+		}
+
 	}
 
 	int clientfd = -1;
-	if (netmode == SERVER && clientfd < 0)
+	if (clientfd < 0)
 	{
 		clientfd = net_accept(sockfd);
 	}
@@ -149,107 +146,211 @@ int run_game(SDL_Renderer *ren)
 				}
 			}
 		}
-		if (netmode == LOCAL) {
-			const Uint8 *keystates = SDL_GetKeyboardState(NULL);
+		char recv[64];
+		int n = net_recv(clientfd, recv, 64);
+		if (n > 0)
+		{
+			unsigned commands = atoi(strtok(recv, NET_DELIM));
+			unsigned long long recv_tic = atoll(strtok(0, NET_DELIM));
+			printf("Received: %d @ %lld\n", commands, recv_tic);
+			/* Todo: Each client own car */
 			Car *car = &cars[0];
-			if (keystates[SDL_SCANCODE_UP]) {
+			if (commands & NET_INPUT_UP)
+			{
 				vec2 force = car->direction;
 				vec_scale(&force, 2500);
 				car_apply_force(car, force);
 			}
-			if (keystates[SDL_SCANCODE_DOWN]) {
+			if (commands & NET_INPUT_DOWN)
+			{
 				vec2 force = car->direction;
 				vec_scale(&force, -2500);
 				car_apply_force(car, force);
 			}
-			if (keystates[SDL_SCANCODE_LEFT]) {
+			if (commands & NET_INPUT_LEFT)
+			{
 				vec_rotate(&car->direction, -3);
 			}
-			if (keystates[SDL_SCANCODE_RIGHT]) {
+			if (commands & NET_INPUT_RIGHT)
+			{
 				vec_rotate(&car->direction, 3);
 			}
-			if (keystates[SDL_SCANCODE_SPACE]) {
-				car->drift = 1;
-			}
-			int freq = vec_length(car->velocity);
-			if (freq < 10) freq = 10;
-			freq = sqrt(freq);
-			freq = 1500 / freq;
-			sound_set_car_freq(freq);
-		}
-		else if (netmode == CLIENT)
-		{
-			const Uint8 *keystates = SDL_GetKeyboardState(NULL);
-			if (keystates[SDL_SCANCODE_UP]) net_set_input(NET_INPUT_UP);
-			if (keystates[SDL_SCANCODE_DOWN]) net_set_input(NET_INPUT_DOWN);
-			if (keystates[SDL_SCANCODE_LEFT]) net_set_input(NET_INPUT_LEFT);
-			if (keystates[SDL_SCANCODE_RIGHT]) net_set_input(NET_INPUT_RIGHT);
-			if (keystates[SDL_SCANCODE_SPACE]) net_set_input(NET_INPUT_SPACE);
-			net_send_input(sockfd, tic);
-		}
-		else if (netmode == SERVER)
-		{
-			char recv[64];
-			int n = net_recv(clientfd, recv, 64);
-			if (n > 0)
+			if (commands & NET_INPUT_SPACE)
 			{
-				unsigned commands = atoi(strtok(recv, NET_DELIM));
-				unsigned long long recv_tic = atoll(strtok(0, NET_DELIM));
-				printf("Received: %d @ %lld\n", commands, recv_tic);
-				/* Todo: Each client own car */
-				Car *car = &cars[0];
-				if (commands & NET_INPUT_UP)
-				{
-					vec2 force = car->direction;
-					vec_scale(&force, 2500);
-					car_apply_force(car, force);
-				}
-				if (commands & NET_INPUT_DOWN)
-				{
-					vec2 force = car->direction;
-					vec_scale(&force, -2500);
-					car_apply_force(car, force);
-				}
-				if (commands & NET_INPUT_LEFT)
-				{
-					vec_rotate(&car->direction, -3);
-				}
-				if (commands & NET_INPUT_RIGHT)
-				{
-					vec_rotate(&car->direction, 3);
-				}
-				if (commands & NET_INPUT_SPACE)
-				{
-					car->drift = 1;
-				}
+				car->drift = 1;
 			}
 		}
 
 		map_render(ren);
 
 		for (int i=0; i<car_count; i++) {
-			if (netmode == LOCAL || netmode == SERVER)
+			for (int j=i+1; j<car_count; j++)
 			{
-				for (int j=i+1; j<car_count; j++)
-				{
-					car_collison(&cars[i], &cars[j]);
-				}
-				car_move(&cars[i]);
-				memset(&cars[i].force, 0, sizeof(cars[i].force));
+				car_collison(&cars[i], &cars[j]);
 			}
+			car_move(&cars[i]);
+			memset(&cars[i].force, 0, sizeof(cars[i].force));
 			render_car(ren, &cars[i]);
 		}
 
 		SDL_RenderPresent(ren);
 
 		// Server increases tics
-		if (netmode == SERVER)
-			tic++;
+		tic++;
 	}
 
 	// Clean up
-	net_close(sockfd);
+	net_close(clientfd);
 	sockfd = 0;
+	map_destroy();
+	for (int i=0; i<car_count; i++) {
+		SDL_DestroyTexture(cars[i].texture);
+	}
+	free(cars);
+	return 0;
+}
+
+
+int run_client(SDL_Renderer *ren)
+{
+	int quit = 0;
+	SDL_Event event;
+
+	while (!quit) {
+		while (SDL_PollEvent(&event)){
+			//If user closes the window
+			if (event.type == SDL_QUIT) {
+				quit = 1;
+			}
+			//If user presses any key
+			if (event.type == SDL_KEYDOWN) {
+				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					quit = 1;
+					break;
+				}
+			}
+		}
+
+		const Uint8 *keystates = SDL_GetKeyboardState(NULL);
+		if (keystates[SDL_SCANCODE_UP]) net_set_input(NET_INPUT_UP);
+		if (keystates[SDL_SCANCODE_DOWN]) net_set_input(NET_INPUT_DOWN);
+		if (keystates[SDL_SCANCODE_LEFT]) net_set_input(NET_INPUT_LEFT);
+		if (keystates[SDL_SCANCODE_RIGHT]) net_set_input(NET_INPUT_RIGHT);
+		if (keystates[SDL_SCANCODE_SPACE]) net_set_input(NET_INPUT_SPACE);
+		net_send_input(sockfd, tic);
+
+		SDL_RenderPresent(ren);
+	}
+
+	// Clean up
+	map_destroy();
+	return 0;
+}
+
+
+int run_local(SDL_Renderer *ren)
+{
+	if (!map_init(ren, "map1.map")) {
+		printf("unable to initialize map!\n");
+		return 1;
+	}
+
+	int car_count = 2;
+	Car *cars = calloc(car_count, sizeof(Car));
+
+	// Create cars
+	for (int i=0; i<car_count; i++) {
+		// Initialize car
+		cars[i].pos.x = 250;
+		cars[i].pos.y = 30 + i*20;
+		cars[i].direction.x = start.x;
+		cars[i].direction.y = start.y;
+
+		char filename[10];
+		sprintf(filename, "car%d.bmp", i);
+		SDL_Surface *image = SDL_LoadBMP(filename);
+		if (image == NULL) {
+			printf("SDL error while loading BMP: %s\n", SDL_GetError());
+			return 0;
+		}
+		cars[i].width = image->w;
+		cars[i].height = image->h;
+
+		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
+
+		cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
+		SDL_FreeSurface(image);
+
+		if (cars[i].texture == NULL) {
+			printf("SDL error while creating texture: %s\n", SDL_GetError());
+			return 1;
+		}
+
+	}
+
+	int quit = 0;
+	SDL_Event event;
+
+	while (!quit) {
+		while (SDL_PollEvent(&event)){
+			//If user closes the window
+			if (event.type == SDL_QUIT) {
+				quit = 1;
+			}
+			//If user presses any key
+			if (event.type == SDL_KEYDOWN) {
+				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
+					quit = 1;
+					break;
+				}
+			}
+		}
+		const Uint8 *keystates = SDL_GetKeyboardState(NULL);
+		Car *car = &cars[0];
+		if (keystates[SDL_SCANCODE_UP]) {
+			vec2 force = car->direction;
+			vec_scale(&force, 2500);
+			car_apply_force(car, force);
+		}
+		if (keystates[SDL_SCANCODE_DOWN]) {
+			vec2 force = car->direction;
+			vec_scale(&force, -2500);
+			car_apply_force(car, force);
+		}
+		if (keystates[SDL_SCANCODE_LEFT]) {
+			vec_rotate(&car->direction, -3);
+		}
+		if (keystates[SDL_SCANCODE_RIGHT]) {
+			vec_rotate(&car->direction, 3);
+		}
+		if (keystates[SDL_SCANCODE_SPACE]) {
+			car->drift = 1;
+		}
+
+		int freq = vec_length(car->velocity);
+		if (freq < 10) freq = 10;
+		freq = sqrt(freq);
+		freq = 1500 / freq;
+		sound_set_car_freq(freq);
+
+		map_render(ren);
+
+		for (int i=0; i<car_count; i++) {
+			for (int j=i+1; j<car_count; j++)
+			{
+				car_collison(&cars[i], &cars[j]);
+			}
+			car_move(&cars[i]);
+			memset(&cars[i].force, 0, sizeof(cars[i].force));
+			render_car(ren, &cars[i]);
+		}
+
+		SDL_RenderPresent(ren);
+	}
+
+	// Clean up
 	map_destroy();
 	for (int i=0; i<car_count; i++) {
 		SDL_DestroyTexture(cars[i].texture);
@@ -334,7 +435,20 @@ void show_menu(SDL_Renderer *ren)
 	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
 	SDL_RenderClear(ren);
 	if (choice == 0) {
-		run_game(ren);
+		switch (netmode)
+		{
+			case SERVER:
+				run_server(ren);
+				break;
+			case CLIENT:
+				run_client(ren);
+				break;
+			case LOCAL:
+				run_local(ren);
+				break;
+			default:
+				break;
+		}
 	}
 }
 
@@ -404,6 +518,8 @@ int main(int argc, char *argv[])
 
 	show_menu(ren);
 
+	if (netmode == SERVER || netmode == CLIENT)
+		net_close(sockfd);
 	net_cleanup();
 	SDL_DestroyRenderer(ren);
 	SDL_DestroyWindow(win);
