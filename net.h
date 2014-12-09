@@ -13,9 +13,9 @@ void net_cleanup();
 int net_start_server(int port);
 int net_start_client(const char *addr, int port);
 int net_accept();
-int net_recv(int socket, char *buf, int buf_len);
+ssize_t net_recv(int socket, char *buf, int buf_len);
 void net_set_input(unsigned input);
-void net_send_input(int sockfd, unsigned long long tic);
+ssize_t net_send_input(int sockfd, unsigned long long tic);
 void net_close(int socket);
 
 #endif /*NET_H*/

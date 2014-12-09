@@ -14,6 +14,8 @@
 #include <sys/socket.h>
 #endif
 
+#include "net.h"
+
 static unsigned input_mask = 0;
 
 static void die(const char *msg)
@@ -112,9 +114,9 @@ int net_accept(int sockfd)
 	return clientfd;
 }
 
-int net_recv(int sockfd, char *buf, int buf_len)
+ssize_t net_recv(int sockfd, char *buf, int buf_len)
 {
-	int n;
+	ssize_t n;
 	n = recv(sockfd, buf, buf_len, 0);
 	if (n > 0)
 		buf[n] = '\0';
@@ -126,14 +128,16 @@ void net_set_input(unsigned input)
 	input_mask |= input;
 }
 
-void net_send_input(int sockfd, unsigned long long tic)
+ssize_t net_send_input(int sockfd, unsigned long long tic)
 {
 	if (input_mask == 0)
-		return;
+		return 0;
+	ssize_t n;
 	char send_buf[64];
-	sprintf(send_buf, "%d" ":" "%lld", input_mask, tic);
-	write(sockfd, send_buf, strlen(send_buf));
+	sprintf(send_buf, "%d" NET_DELIM "%lld", input_mask, tic);
+	n = write(sockfd, send_buf, strlen(send_buf));
 	input_mask = 0;
+	return n;
 }
 
 void net_close(int sockfd)
