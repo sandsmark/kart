@@ -145,7 +145,7 @@ AreaType map_get_type(const ivec2 pos)
 
 	const unsigned int px = pos.x / TILE_WIDTH;
 	const unsigned int py = pos.y / TILE_HEIGHT;
-	if (px > width || py > height) {
+	if (px >= width || py >= height) {
 		return MAP_WALL;
 	}
 
@@ -178,7 +178,7 @@ AreaType map_get_type(const ivec2 pos)
 	}
 
 	if (distance < 16 || distance > 112) {
-		return MAP_WALL;
+		return MAP_GRASS;
 	} else {
 		return MAP_TRACK;
 	}
