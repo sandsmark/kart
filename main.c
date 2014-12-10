@@ -14,7 +14,7 @@ const vec2 start = {1.0, 0.0};
 static netmode_t netmode;
 static unsigned long long tic = 0;
 static int sockfd;
-#define NUM_CLIENTS 1
+#define NUM_CLIENTS 2
 struct client {
 	int idx;
 	int fd;
@@ -230,6 +230,8 @@ int run_server(SDL_Renderer *ren)
 				{
 					car->drift = 1;
 				}
+				// Clear cmd
+				clients[i].cmd = 0;
 				SDL_UnlockMutex(clients[i].cmd_lock);
 			}
 		}
