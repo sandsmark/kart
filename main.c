@@ -97,8 +97,8 @@ static int recv_loop(void *data)
 {
 	struct client *me = (struct client *)data;
 	char buf[64];
-	ssize_t n = 1;
-	while (SDL_AtomicGet(&net_listen) && n)
+	ssize_t n = 0;
+	while (SDL_AtomicGet(&net_listen))
 	{
 		n = net_recv(me->fd, buf, 64);
 		if (n > 0)
@@ -112,8 +112,24 @@ static int recv_loop(void *data)
 				SDL_UnlockMutex(me->cmd_lock);
 			}
 		}
+		else if (n == 0)
+		{
+			printf("T%d: Client closed connection\n", me->idx);
+			break;
+		}
+		else
+			break;
 	}
 	return 0;
+}
+
+int accpt_conn(void *data)
+{
+	int fd;
+	SDL_atomic_t *got_client = (SDL_atomic_t*)data;
+	fd = net_accept(sockfd);
+	SDL_AtomicSet(got_client, 1);
+	return fd;
 }
 
 int run_server(SDL_Renderer *ren)
@@ -128,7 +144,88 @@ int run_server(SDL_Renderer *ren)
 	/* Set up each client */
 	for (int i = 0; i < NUM_CLIENTS; i++)
 	{
-		clients[i].fd = net_accept(sockfd);
+		SDL_Surface *wfc_bg = SDL_LoadBMP("waitforclients.bmp");
+		if (wfc_bg == NULL) {
+			printf("SDL error while loading BMP: %s\n", SDL_GetError());
+			return 1;
+		}
+		SDL_Texture *wfc_bg_tex = SDL_CreateTextureFromSurface(ren, wfc_bg);
+		if (wfc_bg_tex == NULL) {
+			printf("SDL error while creating start screen texture from image: %s\n", SDL_GetError());
+			SDL_FreeSurface(wfc_bg);
+			return 1;
+		}
+		SDL_FreeSurface(wfc_bg);
+		SDL_Surface *car_bmp = SDL_LoadBMP("car0.bmp");
+		if (car_bmp == NULL) {
+			printf("SDL error while loading BMP: %s\n", SDL_GetError());
+			return 1;
+		}
+		SDL_SetColorKey(car_bmp, SDL_TRUE, SDL_MapRGB(car_bmp->format, 0, 255, 0));
+		SDL_Texture *car_tex = SDL_CreateTextureFromSurface(ren, car_bmp);
+		if (car_tex == NULL) {
+			printf("SDL error while creating start screen texture from image: %s\n", SDL_GetError());
+			SDL_FreeSurface(car_bmp);
+			return 1;
+		}
+		SDL_Event event;
+		SDL_Rect wfc_bg_target, car_target;
+		wfc_bg_target.x = 0;
+		wfc_bg_target.y = 0;
+		wfc_bg_target.w = SCREEN_WIDTH;
+		wfc_bg_target.h = SCREEN_HEIGHT;
+		car_target.x = SCREEN_WIDTH/2 - car_bmp->w/2;
+		car_target.y = 280;
+		car_target.w = car_bmp->w;
+		car_target.h = car_bmp->h;
+		float car_angle = 0;
+		SDL_FreeSurface(car_bmp);
+		SDL_atomic_t got_client;
+		SDL_AtomicSet(&got_client, 0);
+		int clientfd;
+		SDL_Thread *thr = SDL_CreateThread(accpt_conn, "Accpt conn thread", (void*)&got_client);
+		if (thr == NULL)
+		{
+			printf("Failed to create accpt conn thread\n");
+			return 1;
+		}
+		while (!SDL_AtomicGet(&got_client))
+		{
+			while (SDL_PollEvent(&event))
+			{
+				//If user closes the window
+				if (event.type == SDL_QUIT) {
+					return 0;
+				}
+				//If user presses any key
+				if (event.type == SDL_KEYDOWN) {
+					switch (event.key.keysym.sym) {
+					case SDLK_ESCAPE:
+						return 0;
+					}
+				}
+			}
+			SDL_RenderCopy(ren, wfc_bg_tex, 0, &wfc_bg_target);
+			SDL_RenderCopyEx(ren, car_tex, 0, &car_target, car_angle, 0, 0);
+			car_angle += 2*(i+1);
+			if (car_angle >= 360) car_angle -= 360;
+			for (int j = 0; j < NUM_CLIENTS; j++)
+			{
+				if (i > j)
+					SDL_SetRenderDrawColor(ren, 0x00, 0xff, 0x00, 0xff);
+				else
+					SDL_SetRenderDrawColor(ren, 0xff, 0x00, 0x00, 0xff);
+				SDL_Rect client_rect;
+				client_rect.x = SCREEN_WIDTH/2 - ((NUM_CLIENTS-1)*10 + 5) + j * 20;
+				client_rect.y = 378;
+				client_rect.h = 10;
+				client_rect.w = 10;
+				SDL_RenderFillRect(ren, &client_rect);
+			}
+			SDL_RenderPresent(ren);
+		}
+		SDL_WaitThread(thr, &clientfd);
+		clients[i].fd = clientfd;
 		if (clients[i].fd < 0)
 		{
 			printf("Accept failed\n");
@@ -179,6 +276,8 @@ int run_server(SDL_Renderer *ren)
 		printf("Num clients: %d\n", i+1);
 	}
 	printf("All clients connected\n");
+	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
+	SDL_RenderClear(ren);
 
 	int quit = 0;
 	SDL_Event event;
