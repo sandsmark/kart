@@ -103,13 +103,16 @@ static int recv_loop(void *data)
 		n = net_recv(me->fd, buf, 64);
 		if (n > 0)
 		{
-			/* TODO: sanitization */
-			unsigned cmd = atoi(buf);
-			printf("T%d: Received: %d\n", me->idx, cmd);
-			if (SDL_LockMutex(me->cmd_lock) == 0)
+			unsigned cmd;
+			unsigned long long tic;
+			if (sscanf(buf, "%u" NET_DELIM "%llu", &cmd, &tic) == 2)
 			{
-				me->cmd = cmd;
-				SDL_UnlockMutex(me->cmd_lock);
+				printf("T%d: Received: %d for tic %lld\n", me->idx, cmd, tic);
+				if (SDL_LockMutex(me->cmd_lock) == 0)
+				{
+					me->cmd = cmd;
+					SDL_UnlockMutex(me->cmd_lock);
+				}
 			}
 		}
 		else if (n == 0)
