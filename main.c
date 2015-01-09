@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "box.h"
 #include "car.h"
 #include "map.h"
 #include "net.h"
@@ -25,6 +26,8 @@ struct client {
 };
 static struct client clients[NUM_CLIENTS];
 SDL_atomic_t net_listen;
+
+extern ivec2 map_starting_position;
 
 SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filepath)
 {
@@ -139,6 +142,10 @@ int run_server(SDL_Renderer *ren)
 {
 	if (!map_init(ren, "map1.map")) {
 		printf("unable to initialize map!\n");
+		return 1;
+	}
+	if (!boxes_init(ren)) {
+		printf("unable to initialize box!\n");
 		return 1;
 	}
 
@@ -351,6 +358,8 @@ int run_server(SDL_Renderer *ren)
 			render_car(ren, clients[i].car);
 		}
 
+		boxes_render(ren);
+
 		SDL_RenderPresent(ren);
 
 		// Server increases tics
@@ -417,6 +426,10 @@ int run_local(SDL_Renderer *ren)
 		printf("unable to initialize map!\n");
 		return 1;
 	}
+	if (!boxes_init(ren)) {
+		printf("unable to initialize box!\n");
+		return 1;
+	}
 
 	int car_count = 2;
 	Car *cars = calloc(car_count, sizeof(Car));
@@ -424,8 +437,8 @@ int run_local(SDL_Renderer *ren)
 	// Create cars
 	for (int i=0; i<car_count; i++) {
 		// Initialize car
-		cars[i].pos.x = 250;
-		cars[i].pos.y = 30 + i*20;
+		cars[i].pos.x = map_starting_position.x;
+		cars[i].pos.y = map_starting_position.y + i*20;
 		cars[i].direction.x = start.x;
 		cars[i].direction.y = start.y;
 
@@ -508,6 +521,8 @@ int run_local(SDL_Renderer *ren)
 			memset(&cars[i].force, 0, sizeof(cars[i].force));
 			render_car(ren, &cars[i]);
 		}
+
+		boxes_render(ren);
 
 		SDL_RenderPresent(ren);
 	}

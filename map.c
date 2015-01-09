@@ -1,5 +1,7 @@
 #include "map.h"
 
+#include "common.h"
+
 #include <SDL2/SDL.h>
 #include <math.h>
 #include <stdio.h>
@@ -40,20 +42,22 @@ static TileType **map_tiles = 0;
 
 static unsigned int height, width;
 
-static const unsigned int TILE_WIDTH = 128;
-static const unsigned int TILE_HEIGHT = 128;
-
 static const unsigned int MODIFIER_WIDTH = 64;
 static const unsigned int MODIFIER_HEIGHT = 64;
 static int modifiers_count = 0;
-static int modifiers_size = 8;
+static int modifiers_size = 0;
 static Modifier *modifiers = 0;
+
+int boxlocations_count = 0;
+ivec2 *boxlocations = 0;
+
+ivec2 map_starting_position;
 
 int add_modifier(AreaType type, ivec2 pos)
 {
 	if (modifiers_size < modifiers_count) {
 		modifiers_size <<= 1;
-		modifiers = realloc(modifiers, modifiers_size + 1);
+		modifiers = realloc(modifiers, (modifiers_size + 1) * sizeof(Modifier));
 		if (!modifiers) {
 			printf("failed to grow array for modifiers\n");
 			return 1;
@@ -90,6 +94,17 @@ int add_modifier(AreaType type, ivec2 pos)
 
 	modifiers_count++;
 
+	return 0;
+}
+
+int add_box_location(ivec2 pos)
+{
+	printf("adding box location\n");
+	ivec2 boxlocation;
+	boxlocation.x = pos.x;
+	boxlocation.y = pos.y;
+	boxlocations[boxlocations_count] = boxlocation;
+	boxlocations_count++;
 	return 0;
 }
 
@@ -185,25 +200,6 @@ AreaType map_get_type(const ivec2 pos)
 	return MAP_TRACK;
 }
 
-SDL_Texture *load_image(SDL_Renderer *ren, const char *file)
-{
-	SDL_Surface *surface = SDL_LoadBMP(file);
-	if (surface == NULL) {
-		printf("SDL error while loading BMP %s: %s\n", file, SDL_GetError());
-		return 0;
-	}
-	Uint32 colorkey = SDL_MapRGB(surface->format, 0xFF, 0, 0xFF);
-	SDL_SetColorKey(surface, SDL_TRUE, colorkey);
-	SDL_Texture *texture = SDL_CreateTextureFromSurface(ren, surface);
-	if (texture == NULL) {
-		printf("SDL error while creating map texture from %s: %s\n", file, SDL_GetError());
-		SDL_FreeSurface(surface);
-		return 0;
-	}
-	SDL_FreeSurface(surface);
-	return texture;
-}
-
 int map_load_tiles(SDL_Renderer *ren)
 {
 	tile_horizontal = load_image(ren, "map-horizontal.bmp");
@@ -259,13 +255,13 @@ int map_load_file(const char *filename)
 		return 0;
 	}
 
-	map_tiles = malloc((height + 1) * sizeof(TileType*));
+	map_tiles = malloc((width + 1) * sizeof(TileType*));
 	if (!map_tiles) {
 		printf("failed to allocate %lu bytes for map tiles\n", height * sizeof(TileType*));
 		return 0;
 	}
 	for (unsigned int x = 0; x < width; x++) {
-		map_tiles[x] = malloc((height + 1) * sizeof(TileType*));
+		map_tiles[x] = malloc((height + 1) * sizeof(TileType));
 
 		if (!map_tiles[x]) {
 			printf("failed to allocate %lu bytes of memory for map tile line\n", height * sizeof(TileType*));
@@ -275,7 +271,7 @@ int map_load_file(const char *filename)
 	char buf[128] = { 0 };
 	for (unsigned int y=0; y<height; y++) {
 		if (fgets(buf, sizeof(buf), file) == NULL || strlen(buf) < width) {
-			printf("line length %lu is less than map width %u\n", strlen(buf), width);
+			printf("line length %lu (of %s) is less than map width %u\n", strlen(buf), buf, width);
 			return 0;
 		}
 
@@ -299,16 +295,32 @@ int map_load_file(const char *filename)
 			case ',':
 				map_tiles[x][y] = TILE_BOTTOMRIGHT;
 				break;
-			case ' ':
+			case '.':
 				map_tiles[x][y] = TILE_NONE;
 				break;
 			default:
-				printf("invalid map tile type %c at x: %u y: %u\n", buf[y], x, y);
+				printf("invalid map tile type %c at x: %u y: %u\n", buf[x], x, y);
 				return 0;
 			}
 		}
 	}
 
+	ivec2 starting_tile;
+	if (fscanf(file, "%d,%d\n", &starting_tile.x, &starting_tile.y) != 2) {
+		printf("unable to read starting position from map file!\n");
+		fclose(file);
+		return 0;
+	}
+	map_starting_position.x = TILE_WIDTH * (starting_tile.x) + TILE_WIDTH / 2;
+	map_starting_position.y = TILE_HEIGHT * (starting_tile.y) + TILE_HEIGHT / 5;
+	printf("tilex %d tiley %d x %d y %d\n", starting_tile.x, starting_tile.y, map_starting_position.x, map_starting_position.y);
+
+	if (fscanf(file, "%d\n", &modifiers_size) != 1) {
+		printf("unable to read amount of modifiers\n");
+		fclose(file);
+		return 0;
+	}
+	printf("modifier count:%d\n", modifiers_size);
 
 	modifiers = malloc(sizeof(Modifier) * (modifiers_size + 1));
 	if (!modifiers) {
@@ -317,8 +329,12 @@ int map_load_file(const char *filename)
 	}
 	ivec2 modifier_pos;
 	int ret = 0;
-	while (fgets(buf, sizeof(buf), file)) {
-		sscanf(buf, "%d %d %s\n", &modifier_pos.x, &modifier_pos.y, buf);
+	for (int i=0; i<modifiers_size; i++) {
+		if (fscanf(file, "%d %d %s\n", &modifier_pos.x, &modifier_pos.y, buf) != 3) {
+			printf("Unable to read modifier!\n");
+			fclose(file);
+			return 0;
+		}
 		if (strcmp(buf, "mud") == 0) {
 			ret = add_modifier(MAP_MUD, modifier_pos);
 		} else if (strcmp(buf, "oil") == 0) {
@@ -330,11 +346,39 @@ int map_load_file(const char *filename)
 		}
 		if (ret) {
 			printf("error while adding modifier\n");
-			return 1;
+			return 0;
 		}
 	}
+
+
+	int boxlocations_size;
+	if (fscanf(file, "%d\n", &boxlocations_size) != 1) {
+		printf("unable to read amount of box locations!\n");
+		fclose(file);
+		return 0;
+	}
+
+	boxlocations = malloc(sizeof(Modifier) * (boxlocations_size + 1));
+	if (!boxlocations) {
+		printf("failed to allocate memory for box locations\n");
+		return 0;
+	}
+
+	ivec2 box_location;
+	for (int i=0; i<boxlocations_size; i++) {
+		if (fscanf(file, "%d %d\n", &box_location.x, &box_location.y) != 2) {
+			printf("unable to read box location from file!");
+			return 0;
+		}
+		if (add_box_location(box_location)) {
+			printf("error while adding box location\n");
+			return 0;
+		}
+	}
+
 	rewind(file);
 	fclose(file);
+
 	return 1;
 }
 

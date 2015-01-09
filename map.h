@@ -4,6 +4,9 @@
 
 #include "defines.h"
 
+#define TILE_WIDTH 128
+#define TILE_HEIGHT 128
+
 typedef enum {
 	MAP_TRACK     = 0x808080, // rgb: 128,128,128
 	MAP_GRASS     = 0x00ff00, // rgb: 000,255,000
