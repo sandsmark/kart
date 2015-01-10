@@ -7,6 +7,7 @@
 #include "defines.h"
 
 typedef struct {
+	int id;
 	vec2 direction;
 
 	vec2 force;

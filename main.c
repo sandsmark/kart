@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <time.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -8,6 +9,7 @@
 #include "net.h"
 #include "sound.h"
 #include "vector.h"
+#include "powerup.h"
 
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
@@ -57,6 +59,18 @@ void render_car(SDL_Renderer *ren, Car *car)
 	target.w = car->width;
 	target.h = car->height;
 	SDL_RenderCopyEx(ren, car->texture, 0, &target, vec_angle(start, car->direction), 0, 0);
+
+	const int vertical_position = 5 + (POWERUPS_HEIGHT + 5) * car->id;
+	target.x = 5;
+	target.y = vertical_position;
+	target.h = POWERUPS_HEIGHT;
+	target.w = POWERUPS_HEIGHT * car->width / car->height;
+        SDL_RenderCopy(ren, car->texture, 0, &target);
+
+	ivec2 powerup_pos;
+	powerup_pos.x = target.w + 10;
+	powerup_pos.y = vertical_position;
+	powerup_render(ren, car->powerup, powerup_pos);
 }
 
 void draw_circle(SDL_Surface *surface, int cx, int cy, int radius, Uint8 pixel)
@@ -146,6 +160,10 @@ int run_server(SDL_Renderer *ren)
 	}
 	if (!boxes_init(ren)) {
 		printf("unable to initialize box!\n");
+		return 1;
+	}
+	if (!powerups_init(ren)) {
+		printf("unable to initialize powerups!\n");
 		return 1;
 	}
 
@@ -249,6 +267,7 @@ int run_server(SDL_Renderer *ren)
 		}
 		/* TODO: Move car creation into own function */
 		Car *car = clients[i].car;
+		car->id = i;
 		car->pos.x = 250;
 		car->pos.y = 30 + i*20;
 		car->direction.x = start.x;
@@ -373,7 +392,6 @@ int run_server(SDL_Renderer *ren)
 		int t_status;
 		SDL_WaitThread(clients[i].thr, &t_status);
 		SDL_DestroyMutex(clients[i].cmd_lock);
-		SDL_DestroyTexture(clients[i].car->texture);
 		free(clients[i].car);
 		net_close(clients[i].fd);
 	}
@@ -430,6 +448,10 @@ int run_local(SDL_Renderer *ren)
 		printf("unable to initialize box!\n");
 		return 1;
 	}
+	if (!powerups_init(ren)) {
+		printf("unable to initialize powerups!\n");
+		return 1;
+	}
 
 	int car_count = 2;
 	Car *cars = calloc(car_count, sizeof(Car));
@@ -437,6 +459,7 @@ int run_local(SDL_Renderer *ren)
 	// Create cars
 	for (int i=0; i<car_count; i++) {
 		// Initialize car
+		cars[i].id = i;
 		cars[i].pos.x = map_starting_position.x;
 		cars[i].pos.y = map_starting_position.y + i*20;
 		cars[i].direction.x = start.x;
@@ -529,9 +552,6 @@ int run_local(SDL_Renderer *ren)
 
 	// Clean up
 	map_destroy();
-	for (int i=0; i<car_count; i++) {
-		SDL_DestroyTexture(cars[i].texture);
-	}
 	free(cars);
 	return 0;
 }
@@ -632,6 +652,7 @@ void show_menu(SDL_Renderer *ren)
 int main(int argc, char *argv[])
 {
 	printf("kartering " REVISION " launching...\n");
+	srand(time(NULL));
 	net_init();
 	if (argc < 2)
 	{
@@ -699,7 +720,7 @@ int main(int argc, char *argv[])
 	if (netmode == SERVER || netmode == CLIENT)
 		net_close(sockfd);
 	net_cleanup();
-	SDL_DestroyRenderer(ren);
+	SDL_DestroyRenderer(ren); // cleans up all textures
 	SDL_DestroyWindow(win);
 	SDL_Quit();
 	return 0;

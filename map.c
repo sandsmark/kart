@@ -212,7 +212,7 @@ int map_load_tiles(SDL_Renderer *ren)
 	mod_booster_texture = load_image(ren, "booster.bmp");
 	mod_ice_texture     = load_image(ren, "ice.bmp");
 	mod_mud_texture     = load_image(ren, "mud.bmp");
-	mod_oil_texture     = load_image(ren, "oil.bmp");
+	mod_oil_texture     = load_image(ren, "oil_spill.bmp");
 
 	return (tile_horizontal &&
 		tile_vertical   &&

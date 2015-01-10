@@ -49,11 +49,6 @@ int boxes_init(SDL_Renderer *ren)
     return (box_texture != 0);
 }
 
-void boxes_destroy()
-{
-	SDL_DestroyTexture(box_texture);
-}
-
 void boxes_render(SDL_Renderer *ren)
 {
     const Uint32 current_ticks = SDL_GetTicks();
@@ -86,7 +81,9 @@ PowerUp boxes_check_hit(vec2 position)
 
             printf("hit box\n");
             boxes[i].hit_time = SDL_GetTicks();
-            int random_number = rand() % (int)(POWERUP_BIG_STAR);
+            int random_number = rand() % (POWERUP_STAR - 1);
+            random_number++; // the first is POWERUP_NONE
+            printf("give powerup: %d\n", random_number);
             return (PowerUp)random_number;
         }
     }

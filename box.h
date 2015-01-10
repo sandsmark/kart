@@ -6,7 +6,6 @@
 #include "vector.h"
 
 int boxes_init(SDL_Renderer *ren);
-void boxes_destroy();
 void boxes_render(SDL_Renderer *ren);
 
 PowerUp boxes_check_hit(vec2 position);
