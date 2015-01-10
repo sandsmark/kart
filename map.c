@@ -37,6 +37,7 @@ static SDL_Texture *mod_booster_texture = 0;
 static SDL_Texture *mod_ice_texture     = 0;
 static SDL_Texture *mod_mud_texture     = 0;
 static SDL_Texture *mod_oil_texture     = 0;
+static SDL_Texture *mod_banana_texture  = 0;
 
 static TileType **map_tiles = 0;
 
@@ -85,6 +86,9 @@ int map_add_modifier(AreaType type, ivec2 pos)
 	case MAP_OIL:
 		modifier.texture = mod_oil_texture;
 		break;
+	case MAP_BANANA:
+		modifier.texture = mod_banana_texture;
+		break;
 	default:
 		printf("invalid modifier type: %d\n", type);
 		return 1;
@@ -108,7 +112,6 @@ int add_box_location(ivec2 pos)
 }
 
 int map_load_tiles(SDL_Renderer *ren);
-void map_unload_tiles();
 int map_load_file(const char *file);
 
 int map_init(SDL_Renderer *ren, const char *map_file)
@@ -213,6 +216,7 @@ int map_load_tiles(SDL_Renderer *ren)
 	mod_ice_texture     = load_image(ren, "ice.bmp");
 	mod_mud_texture     = load_image(ren, "mud.bmp");
 	mod_oil_texture     = load_image(ren, "oil_spill.bmp");
+	mod_banana_texture  = load_image(ren, "placed_banana.bmp");
 
 	return (tile_horizontal &&
 		tile_vertical   &&
@@ -224,19 +228,9 @@ int map_load_tiles(SDL_Renderer *ren)
 		mod_booster_texture &&
 		mod_ice_texture     &&
 		mod_mud_texture     &&
-		mod_oil_texture
+		mod_oil_texture     &&
+		mod_banana_texture
 		);
-}
-
-void map_unload_tiles()
-{
-	SDL_DestroyTexture(tile_horizontal);
-	SDL_DestroyTexture(tile_vertical);
-	SDL_DestroyTexture(tile_upperleft);
-	SDL_DestroyTexture(tile_upperright);
-	SDL_DestroyTexture(tile_lowerleft);
-	SDL_DestroyTexture(tile_lowerright);
-	SDL_DestroyTexture(tile_none);
 }
 
 int map_load_file(const char *filename)
@@ -334,8 +328,6 @@ int map_load_file(const char *filename)
 		}
 		if (strcmp(buf, "mud") == 0) {
 			ret = map_add_modifier(MAP_MUD, modifier_pos);
-		} else if (strcmp(buf, "oil") == 0) {
-			ret = map_add_modifier(MAP_OIL, modifier_pos);
 		} else if (strcmp(buf, "ice") == 0) {
 			ret = map_add_modifier(MAP_ICE, modifier_pos);
 		} else if (strcmp(buf, "booster") == 0) {
