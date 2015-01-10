@@ -14,6 +14,11 @@ wintendo:
 	rm -f kart.zip
 	zip kart.zip *.bmp *.map SDL2.dll kart.exe
 
+%.o: %.c
+	$(CC) -MMD -MP $(CFLAGS) -o $@ -c $<
+
+DEPS=$(OBJECTS:.o=.d)
+-include $(DEPS)
 
 clean:
 	rm -f $(EXECUTABLE) $(OBJECTS)
