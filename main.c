@@ -671,46 +671,47 @@ int main(int argc, char *argv[])
 	net_init();
 	if (argc < 2)
 	{
-		printf("Usage: %s [server|client|local] [address] <port>\n", argv[0]);
-		return 1;
-	}
-
-	if (strcmp(argv[1], "server") == 0)
-	{
-		if (argc != 3)
-		{
-			printf("Usage: %s server <port>\n", argv[0]);
-			return 1;
-		}
-		sockfd = net_start_server(atoi(argv[2]));
-		netmode = SERVER;
-	}
-	else if (strcmp(argv[1], "client") == 0)
-	{
-		if (argc != 4)
-		{
-			printf("Usage: %s client <address> <port>\n", argv[0]);
-			return 1;
-		}
-		if (strcmp(argv[2], "localhost") == 0)
-			sockfd = net_start_client("127.0.0.1", atoi(argv[3]));
-		else
-			sockfd = net_start_client(argv[2], atoi(argv[3]));
-		netmode = CLIENT;
-	}
-	else if (strcmp(argv[1], "local") == 0)
-	{
-		if (argc != 2)
-		{
-			printf("Usage: %s local\n", argv[0]);
-			return 1;
-		}
 		netmode = LOCAL;
 	}
-	else
-	{
-		printf("Invalid argument: %s\n", argv[1]);
-		return 1;
+
+	if (argc > 1) {
+		if (strcmp(argv[1], "server") == 0)
+		{
+			if (argc != 3)
+			{
+				printf("Usage: %s server <port>\n", argv[0]);
+				return 1;
+			}
+			sockfd = net_start_server(atoi(argv[2]));
+			netmode = SERVER;
+		}
+		else if (strcmp(argv[1], "client") == 0)
+		{
+			if (argc != 4)
+			{
+				printf("Usage: %s client <address> <port>\n", argv[0]);
+				return 1;
+			}
+			if (strcmp(argv[2], "localhost") == 0)
+				sockfd = net_start_client("127.0.0.1", atoi(argv[3]));
+			else
+				sockfd = net_start_client(argv[2], atoi(argv[3]));
+			netmode = CLIENT;
+		}
+		else if (strcmp(argv[1], "local") == 0)
+		{
+			if (argc != 2)
+			{
+				printf("Usage: %s local\n", argv[0]);
+				return 1;
+			}
+			netmode = LOCAL;
+		}
+		else
+		{
+			printf("Invalid argument: %s\n", argv[1]);
+			return 1;
+		}
 	}
 
 	// Set up SDL
