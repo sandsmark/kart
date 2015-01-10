@@ -268,6 +268,7 @@ int run_server(SDL_Renderer *ren)
 		/* TODO: Move car creation into own function */
 		Car *car = clients[i].car;
 		car->id = i;
+		car->active_effects = 0;
 		car->pos.x = 250;
 		car->pos.y = 30 + i*20;
 		car->direction.x = start.x;
@@ -465,6 +466,7 @@ int run_local(SDL_Renderer *ren)
 	for (int i=0; i<car_count; i++) {
 		// Initialize car
 		cars[i].id = i;
+		cars[i].active_effects = 0;
 		cars[i].pos.x = map_starting_position.x;
 		cars[i].pos.y = map_starting_position.y + i*20;
 		cars[i].direction.x = start.x;

@@ -54,6 +54,14 @@ ivec2 *boxlocations = 0;
 
 ivec2 map_starting_position;
 
+void remove_modifier(int index)
+{
+	modifiers_count--;
+	for (int i=index; i<modifiers_count; i++) {
+		modifiers[i] = modifiers[i+1];
+	}
+}
+
 int map_add_modifier(AreaType type, ivec2 pos)
 {
 	if (modifiers_size < modifiers_count) {
@@ -156,6 +164,9 @@ AreaType map_get_type(const ivec2 pos)
 		const int mod_max_x = mod_min_x + modifiers[i].rect.w;
 		const int mod_max_y = mod_min_y + modifiers[i].rect.h;
 		if (pos.x > mod_min_x && pos.x < mod_max_x && pos.y > mod_min_y && pos.y < mod_max_y) {
+			if (modifiers[i].type == MAP_BANANA) {
+				remove_modifier(i);
+			}
 			return modifiers[i].type;
 		}
 	}

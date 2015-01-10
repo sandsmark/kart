@@ -65,6 +65,9 @@ void car_move(Car *car)
 		roll_coeff *= 7;
 		drag_coeff *= 7;
 		break;
+    case MAP_BANANA:
+        car->active_effects |= 1<<POWERUP_BANANA;
+        break;
 	case MAP_OIL:
 		vec_rotate(&car->direction, 3);
 		break;
@@ -110,6 +113,18 @@ void car_move(Car *car)
 	side_velo.y = side.y * vec_dot(car->velocity, side);
 	car->velocity.x = fw_velo.x + side_velo.x * drift;
 	car->velocity.y = fw_velo.y + side_velo.y * drift;
+
+
+    if (car->active_effects & 1<<POWERUP_BANANA) {
+        if (type != MAP_BANANA) {
+            car->active_effects ^= 1<<POWERUP_BANANA;
+        }
+		vec_rotate(&car->direction, 45);
+		car->velocity.x = 0;
+		car->velocity.y = 0;
+		car->force.x = -10;
+		car->force.y = -10;
+    }
 
 	car->pos.x += car->velocity.x * TIME_CONSTANT;
 	car->pos.y += car->velocity.y * TIME_CONSTANT;

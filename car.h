@@ -23,6 +23,8 @@ typedef struct {
 	SDL_Texture *texture;
 
 	PowerUp powerup;
+
+	int active_effects;
 } Car;
 
 void car_apply_force(Car *car, vec2 force);
