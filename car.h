@@ -3,6 +3,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "powerup.h"
 #include "defines.h"
 
 typedef struct {
@@ -19,6 +20,8 @@ typedef struct {
 	int wheel_y[4];
 
 	SDL_Texture *texture;
+
+	PowerUp powerup;
 } Car;
 
 void car_apply_force(Car *car, vec2 force);

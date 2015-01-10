@@ -4,6 +4,7 @@
 #include "defines.h"
 #include "map.h"
 #include "vector.h"
+#include "box.h"
 
 void car_apply_force(Car *car, vec2 force)
 {
@@ -111,4 +112,10 @@ void car_move(Car *car)
 
 	car->pos.x += car->velocity.x * TIME_CONSTANT;
 	car->pos.y += car->velocity.y * TIME_CONSTANT;
+    PowerUp powerup = boxes_check_hit(car->pos);
+
+    if (powerup != POWERUP_NONE) {
+        car->powerup = powerup;
+        printf("powerup: %d\n", powerup);
+    }
 }

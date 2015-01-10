@@ -1,6 +1,7 @@
 #ifndef POWERUP_H
 #define POWERUP_H
 typedef enum {
+    POWERUP_NONE,
     POWERUP_BANANA,
     POWERUP_GREEN_SHELL,
     POWERUP_RED_SHELL,
