@@ -33,11 +33,9 @@ int boxes_init(SDL_Renderer *ren)
         return 1;
     }
     for (int i=0; i<boxlocations_count; i++) {
-        printf("reading box location: %d\n", i);
         ivec2 box_position;
         box_position.x = boxlocations[i].x * TILE_WIDTH + TILE_WIDTH / 2;
         box_position.y = boxlocations[i].y * TILE_HEIGHT + TILE_HEIGHT / 5;
-        printf("fitte x: %d y: %d\n", boxlocations[i].x, boxlocations[i].y);
         for (int j=0; j<4; j++) {
             boxes[i*BOXES_PER_TILE + j].pos = box_position;
 
@@ -56,7 +54,6 @@ void boxes_destroy()
 void boxes_render(SDL_Renderer *ren)
 {
     for (int i=0; i<box_count; i++) {
-//        printf("fittetryne x: %d y: %d\n", boxes[i].pos.x, boxes[i].pos.y);
         SDL_Rect target;
         target.x = boxes[i].pos.x;
         target.y = boxes[i].pos.y;

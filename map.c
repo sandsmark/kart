@@ -99,7 +99,6 @@ int add_modifier(AreaType type, ivec2 pos)
 
 int add_box_location(ivec2 pos)
 {
-	printf("adding box location\n");
 	ivec2 boxlocation;
 	boxlocation.x = pos.x;
 	boxlocation.y = pos.y;
@@ -313,14 +312,12 @@ int map_load_file(const char *filename)
 	}
 	map_starting_position.x = TILE_WIDTH * (starting_tile.x) + TILE_WIDTH / 2;
 	map_starting_position.y = TILE_HEIGHT * (starting_tile.y) + TILE_HEIGHT / 5;
-	printf("tilex %d tiley %d x %d y %d\n", starting_tile.x, starting_tile.y, map_starting_position.x, map_starting_position.y);
 
 	if (fscanf(file, "%d\n", &modifiers_size) != 1) {
 		printf("unable to read amount of modifiers\n");
 		fclose(file);
 		return 0;
 	}
-	printf("modifier count:%d\n", modifiers_size);
 
 	modifiers = malloc(sizeof(Modifier) * (modifiers_size + 1));
 	if (!modifiers) {
