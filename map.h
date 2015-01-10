@@ -22,7 +22,7 @@ typedef enum {
 int map_init(SDL_Renderer *ren, const char *map_file);
 void map_destroy();
 void map_render(SDL_Renderer *ren);
-int map_add_modifier(ivec2 pos, AreaType type);
+int map_add_modifier(AreaType type, ivec2 pos);
 
 AreaType map_get_type(const ivec2 pos);
 #endif

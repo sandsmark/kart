@@ -53,7 +53,7 @@ ivec2 *boxlocations = 0;
 
 ivec2 map_starting_position;
 
-int add_modifier(AreaType type, ivec2 pos)
+int map_add_modifier(AreaType type, ivec2 pos)
 {
 	if (modifiers_size < modifiers_count) {
 		modifiers_size <<= 1;
@@ -333,13 +333,13 @@ int map_load_file(const char *filename)
 			return 0;
 		}
 		if (strcmp(buf, "mud") == 0) {
-			ret = add_modifier(MAP_MUD, modifier_pos);
+			ret = map_add_modifier(MAP_MUD, modifier_pos);
 		} else if (strcmp(buf, "oil") == 0) {
-			ret = add_modifier(MAP_OIL, modifier_pos);
+			ret = map_add_modifier(MAP_OIL, modifier_pos);
 		} else if (strcmp(buf, "ice") == 0) {
-			ret = add_modifier(MAP_ICE, modifier_pos);
+			ret = map_add_modifier(MAP_ICE, modifier_pos);
 		} else if (strcmp(buf, "booster") == 0) {
-			ret = add_modifier(MAP_BOOST, modifier_pos);
+			ret = map_add_modifier(MAP_BOOST, modifier_pos);
 		}
 		if (ret) {
 			printf("error while adding modifier\n");

@@ -358,6 +358,10 @@ int run_server(SDL_Renderer *ren)
 				{
 					car->drift = 1;
 				}
+				if (cmd & NET_INPUT_RETURN)
+				{
+					car_use_powerup(car);
+				}
 				// Clear cmd
 				clients[i].cmd = 0;
 				SDL_UnlockMutex(clients[i].cmd_lock);
@@ -427,6 +431,7 @@ int run_client(SDL_Renderer *ren)
 		if (keystates[SDL_SCANCODE_LEFT]) net_set_input(NET_INPUT_LEFT);
 		if (keystates[SDL_SCANCODE_RIGHT]) net_set_input(NET_INPUT_RIGHT);
 		if (keystates[SDL_SCANCODE_SPACE]) net_set_input(NET_INPUT_SPACE);
+		if (keystates[SDL_SCANCODE_RETURN]) net_set_input(NET_INPUT_RETURN);
 		net_send_input(sockfd, tic);
 
 		SDL_RenderPresent(ren);
@@ -525,6 +530,9 @@ int run_local(SDL_Renderer *ren)
 		}
 		if (keystates[SDL_SCANCODE_SPACE]) {
 			car->drift = 1;
+		}
+		if (keystates[SDL_SCANCODE_RETURN]) {
+			car_use_powerup(car);
 		}
 
 		int freq = vec_length(car->velocity);

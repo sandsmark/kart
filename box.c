@@ -79,11 +79,9 @@ PowerUp boxes_check_hit(vec2 position)
             position.x < boxes[i].pos.x + BOX_WIDTH &&
             position.y < boxes[i].pos.y + BOX_HEIGHT) {
 
-            printf("hit box\n");
             boxes[i].hit_time = SDL_GetTicks();
             int random_number = rand() % (POWERUP_STAR - 1);
             random_number++; // the first is POWERUP_NONE
-            printf("give powerup: %d\n", random_number);
             return (PowerUp)random_number;
         }
     }

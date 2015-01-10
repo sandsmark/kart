@@ -122,3 +122,9 @@ void car_move(Car *car)
         }
     }
 }
+
+void car_use_powerup(Car *car)
+{
+    powerup_trigger(car->pos, car->powerup);
+    car->powerup = POWERUP_NONE;
+}
