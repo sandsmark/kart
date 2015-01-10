@@ -8,8 +8,8 @@
 static SDL_Texture *box_texture = 0;
 
 // TODO: get these from the texture
-static int box_height = 16;
-static int box_width = 16;
+static int BOX_HEIGHT = 16;
+static int BOX_WIDTH = 16;
 
 extern int boxlocations_count;
 extern ivec2 *boxlocations;
@@ -57,8 +57,8 @@ void boxes_render(SDL_Renderer *ren)
         SDL_Rect target;
         target.x = boxes[i].pos.x;
         target.y = boxes[i].pos.y;
-        target.w = box_width;
-        target.h = box_height;
+        target.w = BOX_WIDTH;
+        target.h = BOX_HEIGHT;
         SDL_RenderCopy(ren, box_texture, 0, &target);
     }
 }
