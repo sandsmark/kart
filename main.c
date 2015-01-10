@@ -67,10 +67,12 @@ void render_car(SDL_Renderer *ren, Car *car)
 	target.w = POWERUPS_HEIGHT * car->width / car->height;
         SDL_RenderCopy(ren, car->texture, 0, &target);
 
-	ivec2 powerup_pos;
-	powerup_pos.x = target.w + 10;
-	powerup_pos.y = vertical_position;
-	powerup_render(ren, car->powerup, powerup_pos);
+	if (car->powerup != POWERUP_NONE) {
+		ivec2 powerup_pos;
+		powerup_pos.x = target.w + 10;
+		powerup_pos.y = vertical_position;
+		powerup_render(ren, car->powerup, powerup_pos);
+	}
 }
 
 void draw_circle(SDL_Surface *surface, int cx, int cy, int radius, Uint8 pixel)
