@@ -581,6 +581,7 @@ void show_menu(SDL_Renderer *ren)
 		SDL_FreeSurface(surface);
 		return;
 	}
+	sound_set_type(SOUND_MENU);
 	SDL_FreeSurface(surface);
 	SDL_Event event;
 	SDL_Rect target;
@@ -641,6 +642,8 @@ void show_menu(SDL_Renderer *ren)
 		SDL_RenderPresent(ren);
 	}
 
+	//TODO: make not annoying sound
+	sound_set_type(SOUND_NONE);
 	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
 	SDL_RenderClear(ren);
 	if (choice == 0) {
@@ -727,11 +730,13 @@ int main(int argc, char *argv[])
 	}
 
 
+	sound_init();
 	show_menu(ren);
 
 	if (netmode == SERVER || netmode == CLIENT)
 		net_close(sockfd);
 	net_cleanup();
+	sound_destroy();
 	SDL_DestroyRenderer(ren); // cleans up all textures
 	SDL_DestroyWindow(win);
 	SDL_Quit();
