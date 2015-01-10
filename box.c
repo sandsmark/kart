@@ -82,8 +82,7 @@ PowerUp boxes_check_hit(vec2 position)
             boxes[i].hit_time = SDL_GetTicks();
             int random_number = rand() % (POWERUP_STAR - 1);
             random_number++; // the first is POWERUP_NONE
-            return POWERUP_BANANA;
-            //return (PowerUp)random_number;
+            return (PowerUp)random_number;
         }
     }
     return POWERUP_NONE;
