@@ -21,4 +21,4 @@ DEPS=$(OBJECTS:.o=.d)
 -include $(DEPS)
 
 clean:
-	rm -f $(EXECUTABLE) $(OBJECTS)
+	rm -f $(EXECUTABLE) $(OBJECTS) $(DEPS)
