@@ -2,7 +2,10 @@
 
 SDL_Texture *load_image(SDL_Renderer *ren, const char *file)
 {
-	SDL_Surface *surface = SDL_LoadBMP(file);
+	const char *prefix = "assets/";
+	char path[256];
+	snprintf(path, sizeof(path), "%s%s", prefix, file);
+	SDL_Surface *surface = SDL_LoadBMP(path);
 	if (surface == NULL) {
 		printf("SDL error while loading BMP %s: %s\n", file, SDL_GetError());
 		return 0;

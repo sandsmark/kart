@@ -5,6 +5,7 @@
 
 #include "box.h"
 #include "car.h"
+#include "common.h"
 #include "map.h"
 #include "net.h"
 #include "sound.h"
@@ -174,19 +175,8 @@ int run_server(SDL_Renderer *ren)
 	/* Set up each client */
 	for (int i = 0; i < NUM_CLIENTS; i++)
 	{
-		SDL_Surface *wfc_bg = SDL_LoadBMP("waitforclients.bmp");
-		if (wfc_bg == NULL) {
-			printf("SDL error while loading BMP: %s\n", SDL_GetError());
-			return 1;
-		}
-		SDL_Texture *wfc_bg_tex = SDL_CreateTextureFromSurface(ren, wfc_bg);
-		if (wfc_bg_tex == NULL) {
-			printf("SDL error while creating start screen texture from image: %s\n", SDL_GetError());
-			SDL_FreeSurface(wfc_bg);
-			return 1;
-		}
-		SDL_FreeSurface(wfc_bg);
-		SDL_Surface *car_bmp = SDL_LoadBMP("car0.bmp");
+		SDL_Texture *wfc_bg_tex = load_image(ren, "waitforclients.bmp");
+		SDL_Surface *car_bmp = SDL_LoadBMP("assets/car0.bmp");
 		if (car_bmp == NULL) {
 			printf("SDL error while loading BMP: %s\n", SDL_GetError());
 			return 1;
@@ -275,8 +265,8 @@ int run_server(SDL_Renderer *ren)
 		car->pos.y = 30 + i*20;
 		car->direction.x = start.x;
 		car->direction.y = start.y;
-		char filename[10];
-		sprintf(filename, "car%d.bmp", i);
+		char filename[17];
+		sprintf(filename, "assets/car%d.bmp", i);
 		SDL_Surface *image = SDL_LoadBMP(filename);
 		if (image == NULL) {
 			printf("SDL error while loading BMP: %s\n", SDL_GetError());
@@ -474,8 +464,8 @@ int run_local(SDL_Renderer *ren)
 		cars[i].direction.x = start.x;
 		cars[i].direction.y = start.y;
 
-		char filename[10];
-		sprintf(filename, "car%d.bmp", i);
+		char filename[17];
+		sprintf(filename, "assets/car%d.bmp", i);
 		SDL_Surface *image = SDL_LoadBMP(filename);
 		if (image == NULL) {
 			printf("SDL error while loading BMP: %s\n", SDL_GetError());
@@ -570,19 +560,8 @@ int run_local(SDL_Renderer *ren)
 
 void show_menu(SDL_Renderer *ren)
 {
-	SDL_Surface *surface = SDL_LoadBMP("startscreen.bmp");
-	if (surface == NULL) {
-		printf("SDL error while loading BMP: %s\n", SDL_GetError());
-		return;
-	}
-	SDL_Texture *image = SDL_CreateTextureFromSurface(ren, surface);
-	if (image == NULL) {
-		printf("SDL error while creating start screen texture from image: %s\n", SDL_GetError());
-		SDL_FreeSurface(surface);
-		return;
-	}
+	SDL_Texture *image = load_image(ren, "startscreen.bmp");
 	sound_set_type(SOUND_MENU);
-	SDL_FreeSurface(surface);
 	SDL_Event event;
 	SDL_Rect target;
 	target.x = 0;
