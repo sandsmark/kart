@@ -1,6 +1,6 @@
-#include "common.h"
 #include "box.h"
 #include "map.h"
+#include "renderer.h"
 
 #include <stdlib.h>
 
@@ -26,7 +26,7 @@ Box *boxes = 0;
 
 int boxes_init(SDL_Renderer *ren)
 {
-    box_texture = load_image(ren, "box.bmp");
+    box_texture = ren_load_image(ren, "box.bmp");
 
     box_count = boxlocations_count * BOXES_PER_TILE;
     boxes = malloc((box_count + 1) * sizeof(Box));

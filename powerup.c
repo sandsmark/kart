@@ -1,6 +1,6 @@
-#include "powerup.h"
-#include "common.h"
 #include "map.h"
+#include "powerup.h"
+#include "renderer.h"
 
 // none doesnæt have an image
 static SDL_Texture *textures[POWERUP_STAR+1] = {0};
@@ -17,17 +17,17 @@ void powerup_render(SDL_Renderer *ren, PowerUp type, ivec2 pos)
 
 int powerups_init(SDL_Renderer *ren)
 {
-    textures[POWERUP_NONE] = load_image(ren, "none_powerup.bmp");
-    textures[POWERUP_BANANA] = load_image(ren, "banana.bmp");
-    textures[POWERUP_GREEN_SHELL] = load_image(ren, "green_shell.bmp");
-    textures[POWERUP_RED_SHELL] = load_image(ren, "red_shell.bmp");
-    textures[POWERUP_BLUE_SHELL] = load_image(ren, "blue_shell.bmp");
-    textures[POWERUP_OIL] = load_image(ren, "oil.bmp");
-    textures[POWERUP_MUSHROOM] = load_image(ren, "mushroom.bmp");
-    textures[POWERUP_GOLD_MUSHROOM] = load_image(ren, "gold_mushroom.bmp");
-    textures[POWERUP_BIG_MUSHROOM] = load_image(ren, "big_mushroom.bmp");
-    textures[POWERUP_LIGHTNING] = load_image(ren, "lightning.bmp");
-    textures[POWERUP_STAR] = load_image(ren, "star.bmp");
+    textures[POWERUP_NONE] = ren_load_image(ren, "none_powerup.bmp");
+    textures[POWERUP_BANANA] = ren_load_image(ren, "banana.bmp");
+    textures[POWERUP_GREEN_SHELL] = ren_load_image(ren, "green_shell.bmp");
+    textures[POWERUP_RED_SHELL] = ren_load_image(ren, "red_shell.bmp");
+    textures[POWERUP_BLUE_SHELL] = ren_load_image(ren, "blue_shell.bmp");
+    textures[POWERUP_OIL] = ren_load_image(ren, "oil.bmp");
+    textures[POWERUP_MUSHROOM] = ren_load_image(ren, "mushroom.bmp");
+    textures[POWERUP_GOLD_MUSHROOM] = ren_load_image(ren, "gold_mushroom.bmp");
+    textures[POWERUP_BIG_MUSHROOM] = ren_load_image(ren, "big_mushroom.bmp");
+    textures[POWERUP_LIGHTNING] = ren_load_image(ren, "lightning.bmp");
+    textures[POWERUP_STAR] = ren_load_image(ren, "star.bmp");
 
     for (int i=0; i<POWERUP_STAR; i++) {
         if (!textures[i]) {

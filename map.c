@@ -1,6 +1,6 @@
 #include "map.h"
 
-#include "common.h"
+#include "renderer.h"
 
 #include <SDL2/SDL.h>
 #include <math.h>
@@ -215,19 +215,19 @@ AreaType map_get_type(const ivec2 pos)
 
 int map_load_tiles(SDL_Renderer *ren)
 {
-	tile_horizontal = load_image(ren, "map-horizontal.bmp");
-	tile_vertical   = load_image(ren, "map-vertical.bmp");
-	tile_upperleft  = load_image(ren, "map-topleft.bmp");
-	tile_upperright = load_image(ren, "map-topright.bmp");
-	tile_lowerleft  = load_image(ren, "map-bottomleft.bmp");
-	tile_lowerright = load_image(ren, "map-bottomright.bmp");
-	tile_none       = load_image(ren, "map-none.bmp");
+	tile_horizontal = ren_load_image(ren, "map-horizontal.bmp");
+	tile_vertical   = ren_load_image(ren, "map-vertical.bmp");
+	tile_upperleft  = ren_load_image(ren, "map-topleft.bmp");
+	tile_upperright = ren_load_image(ren, "map-topright.bmp");
+	tile_lowerleft  = ren_load_image(ren, "map-bottomleft.bmp");
+	tile_lowerright = ren_load_image(ren, "map-bottomright.bmp");
+	tile_none       = ren_load_image(ren, "map-none.bmp");
 
-	mod_booster_texture = load_image(ren, "booster.bmp");
-	mod_ice_texture     = load_image(ren, "ice.bmp");
-	mod_mud_texture     = load_image(ren, "mud.bmp");
-	mod_oil_texture     = load_image(ren, "oil_spill.bmp");
-	mod_banana_texture  = load_image(ren, "placed_banana.bmp");
+	mod_booster_texture = ren_load_image(ren, "booster.bmp");
+	mod_ice_texture     = ren_load_image(ren, "ice.bmp");
+	mod_mud_texture     = ren_load_image(ren, "mud.bmp");
+	mod_oil_texture     = ren_load_image(ren, "oil_spill.bmp");
+	mod_banana_texture  = ren_load_image(ren, "placed_banana.bmp");
 
 	return (tile_horizontal &&
 		tile_vertical   &&

@@ -5,16 +5,16 @@
 
 #include "box.h"
 #include "car.h"
-#include "common.h"
 #include "map.h"
 #include "net.h"
+#include "powerup.h"
+#include "renderer.h"
 #include "sound.h"
 #include "vector.h"
-#include "powerup.h"
 
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
-const vec2 start = {1.0, 0.0};
+const vec2 car_start_dir = {1.0, 0.0};
 static netmode_t netmode;
 static unsigned long long tic = 0;
 static int sockfd;
@@ -29,37 +29,16 @@ struct client {
 };
 static struct client clients[NUM_CLIENTS];
 SDL_atomic_t net_listen;
-
 extern ivec2 map_starting_position;
 
-SDL_Texture *load_texture(SDL_Renderer *renderer, const char *filepath)
-{
-	SDL_Surface *image = SDL_LoadBMP(filepath);
-	if (image == 0) {
-		printf("SDL error while loading BMP: %s\n", SDL_GetError());
-		return 0;
-	}
-
-	SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
-
-	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, image);
-	SDL_FreeSurface(image);
-
-	if (texture == 0) {
-		printf("SDL error while creating texture: %s\n", SDL_GetError());
-	}
-
-	return texture;
-}
-
-void render_car(SDL_Renderer *ren, Car *car)
+static void render_car(SDL_Renderer *ren, Car *car)
 {
 	SDL_Rect target;
 	target.x = car->pos.x;
 	target.y = car->pos.y;
 	target.w = car->width;
 	target.h = car->height;
-	SDL_RenderCopyEx(ren, car->texture, 0, &target, vec_angle(start, car->direction), 0, 0);
+	SDL_RenderCopyEx(ren, car->texture, 0, &target, vec_angle(car_start_dir, car->direction), 0, 0);
 
 	const int vertical_position = 5 + (POWERUPS_HEIGHT + 5) * car->id;
 	target.x = 5;
@@ -73,43 +52,6 @@ void render_car(SDL_Renderer *ren, Car *car)
 		powerup_pos.x = target.w + 10;
 		powerup_pos.y = vertical_position;
 		powerup_render(ren, car->powerup, powerup_pos);
-	}
-}
-
-void draw_circle(SDL_Surface *surface, int cx, int cy, int radius, Uint8 pixel)
-{
-	// Note that there is more to altering the bitrate of this 
-	// method than just changing this value.  See how pixels are
-	// altered at the following web page for tips:
-	//   http://www.libsdl.org/intro.en/usingvideo.html
-	static const int BPP = 1;
-
-	double r = (double)radius;
-
-	for (double dy = 1; dy <= r; dy += 1.0)
-	{
-		// This loop is unrolled a bit, only iterating through half of the
-		// height of the circle.  The result is used to draw a scan line and
-		// its mirror image below it.
-
-		// The following formula has been simplified from our original.  We
-		// are using half of the width of the circle because we are provided
-		// with a center and we need left/right coordinates.
-
-		double dx = floor(sqrt((2.0 * r * dy) - (dy * dy)));
-		int x = cx - dx;
-
-		// Grab a pointer to the left-most pixel for each half of the circle
-		Uint8 *target_pixel_a = (Uint8 *)surface->pixels + ((int)(cy + r - dy)) * surface->pitch + x * sizeof(Uint8);
-		Uint8 *target_pixel_b = (Uint8 *)surface->pixels + ((int)(cy - r + dy)) * surface->pitch + x * sizeof(Uint8);
-
-		for (; x <= cx + dx; x++)
-		{
-			*target_pixel_a = pixel;
-			*target_pixel_b = pixel;
-			target_pixel_a += BPP;
-			target_pixel_b += BPP;
-		}
 	}
 }
 
@@ -146,7 +88,7 @@ static int recv_loop(void *data)
 	return 0;
 }
 
-int accpt_conn(void *data)
+static int accpt_conn(void *data)
 {
 	int fd;
 	SDL_atomic_t *got_client = (SDL_atomic_t*)data;
@@ -175,31 +117,17 @@ int run_server(SDL_Renderer *ren)
 	/* Set up each client */
 	for (int i = 0; i < NUM_CLIENTS; i++)
 	{
-		SDL_Texture *wfc_bg_tex = load_image(ren, "waitforclients.bmp");
-		SDL_Surface *car_bmp = SDL_LoadBMP("assets/car0.bmp");
-		if (car_bmp == NULL) {
-			printf("SDL error while loading BMP: %s\n", SDL_GetError());
-			return 1;
-		}
-		SDL_SetColorKey(car_bmp, SDL_TRUE, SDL_MapRGB(car_bmp->format, 0, 255, 0));
-		SDL_Texture *car_tex = SDL_CreateTextureFromSurface(ren, car_bmp);
-		if (car_tex == NULL) {
-			printf("SDL error while creating start screen texture from image: %s\n", SDL_GetError());
-			SDL_FreeSurface(car_bmp);
-			return 1;
-		}
-		SDL_Event event;
 		SDL_Rect wfc_bg_target, car_target;
+		SDL_Texture *wfc_bg_tex = ren_load_image(ren, "waitforclients.bmp");
+		SDL_Texture *car_tex = ren_load_image_with_dims(ren, "car0.bmp", &car_target.w, &car_target.h);
+		SDL_Event event;
 		wfc_bg_target.x = 0;
 		wfc_bg_target.y = 0;
 		wfc_bg_target.w = SCREEN_WIDTH;
 		wfc_bg_target.h = SCREEN_HEIGHT;
-		car_target.x = SCREEN_WIDTH/2 - car_bmp->w/2;
+		car_target.x = SCREEN_WIDTH/2 - car_target.w/2;
 		car_target.y = 280;
-		car_target.w = car_bmp->w;
-		car_target.h = car_bmp->h;
 		float car_angle = 0;
-		SDL_FreeSurface(car_bmp);
 		SDL_atomic_t got_client;
 		SDL_AtomicSet(&got_client, 0);
 		int clientfd;
@@ -263,24 +191,11 @@ int run_server(SDL_Renderer *ren)
 		car->active_effects = 0;
 		car->pos.x = 250;
 		car->pos.y = 30 + i*20;
-		car->direction.x = start.x;
-		car->direction.y = start.y;
-		char filename[17];
-		sprintf(filename, "assets/car%d.bmp", i);
-		SDL_Surface *image = SDL_LoadBMP(filename);
-		if (image == NULL) {
-			printf("SDL error while loading BMP: %s\n", SDL_GetError());
-			return 1;
-		}
-		car->width = image->w;
-		car->height = image->h;
-		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
-		car->texture = SDL_CreateTextureFromSurface(ren, image);
-		SDL_FreeSurface(image);
-		if (car->texture == NULL) {
-			printf("SDL error while creating texture: %s\n", SDL_GetError());
-			return 1;
-		}
+		car->direction.x = car_start_dir.x;
+		car->direction.y = car_start_dir.y;
+		char filename[10];
+		sprintf(filename, "car%d.bmp", i);
+		car->texture = ren_load_image_with_dims(ren, filename, &car->width, &car->height);
 
 		clients[i].cmd_lock = SDL_CreateMutex();
 		if (clients[i].cmd_lock == NULL)
@@ -461,29 +376,12 @@ int run_local(SDL_Renderer *ren)
 		cars[i].active_effects = 0;
 		cars[i].pos.x = map_starting_position.x;
 		cars[i].pos.y = map_starting_position.y + i*20;
-		cars[i].direction.x = start.x;
-		cars[i].direction.y = start.y;
+		cars[i].direction.x = car_start_dir.x;
+		cars[i].direction.y = car_start_dir.y;
 
-		char filename[17];
-		sprintf(filename, "assets/car%d.bmp", i);
-		SDL_Surface *image = SDL_LoadBMP(filename);
-		if (image == NULL) {
-			printf("SDL error while loading BMP: %s\n", SDL_GetError());
-			return 0;
-		}
-		cars[i].width = image->w;
-		cars[i].height = image->h;
-
-		SDL_SetColorKey(image, SDL_TRUE, SDL_MapRGB(image->format, 0, 255, 0));
-
-		cars[i].texture = SDL_CreateTextureFromSurface(ren, image);
-		SDL_FreeSurface(image);
-
-		if (cars[i].texture == NULL) {
-			printf("SDL error while creating texture: %s\n", SDL_GetError());
-			return 1;
-		}
-
+		char filename[10];
+		sprintf(filename, "car%d.bmp", i);
+		cars[i].texture = ren_load_image_with_dims(ren, filename, &cars[i].width, &cars[i].height);
 	}
 
 	int quit = 0;
@@ -560,7 +458,7 @@ int run_local(SDL_Renderer *ren)
 
 void show_menu(SDL_Renderer *ren)
 {
-	SDL_Texture *image = load_image(ren, "startscreen.bmp");
+	SDL_Texture *image = ren_load_image(ren, "startscreen.bmp");
 	sound_set_type(SOUND_MENU);
 	SDL_Event event;
 	SDL_Rect target;
