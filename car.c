@@ -130,7 +130,12 @@ void car_move(Car *car)
 	car->pos.y += car->velocity.y * TIME_CONSTANT;
 
     if (car->powerup == POWERUP_NONE) {
-        PowerUp powerup = boxes_check_hit(car->pos);
+        SDL_Rect car_geometry;
+        car_geometry.x = car->pos.x;
+        car_geometry.y = car->pos.y;
+        car_geometry.w = car->width;
+        car_geometry.h = car->height;
+        PowerUp powerup = boxes_check_hit(car_geometry);
 
         if (powerup != POWERUP_NONE) {
             car->powerup = powerup;

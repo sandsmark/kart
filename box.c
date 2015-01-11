@@ -68,17 +68,19 @@ void boxes_render(SDL_Renderer *ren)
     }
 }
 
-PowerUp boxes_check_hit(vec2 position)
+PowerUp boxes_check_hit(SDL_Rect car)
 {
     for (int i=0; i<box_count; i++) {
         if (boxes[i].hit_time != 0) {
             continue;
         }
+        SDL_Rect box_geometry;
+        box_geometry.x = boxes[i].pos.x;
+        box_geometry.y = boxes[i].pos.y;
+        box_geometry.w = BOX_WIDTH;
+        box_geometry.h = BOX_HEIGHT;
 
-        if (position.x > boxes[i].pos.x && position.y > boxes[i].pos.y &&
-            position.x < boxes[i].pos.x + BOX_WIDTH &&
-            position.y < boxes[i].pos.y + BOX_HEIGHT) {
-
+        if (SDL_HasIntersection(&car, &box_geometry)) {
             boxes[i].hit_time = SDL_GetTicks();
             int random_number = rand() % (POWERUP_STAR - 1);
             random_number++; // the first is POWERUP_NONE
