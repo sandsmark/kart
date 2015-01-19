@@ -5,6 +5,7 @@
 
 #include "powerup.h"
 #include "defines.h"
+#include "libs/cJSON/cJSON.h"
 
 typedef struct {
 	int id;
@@ -32,6 +33,7 @@ void car_apply_force(Car *car, vec2 force);
 void car_collison(Car *car1, Car *car2);
 void car_move(Car *car);
 void car_use_powerup(Car *car);
+cJSON *car_serialize(Car *car);
 
 #endif
 

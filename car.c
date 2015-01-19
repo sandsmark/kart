@@ -5,6 +5,7 @@
 #include "map.h"
 #include "vector.h"
 #include "box.h"
+#include "libs/cJSON/cJSON.h"
 
 
 void car_apply_force(Car *car, vec2 force)
@@ -150,4 +151,25 @@ void car_use_powerup(Car *car)
     vec2 pos = car->pos;
     powerup_trigger(car->powerup, pos, car->direction);
     car->powerup = POWERUP_NONE;
+}
+
+cJSON *car_serialize(Car *car)
+{
+	cJSON *root, *dir, *velo, *pos;
+	root = cJSON_CreateObject();
+	cJSON_AddNumberToObject(root, "id", car->id);
+	cJSON_AddItemToObject(root, "direction", dir = cJSON_CreateObject());
+	cJSON_AddNumberToObject(dir, "x", car->direction.x);
+	cJSON_AddNumberToObject(dir, "y", car->direction.y);
+	cJSON_AddItemToObject(root, "velocity", velo = cJSON_CreateObject());
+	cJSON_AddNumberToObject(velo, "x", car->velocity.x);
+	cJSON_AddNumberToObject(velo, "y", car->velocity.y);
+	cJSON_AddItemToObject(root, "pos", pos = cJSON_CreateObject());
+	cJSON_AddNumberToObject(pos, "x", car->pos.x);
+	cJSON_AddNumberToObject(pos, "y", car->pos.y);
+	cJSON_AddNumberToObject(root, "drift", car->drift);
+	cJSON_AddNumberToObject(root, "width", car->width);
+	cJSON_AddNumberToObject(root, "height", car->height);
+
+	return root;
 }

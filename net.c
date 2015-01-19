@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #ifdef __MINGW32__
@@ -44,6 +45,7 @@ int net_start_client(const char *addr, int port)
 {
 	int sockfd, err;
 	struct sockaddr_in serv;
+	struct timeval tv;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		die("Failed to create socket");
 	memset(&serv, 0, sizeof(serv));
@@ -53,6 +55,9 @@ int net_start_client(const char *addr, int port)
 		die("inet_ptons failed, inet address probably not valid");
 	if ((err = connect(sockfd, (struct sockaddr *)&serv, sizeof(serv))) < 0)
 		die("Failed to connect to server");
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
+	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
 	printf("Connected to server on %s:%d\n", addr, port);
 	return sockfd;
 }
@@ -119,16 +124,21 @@ void net_set_input(unsigned input)
 	input_mask |= input;
 }
 
-ssize_t net_send_input(int sockfd, unsigned long long tic)
+ssize_t net_send_input(int sockfd)
 {
 	if (input_mask == 0)
 		return 0;
 	ssize_t n;
 	char send_buf[64];
-	sprintf(send_buf, "%d" NET_DELIM "%lld", input_mask, tic);
-	n = write(sockfd, send_buf, strlen(send_buf));
+	snprintf(send_buf, 64, "%d", input_mask);
+	n = send(sockfd, send_buf, strlen(send_buf), 0);
 	input_mask = 0;
 	return n;
+}
+
+ssize_t net_send(int sockfd, char *msg)
+{
+	return send(sockfd, msg, strlen(msg), 0);
 }
 
 void net_close(int sockfd)

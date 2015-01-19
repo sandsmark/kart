@@ -12,6 +12,7 @@
 #include "sound.h"
 #include "vector.h"
 #include "shell.h"
+#include "libs/cJSON/cJSON.h"
 
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
@@ -19,7 +20,8 @@ const vec2 car_start_dir = {1.0, 0.0};
 static netmode_t netmode;
 static unsigned long long tic = 0;
 static int sockfd;
-#define NUM_CLIENTS 2
+#define MAX_JSON_SIZE 2048
+#define NUM_CLIENTS 1
 struct client {
 	int idx;
 	int fd;
@@ -27,6 +29,11 @@ struct client {
 	SDL_mutex *cmd_lock;
 	unsigned cmd;
 	SDL_Thread *thr;
+};
+struct server_state {
+	char json[MAX_JSON_SIZE];
+	char updated;
+	SDL_mutex *lock;
 };
 static struct client clients[NUM_CLIENTS];
 SDL_atomic_t net_listen;
@@ -56,7 +63,7 @@ static void render_car(SDL_Renderer *ren, Car *car)
 	}
 }
 
-static int recv_loop(void *data)
+static int server_recv_loop(void *data)
 {
 	struct client *me = (struct client *)data;
 	char buf[64];
@@ -67,10 +74,9 @@ static int recv_loop(void *data)
 		if (n > 0)
 		{
 			unsigned cmd;
-			unsigned long long tic;
-			if (sscanf(buf, "%u" NET_DELIM "%llu", &cmd, &tic) == 2)
+			if (sscanf(buf, "%u", &cmd) == 1)
 			{
-				printf("T%d: Received: %d for tic %lld\n", me->idx, cmd, tic);
+				printf("T%d: Received: %d\n", me->idx, cmd);
 				if (SDL_LockMutex(me->cmd_lock) == 0)
 				{
 					me->cmd = cmd;
@@ -81,6 +87,34 @@ static int recv_loop(void *data)
 		else if (n == 0)
 		{
 			printf("T%d: Client closed connection\n", me->idx);
+			break;
+		}
+		else
+			break;
+	}
+	return 0;
+}
+
+static int client_recv_loop(void *data)
+{
+	struct server_state *state = (struct server_state *)data;
+	char buf[MAX_JSON_SIZE];
+	ssize_t n = 0;
+	while(SDL_AtomicGet(&net_listen))
+	{
+		n = net_recv(sockfd, buf, MAX_JSON_SIZE);
+		if (n > 0)
+		{
+			if (SDL_LockMutex(state->lock) == 0)
+			{
+				memcpy(state->json, buf, n);
+				state->updated = 1;
+				SDL_UnlockMutex(state->lock);
+			}
+		}
+		else if (n == 0)
+		{
+			printf("Server closed connection\n");
 			break;
 		}
 		else
@@ -205,7 +239,7 @@ int run_server(SDL_Renderer *ren)
 			return 1;
 		}
 
-		clients[i].thr = SDL_CreateThread(recv_loop, "Recv Client", &clients[i]);
+		clients[i].thr = SDL_CreateThread(server_recv_loop, "Recv Client", &clients[i]);
 		if (clients[i].thr == NULL)
 		{
 			printf("Failed to create recv thread\n");
@@ -219,6 +253,7 @@ int run_server(SDL_Renderer *ren)
 
 	int quit = 0;
 	SDL_Event event;
+	Uint32 time0 = SDL_GetTicks();
 
 	while (!quit) {
 		while (SDL_PollEvent(&event))
@@ -278,7 +313,9 @@ int run_server(SDL_Renderer *ren)
 		}
 
 		map_render(ren);
-
+		cJSON *state = cJSON_CreateObject(), *car_json;
+		cJSON_AddItemToObject(state, "cars", car_json = cJSON_CreateArray());
+		char *json_state;
 		for (int i = 0; i < NUM_CLIENTS; i++)
 		{
 			for (int j = i+1; j < NUM_CLIENTS; j++)
@@ -288,7 +325,15 @@ int run_server(SDL_Renderer *ren)
 			car_move(clients[i].car);
 			memset(&clients[i].car->force, 0, sizeof(clients[i].car->force));
 			render_car(ren, clients[i].car);
+			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
 		}
+		json_state = cJSON_Print(state);
+		cJSON_Delete(state);
+		for (int i = 0; i < NUM_CLIENTS; i++)
+		{
+			net_send(clients[i].fd, json_state);
+		}
+		free(json_state);
 
 		boxes_render(ren);
 
@@ -296,6 +341,13 @@ int run_server(SDL_Renderer *ren)
 
 		// Server increases tics
 		tic++;
+		Uint32 time1 = SDL_GetTicks();
+		/* TODO: TIME_CONSTANT */
+		if (time1 - time0 < 33)
+		{
+			SDL_Delay(33 - (time1-time0));
+		}
+		time0 = time1;
 	}
 
 	// Clean up
@@ -315,6 +367,24 @@ int run_server(SDL_Renderer *ren)
 
 int run_client(SDL_Renderer *ren)
 {
+	struct server_state state;
+
+	state.lock = SDL_CreateMutex();
+	if (state.lock == NULL)
+	{
+		printf("Failed to create mutex\n");
+		return 1;
+	}
+
+	SDL_AtomicSet(&net_listen, 1);
+
+	SDL_Thread *thr = SDL_CreateThread(client_recv_loop, "Recv Server", &state);
+	if (thr == NULL)
+	{
+		printf("Failed to create recv thread\n");
+		return 1;
+	}
+
 	int quit = 0;
 	SDL_Event event;
 
@@ -341,12 +411,26 @@ int run_client(SDL_Renderer *ren)
 		if (keystates[SDL_SCANCODE_RIGHT]) net_set_input(NET_INPUT_RIGHT);
 		if (keystates[SDL_SCANCODE_SPACE]) net_set_input(NET_INPUT_SPACE);
 		if (keystates[SDL_SCANCODE_RETURN]) net_set_input(NET_INPUT_RETURN);
-		net_send_input(sockfd, tic);
+		net_send_input(sockfd);
+
+		if (SDL_LockMutex(state.lock) == 0)
+		{
+			if (state.updated)
+			{
+				printf("Recvd state: %s\n", state.json);
+				state.updated = 0;
+			}
+			SDL_UnlockMutex(state.lock);
+		}
 
 		SDL_RenderPresent(ren);
 	}
 
 	// Clean up
+	SDL_AtomicSet(&net_listen, 0);
+	int t_status;
+	SDL_WaitThread(thr, &t_status);
+	SDL_DestroyMutex(state.lock);
 	map_destroy();
 	return 0;
 }

@@ -7,7 +7,6 @@
 #define NET_INPUT_RIGHT 1<<3
 #define NET_INPUT_SPACE 1<<4
 #define NET_INPUT_RETURN 1<<5
-#define NET_DELIM ":"
 
 int net_init();
 void net_cleanup();
@@ -16,7 +15,8 @@ int net_start_client(const char *addr, int port);
 int net_accept();
 ssize_t net_recv(int socket, char *buf, int buf_len);
 void net_set_input(unsigned input);
-ssize_t net_send_input(int sockfd, unsigned long long tic);
+ssize_t net_send_input(int sockfd);
+ssize_t net_send(int socket, char *buf);
 void net_close(int socket);
 
 #endif /*NET_H*/
