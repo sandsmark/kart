@@ -145,6 +145,18 @@ void car_move(Car *car)
 
 void car_use_powerup(Car *car)
 {
-    powerup_trigger(car->pos, car->powerup);
+    vec2 pos = car->pos;
+    if (car->powerup == POWERUP_BANANA) {
+/*        vec2 kuk;
+        kuk.x = car->width;
+        kuk.y = car->height;
+        vec_rotate(&kuk, car->*/
+        vec2 rot = car->direction;
+        vec_normalize(&rot);
+        vec_scale(&rot, 1.75*car->width);
+        pos.x -= rot.x;
+        pos.y -= rot.y;
+    }
+    powerup_trigger(pos, car->powerup);
     car->powerup = POWERUP_NONE;
 }
