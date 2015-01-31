@@ -1,5 +1,8 @@
 #include "renderer.h"
 
+
+SDL_Texture *font_texture = 0;
+
 SDL_Texture *ren_load_image(SDL_Renderer *ren, const char *file)
 {
 	const char *prefix = "assets/";
@@ -44,4 +47,34 @@ SDL_Texture *ren_load_image_with_dims(SDL_Renderer *ren, const char *file, int *
 	}
 	SDL_FreeSurface(surface);
 	return texture;
+}
+
+int renderer_init(SDL_Renderer *ren)
+{
+    font_texture = ren_load_image(ren, "font.bmp");
+    if (!font_texture) {
+        printf("failed to load font\n");
+    }
+
+    return (font_texture != 0);
+}
+
+void render_string(SDL_Renderer *ren, const char *string, int x, int y)
+{
+    for (unsigned int i=0; i<strlen(string); i++) {
+        int offset = (string[i] - ' ') * 6;
+        SDL_Rect source_rect;
+        source_rect.y = 0;
+        source_rect.x = offset;
+        source_rect.w = 6;
+        source_rect.h = 16;
+
+        SDL_Rect target_rect;
+        target_rect.y = y;
+        target_rect.x = x + i*12;
+        target_rect.w = 12;
+        target_rect.h = 32;
+
+        SDL_RenderCopy(ren, font_texture, &source_rect, &target_rect);
+    }
 }

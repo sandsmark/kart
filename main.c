@@ -520,6 +520,8 @@ void show_menu(SDL_Renderer *ren)
 			SDL_RenderFillRect(ren, &r);
 		}
 
+		render_string(ren, "hello", 10, 10);
+
 		SDL_RenderPresent(ren);
 	}
 
@@ -613,6 +615,7 @@ int main(int argc, char *argv[])
 
 
 	sound_init();
+	renderer_init(ren);
 	show_menu(ren);
 
 	if (netmode == SERVER || netmode == CLIENT)
