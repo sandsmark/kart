@@ -21,6 +21,7 @@ static netmode_t netmode;
 static unsigned long long tic = 0;
 static int sockfd;
 #define MAX_JSON_SIZE 2048
+#define NET_REQUEST_STATE 1337
 #define NUM_CLIENTS 1
 struct client {
 	int idx;
@@ -30,11 +31,8 @@ struct client {
 	unsigned cmd;
 	SDL_Thread *thr;
 };
-struct server_state {
-	char json[MAX_JSON_SIZE];
-	char updated;
-	SDL_mutex *lock;
-};
+char *json_state;
+SDL_mutex *json_state_lock;
 static struct client clients[NUM_CLIENTS];
 SDL_atomic_t net_listen;
 extern ivec2 map_starting_position;
@@ -77,44 +75,27 @@ static int server_recv_loop(void *data)
 			if (sscanf(buf, "%u", &cmd) == 1)
 			{
 				printf("T%d: Received: %d\n", me->idx, cmd);
-				if (SDL_LockMutex(me->cmd_lock) == 0)
+				if (cmd == NET_REQUEST_STATE)
 				{
-					me->cmd = cmd;
-					SDL_UnlockMutex(me->cmd_lock);
+					if (SDL_LockMutex(json_state_lock) == 0)
+					{
+						net_send(me->fd, json_state);
+						SDL_UnlockMutex(json_state_lock);
+					}
+				}
+				else
+				{
+					if (SDL_LockMutex(me->cmd_lock) == 0)
+					{
+						me->cmd = cmd;
+						SDL_UnlockMutex(me->cmd_lock);
+					}
 				}
 			}
 		}
 		else if (n == 0)
 		{
 			printf("T%d: Client closed connection\n", me->idx);
-			break;
-		}
-		else
-			break;
-	}
-	return 0;
-}
-
-static int client_recv_loop(void *data)
-{
-	struct server_state *state = (struct server_state *)data;
-	char buf[MAX_JSON_SIZE];
-	ssize_t n = 0;
-	while(SDL_AtomicGet(&net_listen))
-	{
-		n = net_recv(sockfd, buf, MAX_JSON_SIZE);
-		if (n > 0)
-		{
-			if (SDL_LockMutex(state->lock) == 0)
-			{
-				memcpy(state->json, buf, n);
-				state->updated = 1;
-				SDL_UnlockMutex(state->lock);
-			}
-		}
-		else if (n == 0)
-		{
-			printf("Server closed connection\n");
 			break;
 		}
 		else
@@ -144,6 +125,13 @@ int run_server(SDL_Renderer *ren)
 	}
 	if (!powerups_init(ren)) {
 		printf("unable to initialize powerups!\n");
+		return 1;
+	}
+
+	json_state_lock = SDL_CreateMutex();
+	if (json_state_lock == NULL)
+	{
+		printf("Failed to create mutex\n");
 		return 1;
 	}
 
@@ -315,7 +303,6 @@ int run_server(SDL_Renderer *ren)
 		map_render(ren);
 		cJSON *state = cJSON_CreateObject(), *car_json;
 		cJSON_AddItemToObject(state, "cars", car_json = cJSON_CreateArray());
-		char *json_state;
 		for (int i = 0; i < NUM_CLIENTS; i++)
 		{
 			for (int j = i+1; j < NUM_CLIENTS; j++)
@@ -327,13 +314,14 @@ int run_server(SDL_Renderer *ren)
 			render_car(ren, clients[i].car);
 			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
 		}
-		json_state = cJSON_Print(state);
-		cJSON_Delete(state);
-		for (int i = 0; i < NUM_CLIENTS; i++)
+		if (SDL_LockMutex(json_state_lock) == 0)
 		{
-			net_send(clients[i].fd, json_state);
+			free(json_state);
+			json_state = cJSON_Print(state);
+			cJSON_Minify(json_state);
+			SDL_UnlockMutex(json_state_lock);
 		}
-		free(json_state);
+		cJSON_Delete(state);
 
 		boxes_render(ren);
 
@@ -360,6 +348,7 @@ int run_server(SDL_Renderer *ren)
 		free(clients[i].car);
 		net_close(clients[i].fd);
 	}
+	SDL_DestroyMutex(json_state_lock);
 	map_destroy();
 	return 0;
 }
@@ -367,26 +356,9 @@ int run_server(SDL_Renderer *ren)
 
 int run_client(SDL_Renderer *ren)
 {
-	struct server_state state;
-
-	state.lock = SDL_CreateMutex();
-	if (state.lock == NULL)
-	{
-		printf("Failed to create mutex\n");
-		return 1;
-	}
-
-	SDL_AtomicSet(&net_listen, 1);
-
-	SDL_Thread *thr = SDL_CreateThread(client_recv_loop, "Recv Server", &state);
-	if (thr == NULL)
-	{
-		printf("Failed to create recv thread\n");
-		return 1;
-	}
-
 	int quit = 0;
 	SDL_Event event;
+	char state[MAX_JSON_SIZE];
 
 	while (!quit) {
 		while (SDL_PollEvent(&event)){
@@ -413,24 +385,17 @@ int run_client(SDL_Renderer *ren)
 		if (keystates[SDL_SCANCODE_RETURN]) net_set_input(NET_INPUT_RETURN);
 		net_send_input(sockfd);
 
-		if (SDL_LockMutex(state.lock) == 0)
-		{
-			if (state.updated)
-			{
-				printf("Recvd state: %s\n", state.json);
-				state.updated = 0;
-			}
-			SDL_UnlockMutex(state.lock);
-		}
+		char buf[5];
+		snprintf(buf, 5, "%d", NET_REQUEST_STATE);
+		net_send(sockfd, buf);
+		net_recv(sockfd, state, MAX_JSON_SIZE);
+		printf("Recvd: %s\n", state);
 
 		SDL_RenderPresent(ren);
 	}
 
 	// Clean up
 	SDL_AtomicSet(&net_listen, 0);
-	int t_status;
-	SDL_WaitThread(thr, &t_status);
-	SDL_DestroyMutex(state.lock);
 	map_destroy();
 	return 0;
 }
