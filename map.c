@@ -65,8 +65,8 @@ void remove_modifier(int index)
 int map_add_modifier(AreaType type, ivec2 pos)
 {
 	if (modifiers_size < modifiers_count) {
-		modifiers_size <<= 1;
-		modifiers = realloc(modifiers, (modifiers_size + 1) * sizeof(Modifier));
+		modifiers_size += 10; // grow linearly, makes more sense for this
+		modifiers = realloc(modifiers, modifiers_size * sizeof(Modifier));
 		if (!modifiers) {
 			printf("failed to grow array for modifiers\n");
 			return 1;
@@ -425,4 +425,70 @@ void map_render(SDL_Renderer *ren)
 	}
 }
 
+vec2 map_get_edge_normal(int x, int y)
+{
+	vec2 normal;
+	normal.x = 0;
+	normal.y = 0;
+
+	if (x < 0 || y < 0) {
+		printf("asked for edge normal for invalid x: %d y: %d\n", x, y);
+		return normal;
+	}
+
+	const unsigned int px = x / TILE_WIDTH;
+	const unsigned int py = y / TILE_HEIGHT;
+	if (px >= width || py >= height) {
+		printf("asked for edge normal at out of bounds coordinates x: %d y: %d\n", x, y);
+		return normal;
+	}
+
+	unsigned int rel_x = x - (px * TILE_WIDTH);
+	unsigned int rel_y = y - (py * TILE_HEIGHT);
+
+	vec2 origo;
+	switch (map_tiles[px][py]) {
+	case TILE_HORIZONTAL:
+		if (rel_y > TILE_HEIGHT / 2) {
+			normal.x = 0;
+			normal.y = -1;
+		} else {
+			normal.x = 0;
+			normal.y = 1;
+		}
+		return normal;
+	case TILE_VERTICAL:
+		if (rel_x > TILE_WIDTH / 2) {
+			normal.x = -1;
+			normal.y = 0;
+		} else {
+			normal.x = 1;
+			normal.y = 0;
+		}
+		return normal;
+	case TILE_UPPERLEFT:
+		normal.x = (px + 1) * TILE_WIDTH;
+		normal.y = (py + 1) * TILE_HEIGHT;
+		break;
+	case TILE_UPPERRIGHT:
+		normal.x = (px) * TILE_WIDTH;
+		normal.y = (py + 1) * TILE_HEIGHT;
+		break;
+	case TILE_BOTTOMLEFT:
+		normal.x = (px + 1) * TILE_WIDTH;
+		normal.y = (py) * TILE_HEIGHT;
+		break;
+	case TILE_BOTTOMRIGHT:
+		normal.x = (px) * TILE_WIDTH;
+		normal.y = (py) * TILE_HEIGHT;
+		break;
+	case TILE_NONE:
+	default:
+		break;
+	}
+	normal.x -= x;
+	normal.y -= y;
+
+	return normal;
+}
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

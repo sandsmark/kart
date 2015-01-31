@@ -1,6 +1,7 @@
 #include "map.h"
 #include "powerup.h"
 #include "renderer.h"
+#include "shell.h"
 
 // none doesnæt have an image
 static SDL_Texture *textures[POWERUP_STAR+1] = {0};
@@ -38,7 +39,7 @@ int powerups_init(SDL_Renderer *ren)
     return 1;
 }
 
-void powerup_trigger(vec2 pos, PowerUp type)
+void powerup_trigger(PowerUp type, vec2 pos, vec2 direction)
 {
     ivec2 pos_integer;
     pos_integer.x = pos.x;
@@ -46,27 +47,46 @@ void powerup_trigger(vec2 pos, PowerUp type)
     switch(type) {
     case POWERUP_NONE:
         return;
-    case POWERUP_BANANA:
+    case POWERUP_BANANA: {
+        printf("adding bananor\n");
+        vec2 rot = direction;
+        vec_normalize(&rot);
+        vec_scale(&rot, 50);
+        pos_integer.x -= rot.x;
+        pos_integer.y -= rot.y;
         map_add_modifier(MAP_BANANA, pos_integer);
         break;
+    }
     case POWERUP_GREEN_SHELL:
+        printf("adding green shell\n");
+        shell_add(SHELL_GREEN, pos, direction);
         break;
     case POWERUP_RED_SHELL:
+        printf("adding red shell\n");
+        shell_add(SHELL_RED, pos, direction);
         break;
     case POWERUP_BLUE_SHELL:
+        printf("adding blue shell\n");
+        shell_add(SHELL_RED, pos, direction);
         break;
     case POWERUP_OIL:
+        printf("adding oil\n");
         map_add_modifier(MAP_OIL, pos_integer);
         break;
     case POWERUP_MUSHROOM:
+        printf("adding mushram\n");
         break;
     case POWERUP_GOLD_MUSHROOM:
+        printf("adding gold mushram\n");
         break;
     case POWERUP_BIG_MUSHROOM:
+        printf("adding big mushram\n");
         break;
     case POWERUP_LIGHTNING:
+        printf("triggering lightning\n");
         break;
     case POWERUP_STAR:
+        printf("triggering star\n");
         break;
     default:
         printf("tried to trigger unknown powerup: %d\n", type);

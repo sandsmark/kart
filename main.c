@@ -11,6 +11,7 @@
 #include "renderer.h"
 #include "sound.h"
 #include "vector.h"
+#include "shell.h"
 
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
@@ -446,6 +447,8 @@ int run_local(SDL_Renderer *ren)
 		}
 
 		boxes_render(ren);
+		shell_move();
+		shell_render(ren);
 
 		SDL_RenderPresent(ren);
 	}

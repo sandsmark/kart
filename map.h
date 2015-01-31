@@ -25,6 +25,8 @@ void map_destroy();
 void map_render(SDL_Renderer *ren);
 int map_add_modifier(AreaType type, ivec2 pos);
 
+vec2 map_get_edge_normal(int x, int y);
+
 AreaType map_get_type(const ivec2 pos);
 #endif
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/
