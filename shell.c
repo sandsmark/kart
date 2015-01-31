@@ -9,6 +9,8 @@ static SDL_Texture *shell_green_texture  = 0;
 static SDL_Texture *shell_red_texture    = 0;
 static SDL_Texture *shell_blue_texture   = 0;
 
+static const int SHELL_LIFETIME = 5000;
+
 typedef struct {
 	vec2 direction;
 
@@ -17,6 +19,8 @@ typedef struct {
 	vec2 pos;
 
 	ShellType type;
+
+	Uint32 launch_time;
 } Shell;
 
 static int shells_count = 0;
@@ -73,6 +77,7 @@ void shell_add(ShellType type, vec2 pos, vec2 direction)
 	vec_scale(&direction, 5.5);
 	shell.direction = direction;
 	shell.type = type;
+	shell.launch_time = SDL_GetTicks();
 
 	shells[shells_count] = shell;
 	shells_count++;
@@ -89,6 +94,9 @@ void shell_remove(int index)
 void shell_move()
 {
 	for (int i=0; i<shells_count; i++) {
+		if (shells[i].launch_time + SHELL_LIFETIME < SDL_GetTicks()) {
+			shell_remove(i);
+		}
 		ivec2 next_pos;
 		next_pos.x = shells[i].pos.x + shells[i].direction.x;
 		next_pos.y = shells[i].pos.y + shells[i].direction.y;
