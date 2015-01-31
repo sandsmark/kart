@@ -520,7 +520,7 @@ void show_menu(SDL_Renderer *ren)
 			SDL_RenderFillRect(ren, &r);
 		}
 
-		render_string(ren, "hello", 10, 10);
+		render_string(ren, "hello world!1!!", 10, 10, 32);
 
 		SDL_RenderPresent(ren);
 	}

@@ -59,21 +59,23 @@ int renderer_init(SDL_Renderer *ren)
     return (font_texture != 0);
 }
 
-void render_string(SDL_Renderer *ren, const char *string, int x, int y)
+void render_string(SDL_Renderer *ren, const char *string, int x, int y, int size)
 {
     for (unsigned int i=0; i<strlen(string); i++) {
+        if (string[i] < 32 || string[i] > 126) continue;
+
         int offset = (string[i] - ' ') * 6;
         SDL_Rect source_rect;
         source_rect.y = 0;
         source_rect.x = offset;
         source_rect.w = 6;
-        source_rect.h = 16;
+        source_rect.h = 11;
 
         SDL_Rect target_rect;
         target_rect.y = y;
-        target_rect.x = x + i*12;
-        target_rect.w = 12;
-        target_rect.h = 32;
+        target_rect.x = x + i*size;
+        target_rect.w = size * 6 / 11;
+        target_rect.h = size;
 
         SDL_RenderCopy(ren, font_texture, &source_rect, &target_rect);
     }
