@@ -108,10 +108,6 @@ void shell_move()
 		next_pos.y = shells[i].pos.y + shells[i].direction.y;
 		shells[i].pos.x = next_pos.x;
 		shells[i].pos.y = next_pos.y;
-
-		ivec2 pos;
-		pos.x = shells[i].pos.x;
-		pos.y = shells[i].pos.y;
 	}
 }
 

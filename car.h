@@ -25,6 +25,7 @@ typedef struct {
 	PowerUp powerup;
 
 	int active_effects;
+	int tiles_passed;
 } Car;
 
 void car_apply_force(Car *car, vec2 force);

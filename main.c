@@ -379,6 +379,7 @@ int run_local(SDL_Renderer *ren)
 		cars[i].pos.y = map_starting_position.y + i*20;
 		cars[i].direction.x = car_start_dir.x;
 		cars[i].direction.y = car_start_dir.y;
+		cars[i].tiles_passed = 0;
 
 		char filename[10];
 		sprintf(filename, "car%d.bmp", i);

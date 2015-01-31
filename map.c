@@ -54,6 +54,10 @@ ivec2 *boxlocations = 0;
 
 ivec2 map_starting_position;
 
+#define MAX_PATH_LENGTH 100
+static ivec2 map_path[MAX_PATH_LENGTH];
+static int map_path_length = 0;
+
 void remove_modifier(int index)
 {
 	modifiers_count--;
@@ -252,7 +256,6 @@ int map_load_file(const char *filename)
 		return 0;
 	}
 
-
 	if (fscanf(file, "%ux%u\n", &width, &height) != 2) {
 		printf("invalid map file format in file %s\n", filename);
 		fclose(file);
@@ -379,6 +382,75 @@ int map_load_file(const char *filename)
 	rewind(file);
 	fclose(file);
 
+	// Find path through map
+
+	map_path[0] = starting_tile;
+	map_path[1] = starting_tile;
+	map_path[1].x++;
+	for (int i=1; i<MAX_PATH_LENGTH - 1; i++) {
+		ivec2 next_tile = map_path[i];
+		switch(map_tiles[next_tile.x][next_tile.y]) {
+		case TILE_HORIZONTAL:
+			if (map_path[i-1].x == next_tile.x - 1) {
+				next_tile.x++;
+			} else {
+				next_tile.x--;
+			}
+			break;
+		case TILE_VERTICAL:
+			if (map_path[i-1].y == next_tile.y - 1) {
+				next_tile.y++;
+			} else {
+				next_tile.y--;
+			}
+			break;
+		case TILE_UPPERLEFT:
+			if (map_path[i-1].x == next_tile.x + 1) {
+				next_tile.y++;
+			} else {
+				next_tile.x++;
+			}
+			break;
+		case TILE_UPPERRIGHT:
+			if (map_path[i-1].x == next_tile.x - 1) {
+				next_tile.y++;
+			} else {
+				next_tile.x--;
+			}
+			break;
+		case TILE_BOTTOMLEFT:
+			if (map_path[i-1].x == next_tile.x + 1) {
+				next_tile.y--;
+			} else {
+				next_tile.x++;
+			}
+			break;
+		case TILE_BOTTOMRIGHT:
+			if (map_path[i-1].x == next_tile.x - 1) {
+				next_tile.y--;
+			} else {
+				next_tile.x--;
+			}
+			break;
+		case TILE_NONE:
+		default:
+			printf("invalid tile found trying to find path\n");
+			return 0;
+		}
+
+		// check if we're back to start
+		if (next_tile.x == map_path[0].x && next_tile.y == map_path[0].y) {
+			break;
+		}
+
+		map_path[i+1] = next_tile;
+		map_path_length++;
+	}
+	printf("path:\n");
+	for (int i=0; i<map_path_length; i++) {
+		printf("x: %d y: %d\n", map_path[i].x, map_path[i].y);
+	}
+
 	return 1;
 }
 
@@ -446,7 +518,6 @@ vec2 map_get_edge_normal(int x, int y)
 	unsigned int rel_x = x - (px * TILE_WIDTH);
 	unsigned int rel_y = y - (py * TILE_HEIGHT);
 
-	vec2 origo;
 	switch (map_tiles[px][py]) {
 	case TILE_HORIZONTAL:
 		if (rel_y > TILE_HEIGHT / 2) {
@@ -490,5 +561,18 @@ vec2 map_get_edge_normal(int x, int y)
 	normal.y -= y;
 
 	return normal;
+}
+
+void map_check_tile_passed(int *tile_count, vec2 pos)
+{
+	const int px = pos.x / TILE_WIDTH;
+	const int py = pos.y / TILE_HEIGHT;
+
+	int next_tile = (*tile_count + 1) % map_path_length;
+	if (map_path[next_tile].x == px && map_path[next_tile].y == py) {
+		(*tile_count)++;
+		printf("tiles passed: %d, laps: %d\n", *tile_count, *tile_count / map_path_length);
+		
+	}
 }
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

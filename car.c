@@ -141,6 +141,8 @@ void car_move(Car *car)
             car->powerup = powerup;
         }
     }
+
+    map_check_tile_passed(&car->tiles_passed, car->pos);
 }
 
 void car_use_powerup(Car *car)
