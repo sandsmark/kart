@@ -37,6 +37,13 @@ static struct client clients[NUM_CLIENTS];
 SDL_atomic_t net_listen;
 extern ivec2 map_starting_position;
 
+typedef enum {
+	MENU_SERVER,
+	MENU_CLIENT,
+	MENU_LOCAL,
+	MENU_QUIT
+} MenuChoice;
+
 static void render_car(SDL_Renderer *ren, Car *car)
 {
 	SDL_Rect target;
@@ -499,6 +506,132 @@ int run_local(SDL_Renderer *ren)
 	return 0;
 }
 
+char *show_get_ip(SDL_Renderer *ren)
+{
+	sound_set_type(SOUND_MENU);
+	SDL_Event event;
+	SDL_Rect target;
+	target.x = 0;
+	target.y = 0;
+	target.w = SCREEN_WIDTH;
+	target.h = SCREEN_HEIGHT;
+	int quit = 0;
+	int pos = 0;
+	char *address = malloc(16);
+	strcpy(address, "000.000.000.000");
+	while (!quit) {
+		while (SDL_PollEvent(&event)){
+			//If user closes the window
+			if (event.type == SDL_QUIT) {
+				return;
+			}
+			//If user presses any key
+			if (event.type == SDL_KEYDOWN) {
+				switch (event.key.keysym.sym) {
+				case SDLK_RETURN:
+					return address;
+					break;
+				case SDLK_ESCAPE:
+					free(address);
+					return 0;
+				case SDLK_1:
+					address[pos] = '1';
+					pos++;
+					break;
+				case SDLK_2:
+					address[pos] = '2';
+					pos++;
+					break;
+				case SDLK_3:
+					address[pos] = '3';
+					pos++;
+					break;
+				case SDLK_4:
+					address[pos] = '4';
+					pos++;
+					break;
+				case SDLK_5:
+					address[pos] = '5';
+					pos++;
+					break;
+				case SDLK_6:
+					address[pos] = '6';
+					pos++;
+					break;
+				case SDLK_7:
+					address[pos] = '7';
+					pos++;
+					break;
+				case SDLK_8:
+					address[pos] = '8';
+					pos++;
+					break;
+				case SDLK_9:
+					address[pos] = '9';
+					pos++;
+					break;
+				case SDLK_0:
+					address[pos] = '0';
+					pos++;
+					break;
+				case SDLK_LEFT:
+				case SDLK_BACKSPACE:
+					pos--;
+					if (!((pos+1) % 4)) pos--;
+					break;
+				case SDLK_RIGHT:
+				case SDLK_SPACE:
+					pos++;
+					break;
+				case SDLK_PERIOD:
+				case SDLK_TAB:
+					pos += 3 - (pos % 4);
+				}
+				if (pos < 0) pos = 11;
+				pos %= 15;
+				if (!((pos+1) % 4) && pos) pos++;
+			}
+		}
+
+
+		SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
+		SDL_RenderClear(ren);
+
+		                          //r    g     b     a
+		SDL_SetRenderDrawColor(ren, 0x0, 0xff, 0xff, 0xff);
+
+
+		SDL_Rect box;
+		box.w = 32 * 15;
+		box.h = 40;
+		box.x = SCREEN_WIDTH / 2 - box.w / 2 - 2;
+		box.y = SCREEN_HEIGHT / 2 - 32;
+		SDL_RenderDrawRect(ren, &box);
+		render_string(ren, address, box.x + 2, box.y, 32);
+
+		render_string(ren, "enter ip:", box.x, box.y - 40, 32);
+
+		SDL_Rect line;
+		line.x = box.x + pos * 32;
+		line.y = box.y + 30;
+		line.w = 32;
+		line.h = 5;
+		SDL_RenderFillRect(ren, &line);
+
+		// fancy useless effect
+		for (int i=1; i<SCREEN_WIDTH/2; i++) {
+			Uint32 t = SDL_GetTicks() / 10.0;
+			SDL_Rect r;
+			int x = i * 2;
+			int y = sinf(t * ((i - SCREEN_WIDTH/4)/500.0 + 0.01)) * (SCREEN_HEIGHT/2) + SCREEN_HEIGHT / 2;
+			SDL_RenderDrawPoint(ren, x, y);
+		}
+
+		SDL_RenderPresent(ren);
+	}
+	return 0;
+}
+
 void show_menu(SDL_Renderer *ren)
 {
 	SDL_Texture *image = ren_load_image(ren, "startscreen.bmp");
@@ -510,7 +643,7 @@ void show_menu(SDL_Renderer *ren)
 	target.w = SCREEN_WIDTH;
 	target.h = SCREEN_HEIGHT;
 	int quit = 0;
-	int choice = 0;
+	MenuChoice choice = 0;
 	while (!quit) {
 		while (SDL_PollEvent(&event)){
 			//If user closes the window
@@ -524,11 +657,14 @@ void show_menu(SDL_Renderer *ren)
 					quit = 1;
 					break;
 				case SDLK_DOWN:
-					choice = (choice + 1) % 4;
+					choice = (choice + 1) % (MENU_QUIT + 1);
 					break;
 				case SDLK_UP:
-					choice--;
-					if (choice < 0) choice = 3;
+					if (choice == MENU_SERVER) {
+						choice = MENU_QUIT;
+					} else {
+						choice--;
+					}
 					break;
 				}
 			}
@@ -575,9 +711,15 @@ void show_menu(SDL_Renderer *ren)
 		case 0:
 			run_server(ren);
 			break;
-		case 1:
+		case 1: {
+			char *address = show_get_ip(ren);
+			if (address) {
+				printf("addy: %s\n", address);
+				sockfd = net_start_client(address, NET_PORT);
 			run_client(ren);
+			}
 			break;
+		}
 		case 2:
 			run_local(ren);
 			break;

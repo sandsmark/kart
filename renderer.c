@@ -74,7 +74,7 @@ void render_string(SDL_Renderer *ren, const char *string, int x, int y, int size
         SDL_Rect target_rect;
         target_rect.y = y;
         target_rect.x = x + i*size;
-        target_rect.w = size * 6 / 11;
+        target_rect.w = size;
         target_rect.h = size;
 
         SDL_RenderCopy(ren, font_texture, &source_rect, &target_rect);
