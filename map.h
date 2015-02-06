@@ -31,5 +31,7 @@ AreaType map_get_type(const ivec2 pos);
 
 void map_check_tile_passed(int *current_tile, vec2 pos);
 
+int map_get_path_length();
+
 #endif
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

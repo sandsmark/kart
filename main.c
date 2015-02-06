@@ -59,6 +59,12 @@ static void render_car(SDL_Renderer *ren, Car *car)
 		powerup_pos.y = vertical_position;
 		powerup_render(ren, car->powerup, powerup_pos);
 	}
+
+	// TODO: allocating 500 is stupid
+	char *laps_string = malloc(500);
+	snprintf(laps_string, 500, "%d laps", car->tiles_passed / map_get_path_length());
+	render_string(ren, laps_string, target.w + car->width + 20, target.y, 32);
+	free(laps_string);
 }
 
 static int server_recv_loop(void *data)

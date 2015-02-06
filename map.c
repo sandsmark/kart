@@ -575,4 +575,9 @@ void map_check_tile_passed(int *tile_count, vec2 pos)
 		
 	}
 }
+
+int map_get_path_length()
+{
+	return map_path_length;
+}
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/
