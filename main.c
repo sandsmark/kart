@@ -53,17 +53,24 @@ static void render_car(SDL_Renderer *ren, Car *car)
 	target.w = POWERUPS_HEIGHT * car->width / car->height;
         SDL_RenderCopy(ren, car->texture, 0, &target);
 
+	ivec2 powerup_pos;
+	powerup_pos.x = target.w + 10;
+	powerup_pos.y = vertical_position;
 	if (car->powerup != POWERUP_NONE) {
-		ivec2 powerup_pos;
-		powerup_pos.x = target.w + 10;
-		powerup_pos.y = vertical_position;
 		powerup_render(ren, car->powerup, powerup_pos);
+
+
 	}
+	target.h = POWERUPS_HEIGHT + 1;
+	target.w = car->width + 1;
+	target.x = powerup_pos.x - 1;
+	target.y = powerup_pos.y - 1;
+	SDL_RenderDrawRect(ren, &target);
 
 	// TODO: allocating 500 is stupid
 	char *laps_string = malloc(500);
 	snprintf(laps_string, 500, "%d laps", car->tiles_passed / map_get_path_length());
-	render_string(ren, laps_string, target.w + car->width + 20, target.y, 32);
+	render_string(ren, laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 32);
 	free(laps_string);
 }
 
