@@ -19,7 +19,7 @@ const int SCREEN_HEIGHT = 768;
 const vec2 car_start_dir = {1.0, 0.0};
 static netmode_t netmode;
 static unsigned long long tic = 0;
-static int sockfd;
+static int sockfd = -1;
 #define MAX_JSON_SIZE 2048
 #define NET_REQUEST_STATE 1337
 #define NUM_CLIENTS 1
@@ -128,6 +128,7 @@ static int accpt_conn(void *data)
 
 int run_server(SDL_Renderer *ren)
 {
+	sockfd = net_start_server(NET_PORT);
 	json_state_lock = SDL_CreateMutex();
 	if (json_state_lock == NULL)
 	{
@@ -348,6 +349,7 @@ int run_server(SDL_Renderer *ren)
 		free(clients[i].car);
 		net_close(clients[i].fd);
 	}
+	net_close(sockfd);
 	SDL_DestroyMutex(json_state_lock);
 	map_destroy();
 	return 0;
@@ -519,16 +521,14 @@ void show_menu(SDL_Renderer *ren)
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
 				case SDLK_RETURN:
-					if (choice != 1) {
-						quit = 1;
-					}
+					quit = 1;
 					break;
 				case SDLK_DOWN:
-					choice = (choice + 1) % 3;
+					choice = (choice + 1) % 4;
 					break;
 				case SDLK_UP:
 					choice--;
-					if (choice < 0) choice = 2;
+					if (choice < 0) choice = 3;
 					break;
 				}
 			}
@@ -541,10 +541,15 @@ void show_menu(SDL_Renderer *ren)
 		SDL_SetRenderDrawColor(ren, 0x0, 0xff, 0xff, 0xff);
 		SDL_Rect selection_rect;
 		selection_rect.x = 364;
-		selection_rect.y = 320 + choice * 62;
-		selection_rect.h = 10;
-		selection_rect.w = 10;
+		selection_rect.y = 200 + choice * 62;
+		selection_rect.h = 16;
+		selection_rect.w = 16;
 		SDL_RenderFillRect(ren, &selection_rect);
+
+		render_string(ren, "server mode", 385, 190, 32);
+		render_string(ren, "client mode", 385, 252, 32);
+		render_string(ren, "local mode",  385, 315, 32);
+		render_string(ren, "quit",        385, 375, 32);
 
 		// fancy useless effect
 		for (int i=1; i<140; i++) {
@@ -557,8 +562,6 @@ void show_menu(SDL_Renderer *ren)
 			SDL_RenderFillRect(ren, &r);
 		}
 
-		render_string(ren, "hello world!1!!", 10, 10, 32);
-
 		SDL_RenderPresent(ren);
 	}
 
@@ -566,21 +569,21 @@ void show_menu(SDL_Renderer *ren)
 	sound_set_type(SOUND_NONE);
 	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
 	SDL_RenderClear(ren);
-	if (choice == 0) {
-		switch (netmode)
-		{
-			case SERVER:
-				run_server(ren);
-				break;
-			case CLIENT:
-				run_client(ren);
-				break;
-			case LOCAL:
-				run_local(ren);
-				break;
-			default:
-				break;
-		}
+	printf("menu choice: %d\n", choice);
+	switch (choice)
+	{
+		case 0:
+			run_server(ren);
+			break;
+		case 1:
+			run_client(ren);
+			break;
+		case 2:
+			run_local(ren);
+			break;
+		case 3:
+		default:
+			break;
 	}
 }
 
@@ -589,50 +592,6 @@ int main(int argc, char *argv[])
 	printf("kartering " REVISION " launching...\n");
 	srand(time(NULL));
 	net_init();
-	if (argc < 2)
-	{
-		netmode = LOCAL;
-	}
-
-	if (argc > 1) {
-		if (strcmp(argv[1], "server") == 0)
-		{
-			if (argc != 3)
-			{
-				printf("Usage: %s server <port>\n", argv[0]);
-				return 1;
-			}
-			sockfd = net_start_server(atoi(argv[2]));
-			netmode = SERVER;
-		}
-		else if (strcmp(argv[1], "client") == 0)
-		{
-			if (argc != 4)
-			{
-				printf("Usage: %s client <address> <port>\n", argv[0]);
-				return 1;
-			}
-			if (strcmp(argv[2], "localhost") == 0)
-				sockfd = net_start_client("127.0.0.1", atoi(argv[3]));
-			else
-				sockfd = net_start_client(argv[2], atoi(argv[3]));
-			netmode = CLIENT;
-		}
-		else if (strcmp(argv[1], "local") == 0)
-		{
-			if (argc != 2)
-			{
-				printf("Usage: %s local\n", argv[0]);
-				return 1;
-			}
-			netmode = LOCAL;
-		}
-		else
-		{
-			printf("Invalid argument: %s\n", argv[1]);
-			return 1;
-		}
-	}
 
 	// Set up SDL
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -649,7 +608,6 @@ int main(int argc, char *argv[])
 		printf("SDL error while creating renderer: %s\n", SDL_GetError());
 		return 1;
 	}
-
 
 	if (!map_init(ren, "map1.map")) {
 		printf("unable to initialize map!\n");
@@ -669,11 +627,49 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	show_menu(ren);
+	if (argc > 1) {
+		if (strcmp(argv[1], "server") == 0)
+		{
+			if (argc != 3)
+			{
+				printf("Usage: %s server <port>\n", argv[0]);
+				return 1;
+			}
+			run_server(ren);
+		}
+		else if (strcmp(argv[1], "client") == 0)
+		{
+			if (argc != 4)
+			{
+				printf("Usage: %s client <address> <port>\n", argv[0]);
+				return 1;
+			}
+			if (strcmp(argv[2], "localhost") == 0)
+				sockfd = net_start_client("127.0.0.1", atoi(argv[3]));
+			else
+				sockfd = net_start_client(argv[2], atoi(argv[3]));
+			run_client(ren);
+		}
+		else if (strcmp(argv[1], "local") == 0)
+		{
+			if (argc != 2)
+			{
+				printf("Usage: %s local\n", argv[0]);
+				return 1;
+			}
+			run_local(ren);
+		}
+		else
+		{
+			printf("Invalid argument: %s\n", argv[1]);
+			return 1;
+		}
+	} else {
+		show_menu(ren);
+	}
 
-	if (netmode == SERVER || netmode == CLIENT)
-		net_close(sockfd);
-	net_cleanup();
+	if (sockfd != -1)
+		net_cleanup();
 	sound_destroy();
 	SDL_DestroyRenderer(ren); // cleans up all textures
 	SDL_DestroyWindow(win);

@@ -12,10 +12,12 @@ typedef struct {
 } ivec2;
 
 typedef enum {
-	SERVER,
+	SERVER = 0,
 	CLIENT,
 	LOCAL
 } netmode_t;
+
+#define NET_PORT 31337
 
 #define CAR_MASS 20 /*in kg*/
 #define CAR_DRAG_COEFF 0.1
