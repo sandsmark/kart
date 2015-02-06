@@ -3,3 +3,4 @@ It is licensed by CC-BY TRBRY
 
 the rest of the code is probably gpl2 because of one header borrowed from Wireshark.
 
+to build, install the SDL2 development headers, and run "make".
