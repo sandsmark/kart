@@ -1,7 +1,5 @@
-graphics from here: http://opengameart.org/content/track-tiles
-ships from here: http://opengameart.org/content/space-ship-building-bits-volume-1
+track graphics from here: http://opengameart.org/content/track-tiles
+It is licensed by CC-BY TRBRY
 
-CC-BY TRBRY
-
-the rest of the code is probably gpl2 because of the wireshark code.
+the rest of the code is probably gpl2 because of one header borrowed from Wireshark.
 
