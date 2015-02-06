@@ -128,19 +128,6 @@ static int accpt_conn(void *data)
 
 int run_server(SDL_Renderer *ren)
 {
-	if (!map_init(ren, "map1.map")) {
-		printf("unable to initialize map!\n");
-		return 1;
-	}
-	if (!boxes_init(ren)) {
-		printf("unable to initialize box!\n");
-		return 1;
-	}
-	if (!powerups_init(ren)) {
-		printf("unable to initialize powerups!\n");
-		return 1;
-	}
-
 	json_state_lock = SDL_CreateMutex();
 	if (json_state_lock == NULL)
 	{
@@ -416,18 +403,6 @@ int run_client(SDL_Renderer *ren)
 
 int run_local(SDL_Renderer *ren)
 {
-	if (!map_init(ren, "map1.map")) {
-		printf("unable to initialize map!\n");
-		return 1;
-	}
-	if (!boxes_init(ren)) {
-		printf("unable to initialize box!\n");
-		return 1;
-	}
-	if (!powerups_init(ren)) {
-		printf("unable to initialize powerups!\n");
-		return 1;
-	}
 
 	int car_count = 2;
 	Car *cars = calloc(car_count, sizeof(Car));
@@ -676,8 +651,24 @@ int main(int argc, char *argv[])
 	}
 
 
+	if (!map_init(ren, "map1.map")) {
+		printf("unable to initialize map!\n");
+		return 1;
+	}
+	if (!boxes_init(ren)) {
+		printf("unable to initialize box!\n");
+		return 1;
+	}
+	if (!powerups_init(ren)) {
+		printf("unable to initialize powerups!\n");
+		return 1;
+	}
 	sound_init();
-	renderer_init(ren);
+	if (!renderer_init(ren)) {
+		printf("unable to initialize custom rendering\n");
+		return 1;
+	}
+
 	show_menu(ren);
 
 	if (netmode == SERVER || netmode == CLIENT)
