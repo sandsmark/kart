@@ -678,7 +678,7 @@ void show_menu(SDL_Renderer *ren)
 		SDL_RenderFillRect(ren, &selection_rect);
 
 		render_string(ren, "server mode", 385, 190, 32);
-		render_string(ren, "client mode", 385, 252, 32);
+		render_string(ren, "client mode (not working)", 385, 252, 32);
 		render_string(ren, "local mode",  385, 315, 32);
 		render_string(ren, "quit",        385, 375, 32);
 
