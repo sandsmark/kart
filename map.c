@@ -361,7 +361,7 @@ int map_load_file(const char *filename)
 		return 0;
 	}
 
-	boxlocations = malloc(sizeof(Modifier) * (boxlocations_size + 1));
+	boxlocations = malloc(sizeof(ivec2) * (boxlocations_size + 1));
 	if (!boxlocations) {
 		printf("failed to allocate memory for box locations\n");
 		return 0;

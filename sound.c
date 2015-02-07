@@ -31,13 +31,13 @@ void sound_init()
     want.samples = 4096;
 
     audio_pos = 0;
-    audio_frequency = FREQ / have.freq; /* 1.0 to make it a float */
     audio_volume = 6000; /* ~1/5 max volume */
 
     SDL_LoadWAV(MUSIC_PATH, &want, &music_buffer, &music_length);
 
     want.callback = sound_car_audio_cb;
     audio_device = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
+    audio_frequency = FREQ / have.freq; /* 1.0 to make it a float */
 }
 void sound_destroy()
 {

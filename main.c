@@ -517,6 +517,7 @@ char *show_get_ip(SDL_Renderer *ren)
 		while (SDL_PollEvent(&event)){
 			//If user closes the window
 			if (event.type == SDL_QUIT) {
+				free(address);
 				return 0;
 			}
 			//If user presses any key
