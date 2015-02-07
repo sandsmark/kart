@@ -222,8 +222,8 @@ int run_server(SDL_Renderer *ren)
 		Car *car = clients[i].car;
 		car->id = i;
 		car->active_effects = 0;
-		car->pos.x = 250;
-		car->pos.y = 30 + i*20;
+		car->pos.x = map_starting_position.x;
+		car->pos.y = map_starting_position.y + i*20;
 		car->direction.x = car_start_dir.x;
 		car->direction.y = car_start_dir.y;
 		char filename[10];
