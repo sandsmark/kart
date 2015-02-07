@@ -1,7 +1,6 @@
 #The Kartering (working title)
-==============================
 
-tldr; connect to the server at localhost over port 31337. You receive game
+**tldr**; connect to the server at localhost over port 31337. You receive game
 state in JSON when you ask for it (send "1337\n"), send back a single byte to
 control it.
 
@@ -34,7 +33,38 @@ Some pseudo C code to use it:
     send_byte(action);
 ```
 
-CREDITS:
+Example of received JSON Blob
+```JSON
+{
+    "cars": [
+        {
+            "id": 0,
+            "direction": {
+                "x": 0.83867,
+                "y": 0.544639
+            },
+            "velocity": {
+                "x": 21.651678,
+                "y": 14.060616
+            },
+            "pos": {
+                "x": 398.508514,
+                "y": 64.899368
+            },
+            "drift": 0,
+            "width": 30,
+            "height": 16
+        },
+        []
+    ]
+}
+```
+
+
+### Build instructions
+Install the SDL2 development headers, and run "make".
+
+### CREDITS:
 track graphics from here: http://opengameart.org/content/track-tiles
 It is licensed by CC-BY TRBRY
 
@@ -68,10 +98,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
-
-
-
-# Build instructions
-====================
-Install the SDL2 development headers, and run "make".
