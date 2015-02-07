@@ -123,7 +123,7 @@ cJSON *shells_serialize()
 		cJSON_AddNumberToObject(shell, "y", shells[i].pos.y);
 		cJSON_AddNumberToObject(shell, "dx", shells[i].direction.x);
 		cJSON_AddNumberToObject(shell, "dy", shells[i].direction.y);
-		cJSON_AddObjectToArray(root, shell);
+		cJSON_AddItemToArray(root, shell);
 	}
 	return root;
 }

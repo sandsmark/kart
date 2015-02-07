@@ -17,7 +17,6 @@
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
 const vec2 car_start_dir = {1.0, 0.0};
-static netmode_t netmode;
 static unsigned long long tic = 0;
 static int sockfd = -1;
 #define MAX_JSON_SIZE 2048
@@ -510,11 +509,6 @@ char *show_get_ip(SDL_Renderer *ren)
 {
 	sound_set_type(SOUND_MENU);
 	SDL_Event event;
-	SDL_Rect target;
-	target.x = 0;
-	target.y = 0;
-	target.w = SCREEN_WIDTH;
-	target.h = SCREEN_HEIGHT;
 	int quit = 0;
 	int pos = 0;
 	char *address = malloc(16);
@@ -523,7 +517,7 @@ char *show_get_ip(SDL_Renderer *ren)
 		while (SDL_PollEvent(&event)){
 			//If user closes the window
 			if (event.type == SDL_QUIT) {
-				return;
+				return 0;
 			}
 			//If user presses any key
 			if (event.type == SDL_KEYDOWN) {
@@ -621,7 +615,6 @@ char *show_get_ip(SDL_Renderer *ren)
 		// fancy useless effect
 		for (int i=1; i<SCREEN_WIDTH/2; i++) {
 			Uint32 t = SDL_GetTicks() / 10.0;
-			SDL_Rect r;
 			int x = i * 2;
 			int y = sinf(t * ((i - SCREEN_WIDTH/4)/500.0 + 0.01)) * (SCREEN_HEIGHT/2) + SCREEN_HEIGHT / 2;
 			SDL_RenderDrawPoint(ren, x, y);

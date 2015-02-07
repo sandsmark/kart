@@ -7,8 +7,6 @@
 #include "defines.h"
 #include "libs/cJSON/cJSON.h"
 
-typedef enum
-
 typedef struct {
 	int id;
 	vec2 direction;
