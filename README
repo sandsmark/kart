@@ -2,7 +2,8 @@ The Kartering (working title)
 =============================
 
 tldr; connect to the server at localhost over port 31337. You receive game
-state in JSON, send back a single byte to control it.
+state in JSON when you ask for it (send "1337\n"), send back a single byte to
+control it.
 
 The byte is used as a bitmap, so set a bit to do that action (press the key in
 parenthesis in a local game).  This part of the protocol is going to be
