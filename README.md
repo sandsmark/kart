@@ -1,5 +1,5 @@
-The Kartering (working title)
-=============================
+#The Kartering (working title)
+==============================
 
 tldr; connect to the server at localhost over port 31337. You receive game
 state in JSON when you ask for it (send "1337\n"), send back a single byte to
@@ -9,7 +9,8 @@ The byte is used as a bitmap, so set a bit to do that action (press the key in
 parenthesis in a local game).  This part of the protocol is going to be
 simplified a bit (switch to sending specific bytes instead of bitmaps).
 
-Action      | Player 1 | Player 2 | Bit in map
+Action      | Player 1 | Player 2 | Bit in map |
+------------|----------|----------|------------
 Accelerate  | Up       | W        | 0
 Decelerate  | Down     | S        | 1
 Turn left   | Left     | A        | 2
@@ -18,6 +19,7 @@ Drift       | Comma    | C        | 4
 Use powerup | Period   | V        | 5
 
 Some pseudo C code to use it:
+```C
     #define NET_INPUT_UP 1<<0
     #define NET_INPUT_DOWN 1<<1
     #define NET_INPUT_LEFT 1<<2
@@ -30,7 +32,7 @@ Some pseudo C code to use it:
         action |= NET_INPUT_LEFT;
     }
     send_byte(action);
-
+```
 
 CREDITS:
 track graphics from here: http://opengameart.org/content/track-tiles
@@ -70,6 +72,6 @@ THE SOFTWARE.
 
 
 
-Build instructions
-==================
+# Build instructions
+====================
 Install the SDL2 development headers, and run "make".
