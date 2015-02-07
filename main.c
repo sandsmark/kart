@@ -142,6 +142,9 @@ int run_server(SDL_Renderer *ren)
 		return 1;
 	}
 
+	json_state = malloc(1);
+	*json_state = 0;
+
 	SDL_AtomicSet(&net_listen, 1);
 	printf("Waiting for clients...\n");
 	/* Set up each client */
