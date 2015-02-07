@@ -4,16 +4,17 @@ The Kartering (working title)
 tldr; connect to the server at localhost over port 31337. You receive game
 state in JSON, send back a single byte to control it.
 
-This part of the protocol is going to be simplified a bit (switch to sending
-specific bytes instead of bitmaps):
 The byte is used as a bitmap, so set a bit to do that action (press the key in
-parenthesis in a local game):
-Bit 0: Accelerate (arrow up key)
-Bit 1: Decelerate (arrow down key)
-Bit 2: Turn left (arrow left key)
-Bit 3: Turn right (arrow right key)
-Bit 4: Handbrake/drift (space)
-Bit 5: Use powerup (enter)
+parenthesis in a local game).  This part of the protocol is going to be
+simplified a bit (switch to sending specific bytes instead of bitmaps).
+
+Action      | Player 1 | Player 2 | Bit in map
+Accelerate  | Up       | W        | 0
+Decelerate  | Down     | S        | 1
+Turn left   | Left     | A        | 2
+Turn right  | Right    | D        | 3
+Drift       | Comma    | C        | 4
+Use powerup | Period   | V        | 5
 
 Some pseudo C code to use it:
     #define NET_INPUT_UP 1<<0

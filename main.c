@@ -468,12 +468,37 @@ int run_local(SDL_Renderer *ren)
 		if (keystates[SDL_SCANCODE_RIGHT]) {
 			vec_rotate(&car->direction, 3);
 		}
-		if (keystates[SDL_SCANCODE_SPACE]) {
+		if (keystates[SDL_SCANCODE_COMMA]) {
 			car->drift = 1;
 		}
-		if (keystates[SDL_SCANCODE_RETURN]) {
+		if (keystates[SDL_SCANCODE_PERIOD]) {
 			car_use_powerup(car);
 		}
+
+		car = &cars[1];
+		if (keystates[SDL_SCANCODE_W]) {
+			vec2 force = car->direction;
+			vec_scale(&force, 2500);
+			car_apply_force(car, force);
+		}
+		if (keystates[SDL_SCANCODE_S]) {
+			vec2 force = car->direction;
+			vec_scale(&force, -2500);
+			car_apply_force(car, force);
+		}
+		if (keystates[SDL_SCANCODE_A]) {
+			vec_rotate(&car->direction, -3);
+		}
+		if (keystates[SDL_SCANCODE_D]) {
+			vec_rotate(&car->direction, 3);
+		}
+		if (keystates[SDL_SCANCODE_C]) {
+			car->drift = 1;
+		}
+		if (keystates[SDL_SCANCODE_V]) {
+			car_use_powerup(car);
+		}
+
 
 		int freq = vec_length(car->velocity);
 		if (freq < 10) freq = 10;
