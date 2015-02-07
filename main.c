@@ -320,6 +320,7 @@ int run_server(SDL_Renderer *ren)
 			memset(&clients[i].car->force, 0, sizeof(clients[i].car->force));
 			render_car(ren, clients[i].car);
 			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
+			cJSON_AddItemToArray(car_json, shells_serialize());
 		}
 		if (SDL_LockMutex(json_state_lock) == 0)
 		{
