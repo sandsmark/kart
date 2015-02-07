@@ -113,4 +113,19 @@ void shell_move()
 	}
 }
 
+cJSON *shells_serialize()
+{
+	cJSON *root = cJSON_CreateArray();
+	for (int i=0; i<shells_count; i++) {
+		cJSON *shell = cJSON_CreateObject();
+		cJSON_AddNumberToObject(shell, "type", shells[i].type);
+		cJSON_AddNumberToObject(shell, "x", shells[i].pos.x);
+		cJSON_AddNumberToObject(shell, "y", shells[i].pos.y);
+		cJSON_AddNumberToObject(shell, "dx", shells[i].direction.x);
+		cJSON_AddNumberToObject(shell, "dy", shells[i].direction.y);
+		cJSON_AddObjectToArray(root, shell);
+	}
+	return root;
+}
+
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

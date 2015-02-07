@@ -7,6 +7,8 @@
 #include "defines.h"
 #include "libs/cJSON/cJSON.h"
 
+typedef enum
+
 typedef struct {
 	int id;
 	vec2 direction;
@@ -27,6 +29,8 @@ typedef struct {
 
 	int active_effects;
 	int tiles_passed;
+
+	Uint32 effect_started;
 } Car;
 
 void car_apply_force(Car *car, vec2 force);
