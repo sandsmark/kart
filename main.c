@@ -101,21 +101,15 @@ static int server_recv_loop(void *data)
 			if (sscanf(buf, "%u", &cmd) == 1)
 			{
 				printf("T%d: Received: %d\n", me->idx, cmd);
-				if (cmd == NET_REQUEST_STATE)
+				if (SDL_LockMutex(me->cmd_lock) == 0)
 				{
-					if (SDL_LockMutex(json_state_lock) == 0)
-					{
-						net_send(me->fd, json_state);
-						SDL_UnlockMutex(json_state_lock);
-					}
+					me->cmd = cmd;
+					SDL_UnlockMutex(me->cmd_lock);
 				}
-				else
+				if (SDL_LockMutex(json_state_lock) == 0)
 				{
-					if (SDL_LockMutex(me->cmd_lock) == 0)
-					{
-						me->cmd = cmd;
-						SDL_UnlockMutex(me->cmd_lock);
-					}
+					net_send(me->fd, json_state);
+					SDL_UnlockMutex(json_state_lock);
 				}
 			}
 		}
