@@ -87,7 +87,6 @@ void do_render(SDL_Renderer *ren)
 	shell_render(ren);
 }
 
-
 static int server_recv_loop(void *data)
 {
 	struct client *me = (struct client *)data;
@@ -140,6 +139,21 @@ static int accpt_conn(void *data)
 	return fd;
 }
 
+char *json_to_text(cJSON *object)
+{
+	char *text = cJSON_Print(object);
+	size_t total_length = strlen(text);
+	cJSON_Minify(text);
+
+	if (total_length - strlen(text) < 1) { // less than two extra bytes available
+		json_state = realloc(text, total_length + 1);
+	}
+	size_t end = strlen(text);
+	text[end] = '\n';
+	text[end+1] = 0;
+	return text;
+}
+
 int run_server(SDL_Renderer *ren)
 {
 	sockfd = net_start_server(NET_PORT);
@@ -149,6 +163,10 @@ int run_server(SDL_Renderer *ren)
 		printf("Failed to create mutex\n");
 		return 1;
 	}
+
+	cJSON *initial_object = map_serialize();
+	char *initial_json = json_to_text(initial_object);
+	cJSON_Delete(initial_object);
 
 	json_state = malloc(1);
 	*json_state = 0;
@@ -220,6 +238,9 @@ int run_server(SDL_Renderer *ren)
 			printf("Accept failed\n");
 			return 1;
 		}
+		// Send initial state
+		net_send(clients[i].fd, initial_json);
+
 		clients[i].car = calloc(1, sizeof(*(clients[i].car)));
 		if (clients[i].car == NULL)
 		{
@@ -247,6 +268,7 @@ int run_server(SDL_Renderer *ren)
 	printf("All clients connected\n");
 	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
 	SDL_RenderClear(ren);
+	free(initial_json);
 
 	int quit = 0;
 	SDL_Event event;
@@ -317,20 +339,10 @@ int run_server(SDL_Renderer *ren)
 			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
 		}
 		cJSON_AddItemToObject(state, "shells", shells_serialize());
-		cJSON_AddItemToObject(state, "map", map_serialize());
 		if (SDL_LockMutex(json_state_lock) == 0)
 		{
 			free(json_state);
-			json_state = cJSON_Print(state);
-			size_t total_length = strlen(json_state);
-			cJSON_Minify(json_state);
-
-			if (total_length - strlen(json_state) < 1) { // less than two extra bytes available
-				json_state = realloc(json_state, total_length + 1);
-			}
-			size_t end = strlen(json_state);
-			json_state[end] = '\n';
-			json_state[end+1] = 0;
+			json_state = json_to_text(state);
 			SDL_UnlockMutex(json_state_lock);
 		}
 		cJSON_Delete(state);
