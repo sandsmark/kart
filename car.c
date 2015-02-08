@@ -9,7 +9,7 @@
 #include "libs/cJSON/cJSON.h"
 #include "shell.h"
 
-#define STUN_TIMEOUT 1000
+#define STUN_TIMEOUT 2500
 
 #define MAX_CARS 8
 Car cars[MAX_CARS];
@@ -129,17 +129,19 @@ void car_move(Car *car)
 
 	vec2 acceleration = {car->force.x/CAR_MASS, car->force.y/CAR_MASS};
 
+	car->velocity.x += acceleration.x * TIME_CONSTANT;
+	car->velocity.y += acceleration.y * TIME_CONSTANT;
+
 	if (car->stunned_at) {
 		if (SDL_GetTicks() - car->stunned_at > STUN_TIMEOUT) {
 			car->stunned_at = 0;
+			car->width *= 2;
+			car->height *= 2;
 		}
 
-		acceleration.x = 0;
-		acceleration.y = 0;
+		vec_scale(&car->velocity, 0.9);
 	}
 
-	car->velocity.x += acceleration.x * TIME_CONSTANT;
-	car->velocity.y += acceleration.y * TIME_CONSTANT;
 
 	/* Kill orthogonal velocity */
 	float drift = 0.9;
@@ -220,7 +222,7 @@ void car_use_powerup(Car *car)
         break;
     case POWERUP_BLUE_SHELL:
         printf("adding blue shell\n");
-        shell_add(SHELL_RED, car->pos, car->direction);
+        shell_add(SHELL_BLUE, car->pos, car->direction);
         break;
     case POWERUP_OIL:
         printf("adding oil\n");
@@ -247,13 +249,12 @@ void car_use_powerup(Car *car)
 		if (cars[i].tiles_passed < car->tiles_passed) {
 			continue;
 		}
-		if (cars[i].tiles_passed > car->tiles_passed) {
-			cars[i].stunned_at = SDL_GetTicks();
-			continue;
-		}
 		const int distance = map_dist_left_in_tile(cars[i].tiles_passed, cars[i].pos);
-		if (my_dist > distance) {
+		if (cars[i].tiles_passed > car->tiles_passed || my_dist > distance) {
 			cars[i].stunned_at = SDL_GetTicks();
+			cars[i].width /= 2;
+			cars[i].height /= 2;
+			cars[i].powerup = POWERUP_NONE;
 		}
 	}
         break;
