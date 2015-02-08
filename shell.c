@@ -117,8 +117,23 @@ cJSON *shells_serialize()
 {
 	cJSON *root = cJSON_CreateArray();
 	for (int i=0; i<shells_count; i++) {
+		cJSON *type_string;
+		switch(shells[i].type) {
+		case SHELL_GREEN:
+			type_string = cJSON_CreateString("green");
+			break;
+		case SHELL_BLUE:
+			type_string = cJSON_CreateString("blue");
+			break;
+		case SHELL_RED:
+			type_string = cJSON_CreateString("red");
+			break;
+		default:
+			type_string = cJSON_CreateString("none");
+		}
+
 		cJSON *shell = cJSON_CreateObject();
-		cJSON_AddNumberToObject(shell, "type", shells[i].type);
+		cJSON_AddItemToObject(shell, "type", type_string);
 		cJSON_AddNumberToObject(shell, "x", shells[i].pos.x);
 		cJSON_AddNumberToObject(shell, "y", shells[i].pos.y);
 		cJSON_AddNumberToObject(shell, "dx", shells[i].direction.x);
