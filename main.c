@@ -323,16 +323,22 @@ int run_server(SDL_Renderer *ren)
 			memset(&clients[i].car->force, 0, sizeof(clients[i].car->force));
 			render_car(ren, clients[i].car);
 			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
-			cJSON_AddItemToArray(car_json, shells_serialize());
 		}
+		cJSON_AddItemToObject(state, "shells", shells_serialize());
+		cJSON_AddItemToObject(state, "map", map_serialize());
 		if (SDL_LockMutex(json_state_lock) == 0)
 		{
 			free(json_state);
 			json_state = cJSON_Print(state);
+			size_t total_length = strlen(json_state);
 			cJSON_Minify(json_state);
-			if (json_state[strlen(json_state) - 1] != '\n') {
-				json_state[strlen(json_state) - 1] = '\n';
+
+			if (total_length - strlen(json_state) < 1) { // less than two extra bytes available
+				json_state = realloc(json_state, total_length + 1);
 			}
+			size_t end = strlen(json_state);
+			json_state[end] = '\n';
+			json_state[end+1] = 0;
 			SDL_UnlockMutex(json_state_lock);
 		}
 		cJSON_Delete(state);
