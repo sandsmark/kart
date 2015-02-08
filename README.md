@@ -142,6 +142,9 @@ object on a single line, terminated by a newline:**
 {"cars":[{"id":0,"direction":{"x":1,"y":0},"velocity":{"x":0,"y":0},"pos":{"x":448,"y":153},"drift":0,"width":30,"height":16}],"shells":[]}
 ```
 
+*All messages back and forth are terminated by a newline.*
+
+
 ### Build instructions
 Install the SDL2 development headers, and run "make".
 
