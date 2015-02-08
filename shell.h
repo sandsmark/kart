@@ -17,6 +17,8 @@ void shell_render(SDL_Renderer *ren);
 void shell_add(ShellType type, vec2 pos, vec2 direction);
 void shell_move();
 
+int shells_check_collide(vec2 pos);
+
 cJSON *shells_serialize();
 
 #endif//SHELL_H

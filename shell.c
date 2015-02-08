@@ -73,6 +73,8 @@ void shell_add(ShellType type, vec2 pos, vec2 direction)
 	shell.pos = pos;
 	vec_normalize(&direction);
 	vec_scale(&direction, 5.5);
+	shell.pos.x += direction.x * 5;
+	shell.pos.y += direction.y * 5;
 	shell.direction = direction;
 	shell.type = type;
 
@@ -141,6 +143,20 @@ cJSON *shells_serialize()
 		cJSON_AddItemToArray(root, shell);
 	}
 	return root;
+}
+
+int shells_check_collide(vec2 pos)
+{
+	for (int i=0; i<shells_count; i++) {
+		vec2 diff = pos;
+		diff.x -= shells[i].pos.x;
+		diff.y -= shells[i].pos.y;
+		if (vec_length(diff) < 10) {
+			shell_remove(i);
+			return 1;
+		}
+	}
+	return 0;
 }
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

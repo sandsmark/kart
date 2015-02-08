@@ -147,7 +147,6 @@ void car_move(Car *car)
 		if (SDL_GetTicks() - car->tipped_at > TIPPED_TIMEOUT) {
 			car->tipped_at = 0;
 		}
-		vec2 force = car->direction;
 		vec_rotate(&car->direction, 100);
 	}
 	car->velocity.x += acceleration.x * TIME_CONSTANT;
@@ -214,6 +213,9 @@ void car_move(Car *car)
 void cars_move()
 {
 	for (int i=0; i<cars_count; i++) {
+		if (shells_check_collide(cars[i].pos)) {
+			cars[i].tipped_at = SDL_GetTicks();
+		}
 		for (int j=i+1; j<cars_count; j++)
 		{
 			car_collison(&cars[i], &cars[j]);
