@@ -699,6 +699,8 @@ void show_menu(SDL_Renderer *ren)
 			r.h = 2;
 			SDL_RenderFillRect(ren, &r);
 		}
+		const char *verstring = "version " REVISION;
+		render_string(verstring, SCREEN_WIDTH - strlen(verstring) * 16, 0, 16);
 
 		SDL_RenderPresent(ren);
 	}
