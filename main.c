@@ -64,8 +64,6 @@ static void render_car(SDL_Renderer *ren, Car *car)
 	powerup_pos.y = vertical_position;
 	if (car->powerup != POWERUP_NONE) {
 		powerup_render(ren, car->powerup, powerup_pos);
-
-
 	}
 	target.h = POWERUPS_HEIGHT + 1;
 	target.w = car->width + 1;
@@ -79,6 +77,16 @@ static void render_car(SDL_Renderer *ren, Car *car)
 	render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 32);
 	free(laps_string);
 }
+
+void do_render(SDL_Renderer *ren)
+{
+	map_render(ren);
+	cars_move();
+	boxes_render(ren);
+	shell_move();
+	shell_render(ren);
+}
+
 
 static int server_recv_loop(void *data)
 {
@@ -301,8 +309,6 @@ int run_server(SDL_Renderer *ren)
 			}
 		}
 
-		map_render(ren);
-		cars_move();
 		cJSON *state = cJSON_CreateObject(), *car_json;
 		cJSON_AddItemToObject(state, "cars", car_json = cJSON_CreateArray());
 		for (int i = 0; i < NUM_CLIENTS; i++)
@@ -329,7 +335,7 @@ int run_server(SDL_Renderer *ren)
 		}
 		cJSON_Delete(state);
 
-		boxes_render(ren);
+		do_render(ren);
 
 		SDL_RenderPresent(ren);
 
@@ -406,7 +412,6 @@ int run_client(SDL_Renderer *ren)
 	map_destroy();
 	return 0;
 }
-
 
 int run_local(SDL_Renderer *ren)
 {
@@ -488,16 +493,11 @@ int run_local(SDL_Renderer *ren)
 		freq = 1500 / freq;
 		sound_set_car_freq(freq);
 
-		map_render(ren);
-
-		cars_move();
+		do_render(ren);
 		for (int i=0; i<2; i++) {
 			render_car(ren, cars[i]);
 		}
 
-		boxes_render(ren);
-		shell_move();
-		shell_render(ren);
 
 		SDL_RenderPresent(ren);
 	}
