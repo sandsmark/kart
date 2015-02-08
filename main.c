@@ -335,6 +335,7 @@ int run_server(SDL_Renderer *ren)
 			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
 		}
 		cJSON_AddItemToObject(state, "shells", shells_serialize());
+		cJSON_AddItemToObject(state, "boxes", boxes_serialize());
 		if (SDL_LockMutex(json_state_lock) == 0)
 		{
 			free(json_state);

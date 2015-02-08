@@ -90,3 +90,20 @@ PowerUp boxes_check_hit(SDL_Rect car)
     }
     return POWERUP_NONE;
 }
+
+cJSON *boxes_serialize()
+{
+
+    cJSON *boxes_array = cJSON_CreateArray();
+
+    for (int i=0; i<box_count; i++) {
+        if (boxes[i].hit_time) continue; // it is not visible
+        cJSON *box_object = cJSON_CreateObject();
+        cJSON_AddNumberToObject(box_object, "x", boxes[i].pos.x);
+        cJSON_AddNumberToObject(box_object, "y", boxes[i].pos.y);
+        cJSON_AddNumberToObject(box_object, "width", BOX_WIDTH);
+        cJSON_AddNumberToObject(box_object, "height", BOX_HEIGHT);
+        cJSON_AddItemToArray(boxes_array, box_object);
+    }
+	return boxes_array;
+}

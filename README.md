@@ -121,6 +121,16 @@ status update JSON object like this:
             "dx": 0.5,
             "dy": 0.3
         }
+    ],
+    "boxes": [
+        { "x": 576, "y": 153, "width": 16, "height": 16 },
+        { "x": 576, "y": 174, "width": 16, "height": 16 },
+        { "x": 576, "y": 195, "width": 16, "height": 16 },
+        { "x": 576, "y": 216, "width": 16, "height": 16 },
+        { "x": 448, "y": 537, "width": 16, "height": 16 },
+        { "x": 448, "y": 558, "width": 16, "height": 16 },
+        { "x": 448, "y": 579, "width": 16, "height": 16 },
+        { "x": 448, "y": 600, "width": 16, "height": 16 }
     ]
 }
 ```
