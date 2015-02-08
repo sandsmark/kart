@@ -662,4 +662,30 @@ cJSON *map_serialize()
 	return map_object;
 }
 
+int map_dist_left_in_tile(int pathcount, vec2 pos)
+{
+	pathcount++;
+	pathcount %= map_path_length;
+
+	const unsigned int next_x = map_path[pathcount].x;
+	const unsigned int next_y = map_path[pathcount].y;
+
+	const unsigned int cur_tilex = pos.x / TILE_WIDTH;
+	const unsigned int cur_tiley = pos.y / TILE_HEIGHT;
+
+	if (next_x == cur_tilex) {
+		if (next_y < cur_tiley) {
+			return (pos.y - next_y * TILE_HEIGHT);
+		} else {
+			return (next_y * TILE_HEIGHT - pos.y);
+		}
+	} else {
+		if (next_x < cur_tilex) {
+			return (pos.x - next_x * TILE_WIDTH);
+		} else {
+			return (next_x * TILE_WIDTH - pos.x);
+		}
+	}
+}
+
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

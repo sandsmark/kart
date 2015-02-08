@@ -7,6 +7,9 @@
 #include "vector.h"
 #include "box.h"
 #include "libs/cJSON/cJSON.h"
+#include "shell.h"
+
+#define STUN_TIMEOUT 1000
 
 #define MAX_CARS 8
 Car cars[MAX_CARS];
@@ -26,7 +29,7 @@ Car *car_add()
 	cars_count++;
 
 	cars[i].id = i;
-	cars[i].active_effects = 0;
+	cars[i].stunned_at = 0;
 	cars[i].pos.x = map_starting_position.x;
 	cars[i].pos.y = map_starting_position.y + i * 20;
 	cars[i].direction = car_start_dir;
@@ -95,9 +98,13 @@ void car_move(Car *car)
 		roll_coeff *= 7;
 		drag_coeff *= 7;
 		break;
-    case MAP_BANANA:
-        car->active_effects |= 1<<POWERUP_BANANA;
-        break;
+	case MAP_BANANA:
+		vec_rotate(&car->direction, 45);
+		car->velocity.x = 0;
+		car->velocity.y = 0;
+		car->force.x = -10;
+		car->force.y = -10;
+		break;
 	case MAP_OIL:
 		vec_rotate(&car->direction, 3);
 		break;
@@ -122,6 +129,15 @@ void car_move(Car *car)
 
 	vec2 acceleration = {car->force.x/CAR_MASS, car->force.y/CAR_MASS};
 
+	if (car->stunned_at) {
+		if (SDL_GetTicks() - car->stunned_at > STUN_TIMEOUT) {
+			car->stunned_at = 0;
+		}
+
+		acceleration.x = 0;
+		acceleration.y = 0;
+	}
+
 	car->velocity.x += acceleration.x * TIME_CONSTANT;
 	car->velocity.y += acceleration.y * TIME_CONSTANT;
 
@@ -144,35 +160,23 @@ void car_move(Car *car)
 	car->velocity.x = fw_velo.x + side_velo.x * drift;
 	car->velocity.y = fw_velo.y + side_velo.y * drift;
 
-
-    if (car->active_effects & 1<<POWERUP_BANANA) {
-        if (type != MAP_BANANA) {
-            car->active_effects ^= 1<<POWERUP_BANANA;
-        }
-		vec_rotate(&car->direction, 45);
-		car->velocity.x = 0;
-		car->velocity.y = 0;
-		car->force.x = -10;
-		car->force.y = -10;
-    }
-
 	car->pos.x += car->velocity.x * TIME_CONSTANT;
 	car->pos.y += car->velocity.y * TIME_CONSTANT;
 
-    if (car->powerup == POWERUP_NONE) {
-        SDL_Rect car_geometry;
-        car_geometry.x = car->pos.x;
-        car_geometry.y = car->pos.y;
-        car_geometry.w = car->width;
-        car_geometry.h = car->height;
-        PowerUp powerup = boxes_check_hit(car_geometry);
+	if (car->powerup == POWERUP_NONE) {
+		SDL_Rect car_geometry;
+		car_geometry.x = car->pos.x;
+		car_geometry.y = car->pos.y;
+		car_geometry.w = car->width;
+		car_geometry.h = car->height;
+		PowerUp powerup = boxes_check_hit(car_geometry);
 
-        if (powerup != POWERUP_NONE) {
-            car->powerup = powerup;
-        }
-    }
+		if (powerup != POWERUP_NONE) {
+			car->powerup = powerup;
+		}
+	}
 
-    map_check_tile_passed(&car->tiles_passed, car->pos);
+	map_check_tile_passed(&car->tiles_passed, car->pos);
 }
 
 void cars_move()
@@ -189,8 +193,78 @@ void cars_move()
 
 void car_use_powerup(Car *car)
 {
-    vec2 pos = car->pos;
-    powerup_trigger(car->powerup, pos, car->direction);
+    ivec2 pos;
+    pos.x = car->pos.x;
+    pos.y = car->pos.y;
+
+    switch(car->powerup) {
+    case POWERUP_NONE:
+        return;
+    case POWERUP_BANANA: {
+        printf("adding bananor\n");
+        vec2 rot = car->direction;
+        vec_normalize(&rot);
+        vec_scale(&rot, 50);
+        pos.x -= rot.x;
+        pos.y -= rot.y;
+        map_add_modifier(MAP_BANANA, pos);
+        break;
+    }
+    case POWERUP_GREEN_SHELL:
+        printf("adding green shell\n");
+        shell_add(SHELL_GREEN, car->pos, car->direction);
+        break;
+    case POWERUP_RED_SHELL:
+        printf("adding red shell\n");
+        shell_add(SHELL_RED, car->pos, car->direction);
+        break;
+    case POWERUP_BLUE_SHELL:
+        printf("adding blue shell\n");
+        shell_add(SHELL_RED, car->pos, car->direction);
+        break;
+    case POWERUP_OIL:
+        printf("adding oil\n");
+        map_add_modifier(MAP_OIL, pos);
+        break;
+    case POWERUP_MUSHROOM:
+        printf("adding mushram\n");
+        break;
+    case POWERUP_GOLD_MUSHROOM:
+        printf("adding gold mushram\n");
+        break;
+    case POWERUP_BIG_MUSHROOM:
+        printf("adding big mushram\n");
+        break;
+    case POWERUP_LIGHTNING: {
+        printf("triggering lightning\n");
+
+	// find all cars in front of us
+	const int my_dist = map_dist_left_in_tile(car->tiles_passed, car->pos);
+	for (int i=0; i<cars_count; i++) {
+		if (car == &cars[i]) {
+			continue;
+		}
+		if (cars[i].tiles_passed < car->tiles_passed) {
+			continue;
+		}
+		if (cars[i].tiles_passed > car->tiles_passed) {
+			cars[i].stunned_at = SDL_GetTicks();
+			continue;
+		}
+		const int distance = map_dist_left_in_tile(cars[i].tiles_passed, cars[i].pos);
+		if (my_dist > distance) {
+			cars[i].stunned_at = SDL_GetTicks();
+		}
+	}
+        break;
+    }
+    case POWERUP_STAR:
+        printf("triggering star\n");
+        break;
+    default:
+        printf("tried to trigger unknown powerup: %d\n", car->powerup);
+        break;
+    }
     car->powerup = POWERUP_NONE;
 }
 
@@ -213,6 +287,34 @@ cJSON *car_serialize(Car *car)
 	cJSON_AddNumberToObject(root, "height", car->height);
 
 	return root;
+}
+
+// Not the world's most efficient implementation, but it's just 4 cars at max
+Car *car_get_leader()
+{
+	if (cars_count == 0) {
+		return 0;
+	}
+	Car *leader = &cars[0];
+	// Find the highest amount of tiles passed
+	for (int i=1; i<cars_count; i++) {
+		if (cars[i].tiles_passed > leader->tiles_passed) {
+			leader = &cars[i];
+		}
+	}
+
+	// in case of ties, we need to check the distance inside a tile
+	for (int i=0; i<cars_count; i++) {
+		if (cars[i].tiles_passed < leader->tiles_passed) {
+			continue;
+		}
+		int distance = map_dist_left_in_tile(cars[i].tiles_passed, cars[i].pos);
+		int leader_dist = map_dist_left_in_tile(leader->tiles_passed, leader->pos);
+		if (distance < leader_dist) {
+			leader = &cars[i];
+		}
+	}
+	return leader;
 }
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

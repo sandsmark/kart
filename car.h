@@ -25,10 +25,10 @@ typedef struct {
 
 	PowerUp powerup;
 
-	int active_effects;
 	int tiles_passed;
 
-	Uint32 effect_started;
+	// Effects
+	Uint32 stunned_at;
 } Car;
 
 Car *car_add();
@@ -36,6 +36,8 @@ void car_apply_force(Car *car, vec2 force);
 void cars_move();
 void car_use_powerup(Car *car);
 cJSON *car_serialize(Car *car);
+
+Car *car_get_leader();
 
 #endif
 

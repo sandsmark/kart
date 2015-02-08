@@ -23,6 +23,5 @@ typedef enum {
 int powerups_init();
 
 void powerup_render(SDL_Renderer *ren, PowerUp type, ivec2 pos);
-void powerup_trigger(PowerUp type, vec2 pos, vec2 direction);
 
 #endif//POWERUP_H

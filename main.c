@@ -422,9 +422,10 @@ int run_client(SDL_Renderer *ren)
 
 int run_local(SDL_Renderer *ren)
 {
-	Car *cars[2];
+	Car *cars[3];
 	cars[0] = car_add();
 	cars[1] = car_add();
+	cars[2] = car_add();
 
 	int quit = 0;
 	SDL_Event event;
@@ -501,7 +502,7 @@ int run_local(SDL_Renderer *ren)
 		sound_set_car_freq(freq);
 
 		do_render(ren);
-		for (int i=0; i<2; i++) {
+		for (int i=0; i<3; i++) {
 			render_car(ren, cars[i]);
 		}
 
