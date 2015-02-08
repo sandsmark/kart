@@ -650,6 +650,15 @@ cJSON *map_serialize()
 	}
 	cJSON_AddItemToObject(map_object, "modifiers", modifiers_array);
 
+	cJSON *path_array = cJSON_CreateArray();
+	for (int i=0; i<map_path_length; i++) {
+		cJSON *path_item = cJSON_CreateObject();
+		cJSON_AddNumberToObject(path_item, "tile_x", map_path[i].x);
+		cJSON_AddNumberToObject(path_item, "tile_y", map_path[i].y);
+		cJSON_AddItemToArray(path_array, path_item);
+	}
+	cJSON_AddItemToObject(map_object, "path", path_array);
+
 	return map_object;
 }
 
