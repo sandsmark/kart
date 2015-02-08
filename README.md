@@ -1,12 +1,10 @@
 #The Kartering (working title)
 
-**tldr**; connect to the server at localhost over port 31337. You receive game
-state in JSON when you ask for it (send "1337\n"), send back a single byte to
-control it.
+**tldr**; connect to the server at localhost over port 31337. You send a single
+bitmapped number to select what to do (for example "9\n" to accelerate and turn
+right), and receive a JSON status update everytime you do so.
 
-The byte is used as a bitmap, so set a bit to do that action (press the key in
-parenthesis in a local game).  This part of the protocol is going to be
-simplified a bit (switch to sending specific bytes instead of bitmaps).
+The number is used as a bitmap, so set a bit to do that action:
 
 Action      | Player 1 | Player 2 | Bit in map |
 ------------|----------|----------|------------
