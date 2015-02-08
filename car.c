@@ -264,11 +264,10 @@ void car_use_powerup(Car *car)
         printf("adding mushram\n");
 	car->turbo_at = SDL_GetTicks();
         break;
-    case POWERUP_GOLD_MUSHROOM:
-        printf("adding gold mushram\n");
-        break;
     case POWERUP_BIG_MUSHROOM:
         printf("adding big mushram\n");
+	car->turbo_at = SDL_GetTicks();
+	car->invincible_at = SDL_GetTicks();
         break;
     case POWERUP_LIGHTNING: {
         printf("triggering lightning\n");
@@ -293,9 +292,9 @@ void car_use_powerup(Car *car)
         break;
     }
     case POWERUP_STAR:
+        printf("triggering star\n");
 	car->turbo_at = SDL_GetTicks();
 	car->invincible_at = SDL_GetTicks();
-        printf("triggering star\n");
         break;
     default:
         printf("tried to trigger unknown powerup: %d\n", car->powerup);

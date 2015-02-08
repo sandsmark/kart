@@ -25,7 +25,6 @@ int powerups_init()
     textures[POWERUP_BLUE_SHELL]    = ren_load_image("blue_shell.bmp");
     textures[POWERUP_OIL]           = ren_load_image("oil.bmp");
     textures[POWERUP_MUSHROOM]      = ren_load_image("mushroom.bmp");
-    textures[POWERUP_GOLD_MUSHROOM] = ren_load_image("gold_mushroom.bmp");
     textures[POWERUP_BIG_MUSHROOM]  = ren_load_image("big_mushroom.bmp");
     textures[POWERUP_LIGHTNING]     = ren_load_image("lightning.bmp");
     textures[POWERUP_STAR]          = ren_load_image("star.bmp");
