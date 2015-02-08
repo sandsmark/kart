@@ -330,6 +330,9 @@ int run_server(SDL_Renderer *ren)
 			free(json_state);
 			json_state = cJSON_Print(state);
 			cJSON_Minify(json_state);
+			if (json_state[strlen(json_state) - 1] != '\n') {
+				json_state[strlen(json_state) - 1] = '\n';
+			}
 			SDL_UnlockMutex(json_state_lock);
 		}
 		cJSON_Delete(state);
