@@ -109,10 +109,12 @@ void car_move(Car *car)
 		vec_scale(&car->velocity, 1.2);
 		break;
 	case MAP_MUD:
+		if (car->invincible_at) break;
 		roll_coeff *= 7;
 		drag_coeff *= 7;
 		break;
 	case MAP_BANANA:
+		if (car->invincible_at) break;
 		vec_rotate(&car->direction, 45);
 		car->velocity.x = 0;
 		car->velocity.y = 0;
@@ -120,9 +122,11 @@ void car_move(Car *car)
 		car->force.y = -10;
 		break;
 	case MAP_OIL:
+		if (car->invincible_at) break;
 		vec_rotate(&car->direction, 3);
 		break;
 	case MAP_ICE:
+		if (car->invincible_at) break;
 		if ((rand() % 2) == 1) {
 			vec_rotate(&car->direction, 4);
 		} else {
@@ -213,7 +217,7 @@ void car_move(Car *car)
 void cars_move()
 {
 	for (int i=0; i<cars_count; i++) {
-		if (shells_check_collide(cars[i].pos)) {
+		if ((!cars[i].invincible_at) && shells_check_collide(cars[i].pos)) {
 			cars[i].tipped_at = SDL_GetTicks();
 		}
 		for (int j=i+1; j<cars_count; j++)
@@ -267,7 +271,6 @@ void car_use_powerup(Car *car)
     case POWERUP_BIG_MUSHROOM:
         printf("adding big mushram\n");
 	car->turbo_at = SDL_GetTicks();
-	car->invincible_at = SDL_GetTicks();
         break;
     case POWERUP_LIGHTNING: {
         printf("triggering lightning\n");
