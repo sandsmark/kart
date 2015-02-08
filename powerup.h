@@ -20,7 +20,7 @@ typedef enum {
 #define POWERUPS_WIDTH 32
 #define POWERUPS_HEIGHT 32
 
-int powerups_init(SDL_Renderer *ren);
+int powerups_init();
 
 void powerup_render(SDL_Renderer *ren, PowerUp type, ivec2 pos);
 void powerup_trigger(PowerUp type, vec2 pos, vec2 direction);

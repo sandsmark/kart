@@ -26,11 +26,11 @@ static int shells_size = 0;
 static Shell *shells = 0;
 
 
-int shell_init(SDL_Renderer *ren)
+int shell_init()
 {
-	shell_green_texture = ren_load_image(ren, "green_shell.bmp");
-	shell_red_texture = ren_load_image(ren, "red_shell.bmp");
-	shell_blue_texture = ren_load_image(ren, "blue_shell.bmp");
+	shell_green_texture = ren_load_image("green_shell.bmp");
+	shell_red_texture   = ren_load_image("red_shell.bmp");
+	shell_blue_texture  = ren_load_image("blue_shell.bmp");
 
 	return (shell_green_texture &&
 			shell_red_texture &&

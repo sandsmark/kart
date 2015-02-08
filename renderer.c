@@ -1,9 +1,10 @@
 #include "renderer.h"
 
+SDL_Renderer *ren = 0;
 
 SDL_Texture *font_texture = 0;
 
-SDL_Texture *ren_load_image(SDL_Renderer *ren, const char *file)
+SDL_Texture *ren_load_image(const char *file)
 {
 	const char *prefix = "assets/";
 	char path[256];
@@ -25,7 +26,7 @@ SDL_Texture *ren_load_image(SDL_Renderer *ren, const char *file)
 	return texture;
 }
 
-SDL_Texture *ren_load_image_with_dims(SDL_Renderer *ren, const char *file, int *w, int *h)
+SDL_Texture *ren_load_image_with_dims(const char *file, int *w, int *h)
 {
 	const char *prefix = "assets/";
 	char path[256];
@@ -49,9 +50,11 @@ SDL_Texture *ren_load_image_with_dims(SDL_Renderer *ren, const char *file, int *
 	return texture;
 }
 
-int renderer_init(SDL_Renderer *ren)
+int renderer_init(SDL_Renderer *renderer)
 {
-    font_texture = ren_load_image(ren, "font.bmp");
+    ren = renderer;
+
+    font_texture = ren_load_image("font.bmp");
     if (!font_texture) {
         printf("failed to load font\n");
     }
@@ -59,7 +62,7 @@ int renderer_init(SDL_Renderer *ren)
     return (font_texture != 0);
 }
 
-void render_string(SDL_Renderer *ren, const char *string, int x, int y, int size)
+void render_string(const char *string, int x, int y, int size)
 {
     for (unsigned int i=0; i<strlen(string); i++) {
         if (string[i] < 32 || string[i] > 126) continue;

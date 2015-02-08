@@ -16,19 +16,19 @@ void powerup_render(SDL_Renderer *ren, PowerUp type, ivec2 pos)
         SDL_RenderCopy(ren, textures[type], 0, &target);
 }
 
-int powerups_init(SDL_Renderer *ren)
+int powerups_init()
 {
-    textures[POWERUP_NONE] = ren_load_image(ren, "none_powerup.bmp");
-    textures[POWERUP_BANANA] = ren_load_image(ren, "banana.bmp");
-    textures[POWERUP_GREEN_SHELL] = ren_load_image(ren, "green_shell.bmp");
-    textures[POWERUP_RED_SHELL] = ren_load_image(ren, "red_shell.bmp");
-    textures[POWERUP_BLUE_SHELL] = ren_load_image(ren, "blue_shell.bmp");
-    textures[POWERUP_OIL] = ren_load_image(ren, "oil.bmp");
-    textures[POWERUP_MUSHROOM] = ren_load_image(ren, "mushroom.bmp");
-    textures[POWERUP_GOLD_MUSHROOM] = ren_load_image(ren, "gold_mushroom.bmp");
-    textures[POWERUP_BIG_MUSHROOM] = ren_load_image(ren, "big_mushroom.bmp");
-    textures[POWERUP_LIGHTNING] = ren_load_image(ren, "lightning.bmp");
-    textures[POWERUP_STAR] = ren_load_image(ren, "star.bmp");
+    textures[POWERUP_NONE]          = ren_load_image("none_powerup.bmp");
+    textures[POWERUP_BANANA]        = ren_load_image("banana.bmp");
+    textures[POWERUP_GREEN_SHELL]   = ren_load_image("green_shell.bmp");
+    textures[POWERUP_RED_SHELL]     = ren_load_image("red_shell.bmp");
+    textures[POWERUP_BLUE_SHELL]    = ren_load_image("blue_shell.bmp");
+    textures[POWERUP_OIL]           = ren_load_image("oil.bmp");
+    textures[POWERUP_MUSHROOM]      = ren_load_image("mushroom.bmp");
+    textures[POWERUP_GOLD_MUSHROOM] = ren_load_image("gold_mushroom.bmp");
+    textures[POWERUP_BIG_MUSHROOM]  = ren_load_image("big_mushroom.bmp");
+    textures[POWERUP_LIGHTNING]     = ren_load_image("lightning.bmp");
+    textures[POWERUP_STAR]          = ren_load_image("star.bmp");
 
     for (int i=0; i<POWERUP_STAR; i++) {
         if (!textures[i]) {

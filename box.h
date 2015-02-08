@@ -5,7 +5,7 @@
 #include "powerup.h"
 #include "vector.h"
 
-int boxes_init(SDL_Renderer *ren);
+int boxes_init();
 void boxes_render(SDL_Renderer *ren);
 
 PowerUp boxes_check_hit(SDL_Rect car);

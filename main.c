@@ -76,7 +76,7 @@ static void render_car(SDL_Renderer *ren, Car *car)
 	// TODO: allocating 500 is stupid
 	char *laps_string = malloc(500);
 	snprintf(laps_string, 500, "%d laps", car->tiles_passed / map_get_path_length());
-	render_string(ren, laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 32);
+	render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 32);
 	free(laps_string);
 }
 
@@ -151,8 +151,8 @@ int run_server(SDL_Renderer *ren)
 	for (int i = 0; i < NUM_CLIENTS; i++)
 	{
 		SDL_Rect wfc_bg_target, car_target;
-		SDL_Texture *wfc_bg_tex = ren_load_image(ren, "waitforclients.bmp");
-		SDL_Texture *car_tex = ren_load_image_with_dims(ren, "car0.bmp", &car_target.w, &car_target.h);
+		SDL_Texture *wfc_bg_tex = ren_load_image("waitforclients.bmp");
+		SDL_Texture *car_tex = ren_load_image_with_dims("car0.bmp", &car_target.w, &car_target.h);
 		SDL_Event event;
 		wfc_bg_target.x = 0;
 		wfc_bg_target.y = 0;
@@ -228,7 +228,7 @@ int run_server(SDL_Renderer *ren)
 		car->direction.y = car_start_dir.y;
 		char filename[10];
 		sprintf(filename, "car%d.bmp", i);
-		car->texture = ren_load_image_with_dims(ren, filename, &car->width, &car->height);
+		car->texture = ren_load_image_with_dims(filename, &car->width, &car->height);
 
 		clients[i].cmd_lock = SDL_CreateMutex();
 		if (clients[i].cmd_lock == NULL)
@@ -441,7 +441,7 @@ int run_local(SDL_Renderer *ren)
 
 		char filename[10];
 		sprintf(filename, "car%d.bmp", i);
-		cars[i].texture = ren_load_image_with_dims(ren, filename, &cars[i].width, &cars[i].height);
+		cars[i].texture = ren_load_image_with_dims(filename, &cars[i].width, &cars[i].height);
 	}
 
 	int quit = 0;
@@ -640,9 +640,9 @@ char *show_get_ip(SDL_Renderer *ren)
 		box.x = SCREEN_WIDTH / 2 - box.w / 2 - 2;
 		box.y = SCREEN_HEIGHT / 2 - 32;
 		SDL_RenderDrawRect(ren, &box);
-		render_string(ren, address, box.x + 2, box.y, 32);
+		render_string(address, box.x + 2, box.y, 32);
 
-		render_string(ren, "enter ip:", box.x, box.y - 40, 32);
+		render_string("enter ip:", box.x, box.y - 40, 32);
 
 		SDL_Rect line;
 		line.x = box.x + pos * 32;
@@ -666,7 +666,7 @@ char *show_get_ip(SDL_Renderer *ren)
 
 void show_menu(SDL_Renderer *ren)
 {
-	SDL_Texture *image = ren_load_image(ren, "startscreen.bmp");
+	SDL_Texture *image = ren_load_image("startscreen.bmp");
 	sound_set_type(SOUND_MENU);
 	SDL_Event event;
 	SDL_Rect target;
@@ -714,10 +714,10 @@ void show_menu(SDL_Renderer *ren)
 		selection_rect.w = 16;
 		SDL_RenderFillRect(ren, &selection_rect);
 
-		render_string(ren, "server mode", 385, 190, 32);
-		render_string(ren, "client mode (not working)", 385, 252, 32);
-		render_string(ren, "local mode",  385, 315, 32);
-		render_string(ren, "quit",        385, 375, 32);
+		render_string("server mode", 385, 190, 32);
+		render_string("client mode (not working)", 385, 252, 32);
+		render_string("local mode",  385, 315, 32);
+		render_string("quit",        385, 375, 32);
 
 		// fancy useless effect
 		for (int i=1; i<140; i++) {
@@ -782,24 +782,24 @@ int main(int argc, char *argv[])
 		printf("SDL error while creating renderer: %s\n", SDL_GetError());
 		return 1;
 	}
-
-	if (!map_init(ren, "map1.map")) {
-		printf("unable to initialize map!\n");
-		return 1;
-	}
-	if (!boxes_init(ren)) {
-		printf("unable to initialize box!\n");
-		return 1;
-	}
-	if (!powerups_init(ren)) {
-		printf("unable to initialize powerups!\n");
-		return 1;
-	}
-	sound_init();
 	if (!renderer_init(ren)) {
 		printf("unable to initialize custom rendering\n");
 		return 1;
 	}
+
+	if (!map_init("map1.map")) {
+		printf("unable to initialize map!\n");
+		return 1;
+	}
+	if (!boxes_init()) {
+		printf("unable to initialize box!\n");
+		return 1;
+	}
+	if (!powerups_init()) {
+		printf("unable to initialize powerups!\n");
+		return 1;
+	}
+	sound_init();
 
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0)

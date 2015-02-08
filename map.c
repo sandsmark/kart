@@ -123,12 +123,12 @@ int add_box_location(ivec2 pos)
 	return 0;
 }
 
-int map_load_tiles(SDL_Renderer *ren);
+int map_load_tiles();
 int map_load_file(const char *file);
 
-int map_init(SDL_Renderer *ren, const char *map_file)
+int map_init(const char *map_file)
 {
-	if (!map_load_tiles(ren)) {
+	if (!map_load_tiles()) {
 		printf("failed to load tiles\n");
 		return 0;
 	}
@@ -217,21 +217,21 @@ AreaType map_get_type(const ivec2 pos)
 	return MAP_TRACK;
 }
 
-int map_load_tiles(SDL_Renderer *ren)
+int map_load_tiles()
 {
-	tile_horizontal = ren_load_image(ren, "map-horizontal.bmp");
-	tile_vertical   = ren_load_image(ren, "map-vertical.bmp");
-	tile_upperleft  = ren_load_image(ren, "map-topleft.bmp");
-	tile_upperright = ren_load_image(ren, "map-topright.bmp");
-	tile_lowerleft  = ren_load_image(ren, "map-bottomleft.bmp");
-	tile_lowerright = ren_load_image(ren, "map-bottomright.bmp");
-	tile_none       = ren_load_image(ren, "map-none.bmp");
+	tile_horizontal = ren_load_image("map-horizontal.bmp");
+	tile_vertical   = ren_load_image("map-vertical.bmp");
+	tile_upperleft  = ren_load_image("map-topleft.bmp");
+	tile_upperright = ren_load_image("map-topright.bmp");
+	tile_lowerleft  = ren_load_image("map-bottomleft.bmp");
+	tile_lowerright = ren_load_image("map-bottomright.bmp");
+	tile_none       = ren_load_image("map-none.bmp");
 
-	mod_booster_texture = ren_load_image(ren, "booster.bmp");
-	mod_ice_texture     = ren_load_image(ren, "ice.bmp");
-	mod_mud_texture     = ren_load_image(ren, "mud.bmp");
-	mod_oil_texture     = ren_load_image(ren, "oil_spill.bmp");
-	mod_banana_texture  = ren_load_image(ren, "placed_banana.bmp");
+	mod_booster_texture = ren_load_image("booster.bmp");
+	mod_ice_texture     = ren_load_image("ice.bmp");
+	mod_mud_texture     = ren_load_image("mud.bmp");
+	mod_oil_texture     = ren_load_image("oil_spill.bmp");
+	mod_banana_texture  = ren_load_image("placed_banana.bmp");
 
 	return (tile_horizontal &&
 		tile_vertical   &&
