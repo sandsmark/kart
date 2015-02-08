@@ -16,7 +16,6 @@
 
 const int SCREEN_WIDTH  = 1024;
 const int SCREEN_HEIGHT = 768;
-const vec2 car_start_dir = {1.0, 0.0};
 static unsigned long long tic = 0;
 static int sockfd = -1;
 #define MAX_JSON_SIZE 2048
@@ -34,7 +33,6 @@ char *json_state;
 SDL_mutex *json_state_lock;
 static struct client clients[NUM_CLIENTS];
 SDL_atomic_t net_listen;
-extern ivec2 map_starting_position;
 
 typedef enum {
 	MENU_SERVER,
@@ -42,6 +40,8 @@ typedef enum {
 	MENU_LOCAL,
 	MENU_QUIT
 } MenuChoice;
+
+extern const vec2 car_start_dir;
 
 static void render_car(SDL_Renderer *ren, Car *car)
 {
@@ -219,16 +219,7 @@ int run_server(SDL_Renderer *ren)
 			return 1;
 		}
 		/* TODO: Move car creation into own function */
-		Car *car = clients[i].car;
-		car->id = i;
-		car->active_effects = 0;
-		car->pos.x = map_starting_position.x;
-		car->pos.y = map_starting_position.y + i*20;
-		car->direction.x = car_start_dir.x;
-		car->direction.y = car_start_dir.y;
-		char filename[10];
-		sprintf(filename, "car%d.bmp", i);
-		car->texture = ren_load_image_with_dims(filename, &car->width, &car->height);
+		clients[i].car = car_add();
 
 		clients[i].cmd_lock = SDL_CreateMutex();
 		if (clients[i].cmd_lock == NULL)
@@ -311,16 +302,11 @@ int run_server(SDL_Renderer *ren)
 		}
 
 		map_render(ren);
+		cars_move();
 		cJSON *state = cJSON_CreateObject(), *car_json;
 		cJSON_AddItemToObject(state, "cars", car_json = cJSON_CreateArray());
 		for (int i = 0; i < NUM_CLIENTS; i++)
 		{
-			for (int j = i+1; j < NUM_CLIENTS; j++)
-			{
-				car_collison(clients[i].car, clients[j].car);
-			}
-			car_move(clients[i].car);
-			memset(&clients[i].car->force, 0, sizeof(clients[i].car->force));
 			render_car(ren, clients[i].car);
 			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
 		}
@@ -424,25 +410,9 @@ int run_client(SDL_Renderer *ren)
 
 int run_local(SDL_Renderer *ren)
 {
-
-	int car_count = 2;
-	Car *cars = calloc(car_count, sizeof(Car));
-
-	// Create cars
-	for (int i=0; i<car_count; i++) {
-		// Initialize car
-		cars[i].id = i;
-		cars[i].active_effects = 0;
-		cars[i].pos.x = map_starting_position.x;
-		cars[i].pos.y = map_starting_position.y + i*20;
-		cars[i].direction.x = car_start_dir.x;
-		cars[i].direction.y = car_start_dir.y;
-		cars[i].tiles_passed = 0;
-
-		char filename[10];
-		sprintf(filename, "car%d.bmp", i);
-		cars[i].texture = ren_load_image_with_dims(filename, &cars[i].width, &cars[i].height);
-	}
+	Car *cars[2];
+	cars[0] = car_add();
+	cars[1] = car_add();
 
 	int quit = 0;
 	SDL_Event event;
@@ -463,7 +433,7 @@ int run_local(SDL_Renderer *ren)
 			}
 		}
 		const Uint8 *keystates = SDL_GetKeyboardState(NULL);
-		Car *car = &cars[0];
+		Car *car = cars[0];
 		if (keystates[SDL_SCANCODE_UP]) {
 			vec2 force = car->direction;
 			vec_scale(&force, 2500);
@@ -487,7 +457,7 @@ int run_local(SDL_Renderer *ren)
 			car_use_powerup(car);
 		}
 
-		car = &cars[1];
+		car = cars[1];
 		if (keystates[SDL_SCANCODE_W]) {
 			vec2 force = car->direction;
 			vec_scale(&force, 2500);
@@ -520,14 +490,9 @@ int run_local(SDL_Renderer *ren)
 
 		map_render(ren);
 
-		for (int i=0; i<car_count; i++) {
-			for (int j=i+1; j<car_count; j++)
-			{
-				car_collison(&cars[i], &cars[j]);
-			}
-			car_move(&cars[i]);
-			memset(&cars[i].force, 0, sizeof(cars[i].force));
-			render_car(ren, &cars[i]);
+		cars_move();
+		for (int i=0; i<2; i++) {
+			render_car(ren, cars[i]);
 		}
 
 		boxes_render(ren);
@@ -539,7 +504,6 @@ int run_local(SDL_Renderer *ren)
 
 	// Clean up
 	map_destroy();
-	free(cars);
 	return 0;
 }
 

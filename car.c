@@ -1,5 +1,6 @@
 #include <math.h>
 
+#include "renderer.h"
 #include "car.h"
 #include "defines.h"
 #include "map.h"
@@ -7,6 +8,34 @@
 #include "box.h"
 #include "libs/cJSON/cJSON.h"
 
+#define MAX_CARS 8
+Car cars[MAX_CARS];
+int cars_count = 0;
+extern ivec2 map_starting_position;
+const vec2 car_start_dir = {1.0, 0.0};
+
+
+Car *car_add()
+{
+	if (cars_count + 1 >= MAX_CARS) {
+		printf("Asked to add a new car when we are at max!\n");
+		return 0;
+	}
+
+	int i = cars_count;
+	cars_count++;
+
+	cars[i].id = i;
+	cars[i].active_effects = 0;
+	cars[i].pos.x = map_starting_position.x;
+	cars[i].pos.y = map_starting_position.y + i * 20;
+	cars[i].direction = car_start_dir;
+	char filename[10];
+	sprintf(filename, "car%d.bmp", i);
+	cars[i].texture = ren_load_image_with_dims(filename, &cars[i].width, &cars[i].height);
+
+	return &cars[i];
+}
 
 void car_apply_force(Car *car, vec2 force)
 {
@@ -144,6 +173,18 @@ void car_move(Car *car)
     }
 
     map_check_tile_passed(&car->tiles_passed, car->pos);
+}
+
+void cars_move()
+{
+	for (int i=0; i<cars_count; i++) {
+		for (int j=i+1; j<cars_count; j++)
+		{
+			car_collison(&cars[i], &cars[j]);
+		}
+		car_move(&cars[i]);
+		memset(&cars[i].force, 0, sizeof(cars[i].force));
+	}
 }
 
 void car_use_powerup(Car *car)

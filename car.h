@@ -31,9 +31,9 @@ typedef struct {
 	Uint32 effect_started;
 } Car;
 
+Car *car_add();
 void car_apply_force(Car *car, vec2 force);
-void car_collison(Car *car1, Car *car2);
-void car_move(Car *car);
+void cars_move();
 void car_use_powerup(Car *car);
 cJSON *car_serialize(Car *car);
 
