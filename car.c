@@ -36,6 +36,7 @@ Car *car_add()
 	cars[i].turbo_at = 0;
 	cars[i].invincible_at = 0;
 	cars[i].tipped_at = 0;
+	cars[i].big_at = 0;
 	cars[i].pos.x = map_starting_position.x;
 	cars[i].pos.y = map_starting_position.y + i * 20;
 	cars[i].direction = car_start_dir;
@@ -71,13 +72,17 @@ void car_collison(Car *car1, Car *car2)
 		vec_scale(&difference, 3000);
 		if (!car1->invincible_at) {
 			car_apply_force(car1, difference);
-		} else {
-			car2->tipped_at = SDL_GetTicks();
 		}
 		vec_scale(&difference, -1);
 		if (!car2->invincible_at) {
 			car_apply_force(car2, difference);
-		} else {
+		}
+
+		if (car1->big_at && !car2->invincible_at) {
+			car2->tipped_at = SDL_GetTicks();
+		}
+
+		if (car2->big_at && !car1->invincible_at) {
 			car1->tipped_at = SDL_GetTicks();
 		}
 	}
@@ -175,6 +180,11 @@ void car_move(Car *car)
 	if (car->invincible_at && SDL_GetTicks() - car->invincible_at > INVINCIBLE_TIMEOUT) {
 		car->invincible_at = 0;
 	}
+	if (car->big_at && SDL_GetTicks() - car->big_at > INVINCIBLE_TIMEOUT) {
+		car->big_at = 0;
+		car->width /= 2;
+		car->height /= 2;
+	}
 
 	/* Kill orthogonal velocity */
 	float drift = 0.9;
@@ -271,6 +281,9 @@ void car_use_powerup(Car *car)
     case POWERUP_BIG_MUSHROOM:
         printf("adding big mushram\n");
 	car->turbo_at = SDL_GetTicks();
+	car->big_at = SDL_GetTicks();
+	car->width *= 2;
+	car->height *= 2;
         break;
     case POWERUP_LIGHTNING: {
         printf("triggering lightning\n");
@@ -298,6 +311,9 @@ void car_use_powerup(Car *car)
         printf("triggering star\n");
 	car->turbo_at = SDL_GetTicks();
 	car->invincible_at = SDL_GetTicks();
+	car->big_at = SDL_GetTicks();
+	car->width *= 2;
+	car->height *= 2;
         break;
     default:
         printf("tried to trigger unknown powerup: %d\n", car->powerup);

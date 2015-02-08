@@ -32,6 +32,7 @@ typedef struct {
 	Uint32 turbo_at;
 	Uint32 invincible_at;
 	Uint32 tipped_at;
+	Uint32 big_at;
 } Car;
 
 Car *car_add();
