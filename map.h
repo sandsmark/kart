@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 
 #include "defines.h"
+#include "libs/cJSON/cJSON.h"
 
 #define TILE_WIDTH 128
 #define TILE_HEIGHT 128
@@ -32,6 +33,8 @@ AreaType map_get_type(const ivec2 pos);
 void map_check_tile_passed(int *current_tile, vec2 pos);
 
 int map_get_path_length();
+
+cJSON *map_serialize();
 
 #endif
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

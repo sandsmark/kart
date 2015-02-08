@@ -580,4 +580,49 @@ int map_get_path_length()
 {
 	return map_path_length;
 }
+
+cJSON *map_serialize()
+{
+	cJSON *map_object = cJSON_CreateObject();
+	cJSON_AddNumberToObject(map_object, "tile_width", TILE_WIDTH);
+	cJSON_AddNumberToObject(map_object, "tile_height", TILE_HEIGHT);
+
+	cJSON *tile_array = cJSON_CreateArray();
+	for (unsigned int y=0; y<height; y++) {
+		cJSON *tile_row = cJSON_CreateArray();
+		for (unsigned int x=0; x<width; x++) {
+			cJSON *tile_item;
+			switch(map_tiles[x][y]) {
+			case TILE_HORIZONTAL:
+				tile_item = cJSON_CreateString("-");
+				break;
+			case TILE_VERTICAL:
+				tile_item = cJSON_CreateString("|");
+				break;
+			case TILE_UPPERLEFT:
+				tile_item = cJSON_CreateString("/");
+				break;
+			case TILE_UPPERRIGHT:
+				tile_item = cJSON_CreateString("`");
+				break;
+			case TILE_BOTTOMLEFT:
+				tile_item = cJSON_CreateString("\\");
+				break;
+			case TILE_BOTTOMRIGHT:
+				tile_item = cJSON_CreateString(",");
+				break;
+			case TILE_NONE:
+			default:
+				tile_item = cJSON_CreateString(".");
+				break;
+			}
+			cJSON_AddItemToArray(tile_row, tile_item);
+		}
+		cJSON_AddItemToArray(tile_array, tile_row);
+	}
+	cJSON_AddItemToObject(map_object, "tiles", tile_array);
+
+	return map_object;
+}
+
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/
