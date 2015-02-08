@@ -622,6 +622,34 @@ cJSON *map_serialize()
 	}
 	cJSON_AddItemToObject(map_object, "tiles", tile_array);
 
+	cJSON *modifiers_array = cJSON_CreateArray();
+	for (int i=0; i<modifiers_count; i++) {
+		cJSON *modtypestr;
+		switch(modifiers[i].type) {
+		case MAP_MUD:
+			modtypestr = cJSON_CreateString("mud");
+			break;
+		case MAP_ICE:
+			modtypestr = cJSON_CreateString("ice");
+			break;
+		case MAP_BOOST:
+			modtypestr = cJSON_CreateString("booster");
+			break;
+		default:
+			continue;
+		}
+
+		cJSON *modifier_object = cJSON_CreateObject();
+		cJSON_AddItemToObject(modifier_object, "type", modtypestr);
+		cJSON_AddNumberToObject(modifier_object, "x", modifiers[i].rect.x);
+		cJSON_AddNumberToObject(modifier_object, "y", modifiers[i].rect.y);
+		cJSON_AddNumberToObject(modifier_object, "width", modifiers[i].rect.w);
+		cJSON_AddNumberToObject(modifier_object, "height", modifiers[i].rect.h);
+
+		cJSON_AddItemToArray(modifiers_array, modifier_object);
+	}
+	cJSON_AddItemToObject(map_object, "modifiers", modifiers_array);
+
 	return map_object;
 }
 
