@@ -325,6 +325,8 @@ int run_server(SDL_Renderer *ren)
 			}
 		}
 
+		do_render(ren);
+
 		cJSON *state = cJSON_CreateObject(), *car_json;
 		cJSON_AddItemToObject(state, "cars", car_json = cJSON_CreateArray());
 		for (int i = 0; i < NUM_CLIENTS; i++)
@@ -340,8 +342,6 @@ int run_server(SDL_Renderer *ren)
 			SDL_UnlockMutex(json_state_lock);
 		}
 		cJSON_Delete(state);
-
-		do_render(ren);
 
 		SDL_RenderPresent(ren);
 
