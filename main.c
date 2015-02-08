@@ -700,7 +700,7 @@ void show_menu(SDL_Renderer *ren)
 			SDL_RenderFillRect(ren, &r);
 		}
 		const char *verstring = "version " REVISION;
-		render_string(verstring, SCREEN_WIDTH - strlen(verstring) * 16, 0, 16);
+		render_string(verstring, SCREEN_WIDTH - strlen(verstring) * 16, 0, 11);
 
 		SDL_RenderPresent(ren);
 	}

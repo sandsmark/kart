@@ -33,33 +33,97 @@ Some pseudo C code to use it:
     send_byte(action);
 ```
 
-Example of received JSON Blob
+On connect you will receive a JSON object describing the map:
+```JSON
+{
+    "tile_width": 128,
+    "tile_height": 128,
+    "tiles": [
+        [ ".", ".", ".", ".", ".", ".", ".", "." ],
+        [ ".", "/", "-", "-", "-", "`", ".", "." ],
+        [ ".", "|", ".", ".", ".", "|", ".", "." ],
+        [ ".", "|", ".", ".", ".", "|", ".", "." ],
+        [ ".", "\\", "-", "-", "-", ",", ".", "." ],
+        [ ".", ".", ".", ".", ".", ".", ".", "." ]
+    ],
+    "modifiers": [
+        {
+            "type": "mud",
+            "x": 168,
+            "y": 218,
+            "width": 64,
+            "height": 64
+        },
+        {
+            "type": "booster",
+            "x": 418,
+            "y": 538,
+            "width": 32,
+            "height": 32
+        },
+        {
+            "type": "ice",
+            "x": 638,
+            "y": 188,
+            "width": 64,
+            "height": 64
+        }
+    ],
+    "path": [
+        { "tile_x": 3, "tile_y": 1 },
+        { "tile_x": 4, "tile_y": 1 },
+        { "tile_x": 5, "tile_y": 1 },
+        { "tile_x": 5, "tile_y": 2 },
+        { "tile_x": 5, "tile_y": 3 },
+        { "tile_x": 5, "tile_y": 4 },
+        { "tile_x": 4, "tile_y": 4 },
+        { "tile_x": 3, "tile_y": 4 },
+        { "tile_x": 2, "tile_y": 4 },
+        { "tile_x": 1, "tile_y": 4 },
+        { "tile_x": 1, "tile_y": 3 },
+        { "tile_x": 1, "tile_y": 2 }
+    ]
+}
+```
+
+It should be self-explanatory (otherwise please file an issue here on
+github or contact us otherwise so we can explain better here).
+
+Then, each time you send a command (invalid or valid), you will get back a
+status update JSON object like this:
 ```JSON
 {
     "cars": [
         {
             "id": 0,
             "direction": {
-                "x": 0.83867,
-                "y": 0.544639
+                "x": 1,
+                "y": 0
             },
             "velocity": {
-                "x": 21.651678,
-                "y": 14.060616
+                "x": 0,
+                "y": 0
             },
             "pos": {
-                "x": 398.508514,
-                "y": 64.899368
+                "x": 448,
+                "y": 153
             },
             "drift": 0,
             "width": 30,
             "height": 16
-        },
-        []
+        }
+    ],
+    "shells": [
+        {
+            "type": "blue",
+            "x": 342,
+            "y": 233,
+            "dx": 0.5,
+            "dy": 0.3
+        }
     ]
 }
 ```
-
 
 ### Build instructions
 Install the SDL2 development headers, and run "make".
