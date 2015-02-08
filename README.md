@@ -2,7 +2,8 @@
 
 **tldr**; connect to the server at localhost over port 31337. You send a single
 bitmapped number to select what to do (for example "9\n" to accelerate and turn
-right), and receive a JSON status update everytime you do so.
+right), and receive a JSON status update everytime you do so. The first AI to
+complete a set number of laps wins!
 
 The number is used as a bitmap, so set a bit to do that action:
 
