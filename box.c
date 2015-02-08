@@ -84,8 +84,8 @@ PowerUp boxes_check_hit(SDL_Rect car)
             boxes[i].hit_time = SDL_GetTicks();
             int random_number = rand() % (POWERUP_STAR - 1);
             random_number++; // the first is POWERUP_NONE
-            return POWERUP_STAR;
-//            return (PowerUp)random_number;
+//            return POWERUP_STAR;
+            return (PowerUp)random_number;
         }
     }
     return POWERUP_NONE;
