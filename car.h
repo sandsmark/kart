@@ -29,7 +29,9 @@ typedef struct {
 
 	// Effects
 	Uint32 stunned_at;
-	Uint32 mushroom_at;
+	Uint32 turbo_at;
+	Uint32 invincible_at;
+	Uint32 tipped_at;
 } Car;
 
 Car *car_add();

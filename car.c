@@ -10,7 +10,9 @@
 #include "shell.h"
 
 #define STUN_TIMEOUT 2500
-#define MUSHROOM_TIMEOUT 2500
+#define TURBO_TIMEOUT 2500
+#define INVINCIBLE_TIMEOUT 2500
+#define TIPPED_TIMEOUT 500
 
 #define MAX_CARS 8
 Car cars[MAX_CARS];
@@ -31,7 +33,9 @@ Car *car_add()
 
 	cars[i].id = i;
 	cars[i].stunned_at = 0;
-	cars[i].mushroom_at = 0;
+	cars[i].turbo_at = 0;
+	cars[i].invincible_at = 0;
+	cars[i].tipped_at = 0;
 	cars[i].pos.x = map_starting_position.x;
 	cars[i].pos.y = map_starting_position.y + i * 20;
 	cars[i].direction = car_start_dir;
@@ -65,9 +69,17 @@ void car_collison(Car *car1, Car *car2)
 	{
 		vec_normalize(&difference);
 		vec_scale(&difference, 3000);
-		car_apply_force(car1, difference);
+		if (!car1->invincible_at) {
+			car_apply_force(car1, difference);
+		} else {
+			car2->tipped_at = SDL_GetTicks();
+		}
 		vec_scale(&difference, -1);
-		car_apply_force(car2, difference);
+		if (!car2->invincible_at) {
+			car_apply_force(car2, difference);
+		} else {
+			car1->tipped_at = SDL_GetTicks();
+		}
 	}
 }
 
@@ -131,9 +143,17 @@ void car_move(Car *car)
 
 	vec2 acceleration = {car->force.x/CAR_MASS, car->force.y/CAR_MASS};
 
+	if (car->tipped_at) {
+		if (SDL_GetTicks() - car->tipped_at > TIPPED_TIMEOUT) {
+			car->tipped_at = 0;
+		}
+		vec2 force = car->direction;
+		vec_rotate(&car->direction, 100);
+	}
 	car->velocity.x += acceleration.x * TIME_CONSTANT;
 	car->velocity.y += acceleration.y * TIME_CONSTANT;
 
+	// Check effects
 	if (car->stunned_at) {
 		if (SDL_GetTicks() - car->stunned_at > STUN_TIMEOUT) {
 			car->stunned_at = 0;
@@ -143,13 +163,15 @@ void car_move(Car *car)
 
 		vec_scale(&car->velocity, 0.9);
 	}
-	if (car->mushroom_at) {
-		if (SDL_GetTicks() - car->mushroom_at > MUSHROOM_TIMEOUT) {
-			car->mushroom_at = 0;
+	if (car->turbo_at) {
+		if (SDL_GetTicks() - car->turbo_at > TURBO_TIMEOUT) {
+			car->turbo_at = 0;
 		}
-		vec_scale(&car->velocity, 1.1);
+		vec_scale(&car->velocity, 1.05);
 	}
-
+	if (car->invincible_at && SDL_GetTicks() - car->invincible_at > INVINCIBLE_TIMEOUT) {
+		car->invincible_at = 0;
+	}
 
 	/* Kill orthogonal velocity */
 	float drift = 0.9;
@@ -238,7 +260,7 @@ void car_use_powerup(Car *car)
         break;
     case POWERUP_MUSHROOM:
         printf("adding mushram\n");
-	car->mushroom_at = SDL_GetTicks();
+	car->turbo_at = SDL_GetTicks();
         break;
     case POWERUP_GOLD_MUSHROOM:
         printf("adding gold mushram\n");
@@ -269,6 +291,8 @@ void car_use_powerup(Car *car)
         break;
     }
     case POWERUP_STAR:
+	car->turbo_at = SDL_GetTicks();
+	car->invincible_at = SDL_GetTicks();
         printf("triggering star\n");
         break;
     default:
