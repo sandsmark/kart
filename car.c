@@ -10,6 +10,7 @@
 #include "shell.h"
 
 #define STUN_TIMEOUT 2500
+#define MUSHROOM_TIMEOUT 2500
 
 #define MAX_CARS 8
 Car cars[MAX_CARS];
@@ -30,6 +31,7 @@ Car *car_add()
 
 	cars[i].id = i;
 	cars[i].stunned_at = 0;
+	cars[i].mushroom_at = 0;
 	cars[i].pos.x = map_starting_position.x;
 	cars[i].pos.y = map_starting_position.y + i * 20;
 	cars[i].direction = car_start_dir;
@@ -141,6 +143,12 @@ void car_move(Car *car)
 
 		vec_scale(&car->velocity, 0.9);
 	}
+	if (car->mushroom_at) {
+		if (SDL_GetTicks() - car->mushroom_at > MUSHROOM_TIMEOUT) {
+			car->mushroom_at = 0;
+		}
+		vec_scale(&car->velocity, 1.1);
+	}
 
 
 	/* Kill orthogonal velocity */
@@ -230,6 +238,7 @@ void car_use_powerup(Car *car)
         break;
     case POWERUP_MUSHROOM:
         printf("adding mushram\n");
+	car->mushroom_at = SDL_GetTicks();
         break;
     case POWERUP_GOLD_MUSHROOM:
         printf("adding gold mushram\n");
