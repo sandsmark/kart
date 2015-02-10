@@ -13,7 +13,7 @@ const NET_INPUT_RETURN = 1<<5;
  * Constructor
  * @param mapData
  */
-function navigator(mapData) {
+function Navigator(mapData) {
     this.map = mapData;
 
 }
@@ -21,7 +21,7 @@ function navigator(mapData) {
 /**
  * Get a random direction
  */
-navigator.prototype.randomDirection = function() {
+Navigator.prototype.randomDirection = function() {
     return this.returnAction(Math.floor(Math.random() * 4));
 };
 
@@ -30,7 +30,7 @@ navigator.prototype.randomDirection = function() {
  * @param input
  * @returns {number}
  */
-navigator.prototype.returnAction = function(input) {
+Navigator.prototype.returnAction = function(input) {
     switch(input) {
         case 0:
             return NET_INPUT_UP;
@@ -50,4 +50,4 @@ navigator.prototype.returnAction = function(input) {
 };
 
 // Export module for external usage
-module.exports = navigator;
+module.exports = Navigator;

@@ -7,7 +7,7 @@ var HOST = 'localhost';
 var PORT = 31337;
 var client = new net.Socket();
 
-// Initialize the controller
+// Initialize the Controller
 var Controller = new GameController(client);
 
 // Iteration counter

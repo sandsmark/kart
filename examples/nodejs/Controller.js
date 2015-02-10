@@ -4,11 +4,11 @@ NavigatorHandler = require('./Navigator.js');
  * Constructor
  * @param socket
  */
-function controller(socket)
+function Controller(socket)
 {
     this.socket = socket;
 
-    // Store the navigator properties
+    // Store the Navigator properties
     this.navigator;
 
     // Updated each iteration
@@ -21,7 +21,7 @@ function controller(socket)
  * Initialize all values
  * @param data
  */
-controller.prototype.init = function(data) {
+Controller.prototype.init = function(data) {
     // Initialize our GPS
     this.navigator = new NavigatorHandler(data);
 
@@ -33,7 +33,7 @@ controller.prototype.init = function(data) {
  * Update values and start doing fun stuff
  * @param data
  */
-controller.prototype.update = function(data) {
+Controller.prototype.update = function(data) {
     // Update all the useful parameters
     this.players = data.cars;
     this.shells = data.shells;
@@ -47,10 +47,10 @@ controller.prototype.update = function(data) {
  * Write input to server
  * @param input
  */
-controller.prototype.write = function(input)
+Controller.prototype.write = function(input)
 {
     this.socket.write(input +"\n")
 };
 
 // Export module for external usage
-module.exports = controller;
+module.exports = Controller;
