@@ -45,13 +45,13 @@ client.on('data', function(data) {
     console.log("--------Iteration : " + iter + "------");
 
     // Parse the data into a usable JSON object
-    var d = JSON.parse(data.toString("utf-8"));
+    var parsedData = JSON.parse(data.toString("utf-8"));
 
     // First time running
     if (iter == 1) {
-        Controller.init(d);
+        Controller.init(parsedData);
     } else {
-        Controller.update(d);
+        Controller.update(parsedData);
     }
 
     // Stop the timer and post execution time of the function
