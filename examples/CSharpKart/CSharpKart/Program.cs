@@ -16,18 +16,32 @@ namespace CSharpKart
                 port = int.Parse(args[1]);
             }
 
-            var rdGen = new Random(1337);
-            var interop = new InteropService(-1, address, port);
-            var map = interop.QueryForState<MapState>().Result;
-            interop.Send(0); // Ask for game state update
-
-            while (true)
+            try
             {
-                var gameState = interop.QueryForState<GameState>().Result;
+                var rdGen = new Random(1337);
+                var interop = new InteropService(-1, address, port);
+                var map = interop.QueryForState<MapState>().Result;
+                interop.Send(0); // Ask for game state update
 
-                var nextMove = rdGen.Next() % 5;
-                var moveInByte = 1 << nextMove;
-                interop.Send((byte)moveInByte);
+                while (true)
+                {
+                    var gameState = interop.QueryForState<GameState>().Result;
+
+                    var nextMove = rdGen.Next() % 5;
+                    var moveInByte = 1 << nextMove;
+                    interop.Send((byte) moveInByte);
+                }
+            }
+            catch (Exception e)
+            {
+                var aggregateException = e as AggregateException;
+                if (aggregateException != null)
+                {
+                    foreach(var innerException in aggregateException.InnerExceptions)
+                        Console.WriteLine(innerException.Message);
+                }
+                else
+                    Console.WriteLine(e.Message);
             }
         }
     }
