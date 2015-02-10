@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interop", "Interop\Interop.csproj", "{824AD673-DF26-4668-8D50-2C3AB7F6FA70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpKart", "CSharpKart\CSharpKart.csproj", "{E9D03C76-74C3-426A-8540-45B2FF1AB75C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{824AD673-DF26-4668-8D50-2C3AB7F6FA70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{824AD673-DF26-4668-8D50-2C3AB7F6FA70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{824AD673-DF26-4668-8D50-2C3AB7F6FA70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{824AD673-DF26-4668-8D50-2C3AB7F6FA70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9D03C76-74C3-426A-8540-45B2FF1AB75C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9D03C76-74C3-426A-8540-45B2FF1AB75C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9D03C76-74C3-426A-8540-45B2FF1AB75C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9D03C76-74C3-426A-8540-45B2FF1AB75C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
