@@ -438,13 +438,13 @@ int map_load_file(const char *filename)
 			return 0;
 		}
 
-		// check if we're back to start
-		if (next_tile.x == map_path[0].x && next_tile.y == map_path[0].y) {
-			break;
-		}
-
 		map_path[i+1] = next_tile;
 		map_path_length++;
+
+		// check if we're back to start
+		if (map_path[i].x == map_path[0].x && map_path[i].y == map_path[0].y) {
+			break;
+		}
 	}
 	printf("path:\n");
 	for (int i=0; i<map_path_length; i++) {
@@ -572,7 +572,6 @@ void map_check_tile_passed(int *tile_count, vec2 pos)
 	if (map_path[next_tile].x == px && map_path[next_tile].y == py) {
 		(*tile_count)++;
 		printf("tiles passed: %d, laps: %d\n", *tile_count, *tile_count / map_path_length);
-		
 	}
 }
 
