@@ -12,7 +12,7 @@ $(EXECUTABLE): $(OBJECTS)
 wintendo:
 	make -C windowssucks
 	rm -f kart.zip
-	zip kart.zip assets/*.bmp *.map SDL2.dll kart.exe README
+	zip -r kart.zip assets/*.bmp *.map SDL2.dll kart.exe README.md examples/
 
 %.o: %.c
 	$(CC) -MMD -MP $(CFLAGS) -o $@ -c $<
