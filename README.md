@@ -36,7 +36,7 @@ On connect you will receive a JSON object giving you your ID and describing the
 map:
 ```JSON
 {
-    "id": 0
+    "id": 0;
     "map": {
         "tile_width": 128,
         "tile_height": 128,
