@@ -158,8 +158,8 @@ void car_move(Car *car)
 		}
 		vec_rotate(&car->direction, 100);
 	}
-	car->velocity.x += acceleration.x * TIME_CONSTANT;
-	car->velocity.y += acceleration.y * TIME_CONSTANT;
+	car->velocity.x += acceleration.x * SECS_PER_FRAME;
+	car->velocity.y += acceleration.y * SECS_PER_FRAME;
 
 	// Check effects
 	if (car->stunned_at) {
@@ -205,8 +205,8 @@ void car_move(Car *car)
 	car->velocity.x = fw_velo.x + side_velo.x * drift;
 	car->velocity.y = fw_velo.y + side_velo.y * drift;
 
-	car->pos.x += car->velocity.x * TIME_CONSTANT;
-	car->pos.y += car->velocity.y * TIME_CONSTANT;
+	car->pos.x += car->velocity.x * SECS_PER_FRAME;
+	car->pos.y += car->velocity.y * SECS_PER_FRAME;
 
 	if (car->powerup == POWERUP_NONE) {
 		SDL_Rect car_geometry;

@@ -14,7 +14,6 @@
 #include "shell.h"
 #include "libs/cJSON/cJSON.h"
 
-static unsigned long long tic = 0;
 static int sockfd = -1;
 #define MAX_JSON_SIZE 2048
 #define NET_REQUEST_STATE 1337
@@ -344,13 +343,11 @@ int run_server(SDL_Renderer *ren)
 
 		SDL_RenderPresent(ren);
 
-		// Server increases tics
-		tic++;
+		// Limit framerate
 		Uint32 time1 = SDL_GetTicks();
-		/* TODO: TIME_CONSTANT */
-		if (time1 - time0 < 33)
+		if (time1 - time0 < FRAMETIME_MS)
 		{
-			SDL_Delay(33 - (time1-time0));
+			SDL_Delay(FRAMETIME_MS - (time1-time0));
 		}
 		time0 = time1;
 	}
@@ -426,6 +423,8 @@ int run_local(SDL_Renderer *ren)
 
 	int quit = 0;
 	SDL_Event event;
+
+	Uint32 time0 = SDL_GetTicks();
 
 	while (!quit) {
 		while (SDL_PollEvent(&event)){
@@ -503,8 +502,15 @@ int run_local(SDL_Renderer *ren)
 			render_car(ren, cars[i]);
 		}
 
-
 		SDL_RenderPresent(ren);
+
+		// Limit framerate
+		Uint32 time1 = SDL_GetTicks();
+		if (time1 - time0 < FRAMETIME_MS)
+		{
+			SDL_Delay(FRAMETIME_MS - (time1-time0));
+		}
+		time0 = time1;
 	}
 
 	// Clean up

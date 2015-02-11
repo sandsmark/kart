@@ -22,6 +22,8 @@ typedef struct {
 
 // Not defined with ansi C
 #define PI 3.14159265
-#define TIME_CONSTANT 1/30
+
+#define FRAMETIME_MS 30
+#define SECS_PER_FRAME 1.0/FRAMETIME_MS
 
 #endif
