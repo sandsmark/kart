@@ -14,8 +14,6 @@
 #include "shell.h"
 #include "libs/cJSON/cJSON.h"
 
-const int SCREEN_WIDTH  = 1024;
-const int SCREEN_HEIGHT = 768;
 static unsigned long long tic = 0;
 static int sockfd = -1;
 #define MAX_JSON_SIZE 2048
@@ -60,15 +58,17 @@ static void render_car(SDL_Renderer *ren, Car *car)
         SDL_RenderCopy(ren, car->texture, 0, &target);
 
 	ivec2 powerup_pos;
-	powerup_pos.x = target.w + 10;
+	powerup_pos.x = 50;
 	powerup_pos.y = vertical_position;
 	if (car->powerup != POWERUP_NONE) {
 		powerup_render(ren, car->powerup, powerup_pos);
 	}
 	target.h = POWERUPS_HEIGHT + 1;
-	target.w = car->width + 1;
+	target.w = POWERUPS_WIDTH + 1;
 	target.x = powerup_pos.x - 1;
 	target.y = powerup_pos.y - 1;
+	                             //r    g     b     a
+	SDL_SetRenderDrawColor(ren, 0xff, 0xff, 0xff, 0xff);
 	SDL_RenderDrawRect(ren, &target);
 
 	// TODO: allocating 500 is stupid
@@ -80,6 +80,7 @@ static void render_car(SDL_Renderer *ren, Car *car)
 
 void do_render(SDL_Renderer *ren)
 {
+	render_background();
 	map_render(ren);
 	cars_move();
 	boxes_render(ren);

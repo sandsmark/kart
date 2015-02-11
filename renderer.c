@@ -1,8 +1,12 @@
 #include "renderer.h"
+#include "vector.h"
+#include "defines.h"
 
 SDL_Renderer *ren = 0;
 
 SDL_Texture *font_texture = 0;
+SDL_Texture *background_texture = 0;
+ivec2 background_dims;
 
 SDL_Texture *ren_load_image(const char *file)
 {
@@ -59,6 +63,9 @@ int renderer_init(SDL_Renderer *renderer)
         printf("failed to load font\n");
     }
 
+    background_texture = ren_load_image_with_dims("background.bmp", &background_dims.x, &background_dims.y);
+
+
     return (font_texture != 0);
 }
 
@@ -81,5 +88,21 @@ void render_string(const char *string, int x, int y, int size)
         target_rect.h = size;
 
         SDL_RenderCopy(ren, font_texture, &source_rect, &target_rect);
+    }
+}
+
+void render_background()
+{
+    if (!background_texture) return;
+    const Uint32 t = SDL_GetTicks() / 66 % background_dims.y;
+    for (int x=-1; x<SCREEN_WIDTH / background_dims.x + 1; x++) {
+        for (int y=0; y<SCREEN_HEIGHT / background_dims.y; y++) {
+            SDL_Rect target;
+            target.x = x * background_dims.x + t;
+            target.y = y * background_dims.y;
+            target.w = background_dims.x;
+            target.h = background_dims.y;
+            SDL_RenderCopy(ren, background_texture, 0, &target);
+        }
     }
 }

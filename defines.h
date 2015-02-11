@@ -17,6 +17,9 @@ typedef struct {
 #define CAR_DRAG_COEFF 0.1
 #define CAR_ROLL_COEFF 3.0
 
+#define SCREEN_WIDTH  1024
+#define SCREEN_HEIGHT 768
+
 // Not defined with ansi C
 #define PI 3.14159265
 #define TIME_CONSTANT 1/30
