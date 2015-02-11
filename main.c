@@ -159,9 +159,7 @@ int run_server(SDL_Renderer *ren)
 		return 1;
 	}
 
-	cJSON *initial_object = map_serialize();
-	char *initial_json = json_to_text(initial_object);
-	cJSON_Delete(initial_object);
+	cJSON *map_object = map_serialize();
 
 	json_state = malloc(1);
 	*json_state = 0;
@@ -234,15 +232,14 @@ int run_server(SDL_Renderer *ren)
 			return 1;
 		}
 		// Send initial state
+		cJSON *initial_object = cJSON_CreateObject();
+		cJSON_AddItemToObject(initial_object, "id", cJSON_CreateNumber(i));
+		cJSON_AddItemToObject(initial_object, "map", cJSON_Duplicate(map_object, 1));
+		char *initial_json = json_to_text(initial_object);
 		net_send(clients[i].fd, initial_json);
+		cJSON_Delete(initial_object);
+		free(initial_json);
 
-		clients[i].car = calloc(1, sizeof(*(clients[i].car)));
-		if (clients[i].car == NULL)
-		{
-			printf("Could not allocate memory for car\n");
-			return 1;
-		}
-		/* TODO: Move car creation into own function */
 		clients[i].car = car_add();
 
 		clients[i].cmd_lock = SDL_CreateMutex();
@@ -261,9 +258,9 @@ int run_server(SDL_Renderer *ren)
 		printf("Num clients: %d\n", i+1);
 	}
 	printf("All clients connected\n");
+	cJSON_Delete(map_object);
 	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
 	SDL_RenderClear(ren);
-	free(initial_json);
 
 	int quit = 0;
 	SDL_Event event;
@@ -365,7 +362,6 @@ int run_server(SDL_Renderer *ren)
 		int t_status;
 		SDL_WaitThread(clients[i].thr, &t_status);
 		SDL_DestroyMutex(clients[i].cmd_lock);
-		free(clients[i].car);
 		net_close(clients[i].fd);
 	}
 	net_close(sockfd);
