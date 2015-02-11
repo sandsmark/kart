@@ -522,8 +522,7 @@ char *show_get_ip(SDL_Renderer *ren)
 	SDL_Event event;
 	int quit = 0;
 	int pos = 0;
-	char *address = malloc(16);
-	strcpy(address, "000.000.000.000");
+	char *address = calloc(16, sizeof(*address));
 	while (!quit) {
 		while (SDL_PollEvent(&event)){
 			//If user closes the window
@@ -581,21 +580,23 @@ char *show_get_ip(SDL_Renderer *ren)
 					pos++;
 					break;
 				case SDLK_LEFT:
-				case SDLK_BACKSPACE:
 					pos--;
-					if (!((pos+1) % 4)) pos--;
 					break;
 				case SDLK_RIGHT:
 				case SDLK_SPACE:
 					pos++;
 					break;
 				case SDLK_PERIOD:
-				case SDLK_TAB:
-					pos += 3 - (pos % 4);
+					address[pos] = '.';
+					pos++;
+					break;
+				case SDLK_BACKSPACE:
+					memset(address, 0, 16);
+					pos = 0;
+					break;
 				}
-				if (pos < 0) pos = 11;
+				if (pos < 0) pos = 0;
 				pos %= 15;
-				if (!((pos+1) % 4) && pos) pos++;
 			}
 		}
 
