@@ -18,7 +18,7 @@ namespace Interop
 
         [JsonProperty(PropertyName = "tile_height")] public int TileHeight;
 
-        [JsonProperty(PropertyName = "tiles")] public List<List<char>> Tiles;
+        [JsonProperty(PropertyName = "tiles")] public List<List<TileType>> Tiles;
 
         [JsonProperty(PropertyName = "modifiers")] public List<ModifierData> Modifiers;
 

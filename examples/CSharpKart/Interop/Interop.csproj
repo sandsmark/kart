@@ -46,6 +46,7 @@
     <Compile Include="GameState.cs" />
     <Compile Include="InteropService.cs" />
     <Compile Include="MapState.cs" />
+    <Compile Include="MapStringEnumConverter.cs" />
     <Compile Include="ModifierData.cs" />
     <Compile Include="PathData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
