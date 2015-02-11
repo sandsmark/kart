@@ -677,22 +677,22 @@ void show_menu(SDL_Renderer *ren)
 
 		SDL_RenderCopy(ren, image, 0, &target);
 
-		                          //r    g     b     a
-		SDL_SetRenderDrawColor(ren, 0x0, 0xff, 0xff, 0xff);
+		                            //r    g     b     a
+		SDL_SetRenderDrawColor(ren, 0xff, 0xff, 0xff, 0xff);
 		SDL_Rect selection_rect;
-		selection_rect.x = 364;
-		selection_rect.y = 200 + choice * 62;
-		selection_rect.h = 16;
-		selection_rect.w = 16;
-		SDL_RenderFillRect(ren, &selection_rect);
+		selection_rect.x = 544;
+		selection_rect.y = 272 + choice * 32;
+		selection_rect.h = 30;
+		selection_rect.w = 400;
+		SDL_RenderDrawRect(ren, &selection_rect);
 
-		render_string("server mode", 385, 190, 32);
-		render_string("client mode (not working)", 385, 252, 32);
-		render_string("local mode",  385, 315, 32);
-		render_string("quit",        385, 375, 32);
+		render_string("server mode",        550, 275 + 32 * 0, 22);
+		render_string("client mode (todo)", 550, 275 + 32 * 1, 22);
+		render_string("local mode",         550, 275 + 32 * 2, 22);
+		render_string("quit",               550, 275 + 32 * 3, 22);
 
 		// fancy useless effect
-		for (int i=1; i<140; i++) {
+/*		for (int i=1; i<140; i++) {
 			Uint32 t = SDL_GetTicks() / 10.0;
 			SDL_Rect r;
 			r.x = i * 5 + 105;
@@ -700,9 +700,9 @@ void show_menu(SDL_Renderer *ren)
 			r.w = 2;
 			r.h = 2;
 			SDL_RenderFillRect(ren, &r);
-		}
+		}*/
 		const char *verstring = "version " REVISION;
-		render_string(verstring, SCREEN_WIDTH - strlen(verstring) * 16, 0, 11);
+		render_string(verstring, 50, 530, 22);
 
 		SDL_RenderPresent(ren);
 	}
