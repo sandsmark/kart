@@ -26,7 +26,6 @@ typedef struct {
 #define NET_INPUT_RIGHT 1<<3
 #define NET_INPUT_SPACE 1<<4
 #define NET_INPUT_RETURN 1<<5
-#define NET_REQUEST_STATE 1337
 #define NET_PORT 31337
 
 // Settings

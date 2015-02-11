@@ -419,9 +419,6 @@ int run_client(SDL_Renderer *ren)
 		if (keystates[SDL_SCANCODE_RETURN]) net_set_input(NET_INPUT_RETURN);
 		net_send_input(sockfd);
 
-		char buf[5];
-		snprintf(buf, 5, "%d", NET_REQUEST_STATE);
-		net_send(sockfd, buf);
 		net_recv(sockfd, state, MAX_JSON_SIZE);
 		root = cJSON_Parse(state);
 		if (root == NULL)

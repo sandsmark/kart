@@ -126,8 +126,6 @@ void net_set_input(unsigned input)
 
 ssize_t net_send_input(int sockfd)
 {
-	if (input_mask == 0)
-		return 0;
 	ssize_t n;
 	char send_buf[64];
 	snprintf(send_buf, 64, "%d", input_mask);
