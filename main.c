@@ -230,7 +230,8 @@ int run_server(SDL_Renderer *ren)
 		}
 		// Send initial state
 		cJSON *initial_object = cJSON_CreateObject();
-		cJSON_AddItemToObject(initial_object, "id", cJSON_CreateNumber(i));
+		cJSON_AddNumberToObject(initial_object, "id", i);
+		cJSON_AddNumberToObject(initial_object, "num_cars", NUM_CLIENTS);
 		cJSON_AddItemToObject(initial_object, "map", cJSON_Duplicate(map_object, 1));
 		char *initial_json = json_to_text(initial_object);
 		net_send(clients[i].fd, initial_json);
@@ -368,9 +369,30 @@ int run_server(SDL_Renderer *ren)
 
 int run_client(SDL_Renderer *ren)
 {
-	int quit = 0;
+	int quit = 0, my_id = 0, num_cars = 0;
 	SDL_Event event;
 	char state[MAX_JSON_SIZE];
+	cJSON *root;
+
+	/* Set up initial state */
+	net_recv(sockfd, state, MAX_JSON_SIZE);
+	root = cJSON_Parse(state);
+	if (root == NULL)
+		printf("Received invalid JSON: %s\n", cJSON_GetErrorPtr());
+	else
+	{
+		cJSON *cur;
+		cur = cJSON_GetObjectItem(root, "id");
+		my_id = cur->valueint;
+		cur = cJSON_GetObjectItem(root, "num_cars");
+		num_cars = cur->valueint;
+		/* TODO: map */
+	}
+
+	Car *cars[num_cars];
+
+	for (int i = 0; i < num_cars; i++)
+		cars[i] = car_add();
 
 	while (!quit) {
 		while (SDL_PollEvent(&event)){
@@ -401,7 +423,27 @@ int run_client(SDL_Renderer *ren)
 		snprintf(buf, 5, "%d", NET_REQUEST_STATE);
 		net_send(sockfd, buf);
 		net_recv(sockfd, state, MAX_JSON_SIZE);
-		printf("Recvd: %s\n", state);
+		root = cJSON_Parse(state);
+		if (root == NULL)
+			printf("Received invalid JSON: %s\n", cJSON_GetErrorPtr());
+		else
+		{
+			cJSON *cars = cJSON_GetObjectItem(root, "cars");
+			for (int i = 0; cars != NULL && i < cJSON_GetArraySize(cars); i++)
+			{
+				cJSON *car = cJSON_GetArrayItem(cars, i);
+				car_deserialize(car);
+			}
+			cJSON_Delete(root);
+			root = NULL;
+		}
+
+		render_background();
+		map_render(ren);
+		for (int i = 0; i < num_cars; i++)
+		{
+			render_car(ren, cars[i]);
+		}
 
 		SDL_RenderPresent(ren);
 	}

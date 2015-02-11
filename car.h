@@ -40,6 +40,7 @@ void car_apply_force(Car *car, vec2 force);
 void cars_move();
 void car_use_powerup(Car *car);
 cJSON *car_serialize(Car *car);
+void car_deserialize(cJSON *root);
 
 Car *car_get_leader();
 

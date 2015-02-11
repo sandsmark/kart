@@ -20,7 +20,6 @@ int cars_count = 0;
 extern ivec2 map_starting_position;
 const vec2 car_start_dir = {1.0, 0.0};
 
-
 Car *car_add()
 {
 	if (cars_count + 1 >= MAX_CARS) {
@@ -37,8 +36,12 @@ Car *car_add()
 	cars[i].invincible_at = 0;
 	cars[i].tipped_at = 0;
 	cars[i].big_at = 0;
+	/* DEBUG: re-add once map does deserialization
 	cars[i].pos.x = map_starting_position.x;
 	cars[i].pos.y = map_starting_position.y + i * 20;
+	*/
+	cars[i].pos.x = 500;
+	cars[i].pos.y = 200;
 	cars[i].direction = car_start_dir;
 	char filename[10];
 	sprintf(filename, "car%d.bmp", i);
@@ -341,6 +344,47 @@ cJSON *car_serialize(Car *car)
 	cJSON_AddNumberToObject(root, "height", car->height);
 
 	return root;
+}
+
+void car_deserialize(cJSON *root)
+{
+	Car *car = NULL;
+	cJSON *cur, *x, *y;
+	cur = cJSON_GetObjectItem(root, "id");
+	for (int i = 0; i < cars_count; i++)
+	{
+		if (cars[i].id == cur->valueint)
+		{
+			car = &cars[i];
+			break;
+		}
+	}
+	if (car == NULL)
+		return;
+	cur = cJSON_GetObjectItem(root, "direction");
+	x = cJSON_GetObjectItem(cur, "x");
+	car->direction.x = x->valuedouble;
+	y = cJSON_GetObjectItem(cur, "y");
+	car->direction.y = y->valuedouble;
+
+	cur = cJSON_GetObjectItem(root, "velocity");
+	x = cJSON_GetObjectItem(cur, "x");
+	car->velocity.x = x->valuedouble;
+	y = cJSON_GetObjectItem(cur, "y");
+	car->velocity.y = y->valuedouble;
+
+	cur = cJSON_GetObjectItem(root, "pos");
+	x = cJSON_GetObjectItem(cur, "x");
+	car->pos.x = x->valuedouble;
+	y = cJSON_GetObjectItem(cur, "y");
+	car->pos.y = y->valuedouble;
+
+	cur = cJSON_GetObjectItem(root, "drift");
+	car->drift = cur->valueint;
+	cur = cJSON_GetObjectItem(root, "width");
+	car->width = cur->valueint;
+	cur = cJSON_GetObjectItem(root, "height");
+	car->height = cur->valueint;
 }
 
 // Not the world's most efficient implementation, but it's just 4 cars at max
