@@ -153,9 +153,7 @@ object on a single line, terminated by a newline:**
 Install the SDL2 development headers, and run "make".
 
 ### CREDITS:
-track graphics from here: http://opengameart.org/content/track-tiles
-It is licensed by CC-BY TRBRY
-
+Graphics by 'Kari Nordmann' (alias).
 
 Some compatibility code for windows is licensed under the ISC license:
 Copyright (c) 1996,1999 by Internet Software Consortium.
