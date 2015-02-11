@@ -8,6 +8,6 @@ In your developer console, write `parser.gridToText(drawer.manager.grid)` to act
 
 Oh! And it always writes the map in a square, and to change its size, check out this file: https://github.com/sandsmark/kart/blob/master/map-editor/js/drawer.js#L2
 
-Someone! Please fix it! For the lov of @martin!
+Someone! Please fix it! For the love of the Martin!
 
 ### Please feel free to do upgrades!
