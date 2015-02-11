@@ -32,56 +32,60 @@ Some pseudo C code to use it:
     send_byte(action);
 ```
 
-On connect you will receive a JSON object describing the map:
+On connect you will receive a JSON object giving you your ID and describing the
+map:
 ```JSON
 {
-    "tile_width": 128,
-    "tile_height": 128,
-    "tiles": [
-        [ ".", ".", ".", ".", ".", ".", ".", "." ],
-        [ ".", "/", "-", "-", "-", "`", ".", "." ],
-        [ ".", "|", ".", ".", ".", "|", ".", "." ],
-        [ ".", "|", ".", ".", ".", "|", ".", "." ],
-        [ ".", "\\", "-", "-", "-", ",", ".", "." ],
-        [ ".", ".", ".", ".", ".", ".", ".", "." ]
-    ],
-    "modifiers": [
-        {
-            "type": "mud",
-            "x": 168,
-            "y": 218,
-            "width": 64,
-            "height": 64
-        },
-        {
-            "type": "booster",
-            "x": 418,
-            "y": 538,
-            "width": 32,
-            "height": 32
-        },
-        {
-            "type": "ice",
-            "x": 638,
-            "y": 188,
-            "width": 64,
-            "height": 64
-        }
-    ],
-    "path": [
-        { "tile_x": 3, "tile_y": 1 },
-        { "tile_x": 4, "tile_y": 1 },
-        { "tile_x": 5, "tile_y": 1 },
-        { "tile_x": 5, "tile_y": 2 },
-        { "tile_x": 5, "tile_y": 3 },
-        { "tile_x": 5, "tile_y": 4 },
-        { "tile_x": 4, "tile_y": 4 },
-        { "tile_x": 3, "tile_y": 4 },
-        { "tile_x": 2, "tile_y": 4 },
-        { "tile_x": 1, "tile_y": 4 },
-        { "tile_x": 1, "tile_y": 3 },
-        { "tile_x": 1, "tile_y": 2 }
-    ]
+    "id": 0
+    "map": {
+        "tile_width": 128,
+        "tile_height": 128,
+        "tiles": [
+            [ ".", ".", ".", ".", ".", ".", ".", "." ],
+            [ ".", "/", "-", "-", "-", "`", ".", "." ],
+            [ ".", "|", ".", ".", ".", "|", ".", "." ],
+            [ ".", "|", ".", ".", ".", "|", ".", "." ],
+            [ ".", "\\", "-", "-", "-", ",", ".", "." ],
+            [ ".", ".", ".", ".", ".", ".", ".", "." ]
+        ],
+        "modifiers": [
+            {
+                "type": "mud",
+                "x": 168,
+                "y": 218,
+                "width": 64,
+                "height": 64
+            },
+            {
+                "type": "booster",
+                "x": 418,
+                "y": 538,
+                "width": 32,
+                "height": 32
+            },
+            {
+                "type": "ice",
+                "x": 638,
+                "y": 188,
+                "width": 64,
+                "height": 64
+            }
+        ],
+        "path": [
+            { "tile_x": 3, "tile_y": 1 },
+            { "tile_x": 4, "tile_y": 1 },
+            { "tile_x": 5, "tile_y": 1 },
+            { "tile_x": 5, "tile_y": 2 },
+            { "tile_x": 5, "tile_y": 3 },
+            { "tile_x": 5, "tile_y": 4 },
+            { "tile_x": 4, "tile_y": 4 },
+            { "tile_x": 3, "tile_y": 4 },
+            { "tile_x": 2, "tile_y": 4 },
+            { "tile_x": 1, "tile_y": 4 },
+            { "tile_x": 1, "tile_y": 3 },
+            { "tile_x": 1, "tile_y": 2 }
+        ]
+    }
 }
 ```
 
