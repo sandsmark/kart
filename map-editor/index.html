@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>kartParse</title>
+
+    <script type="text/javascript" src="js/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="js/tile.js"></script>
+    <script type="text/javascript" src="js/grid.js"></script>
+    <script type="text/javascript" src="js/manager.js"></script>
+    <script type="text/javascript" src="js/mouse_input_manager.js"></script>
+    <script type="text/javascript" src="js/drawer.js"></script>
+    <script type="text/javascript" src="js/parser.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            drawer = new Drawer(document.getElementById('kart'));
+        });
+    </script>
+</head>
+<body>
+<canvas width="1024" height="1024" id="kart"></canvas>
+
+<textarea rows="32" style="width:500px;"></textarea>
+</body>
+</html>
