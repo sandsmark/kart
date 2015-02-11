@@ -369,7 +369,7 @@ int run_server(SDL_Renderer *ren)
 
 int run_client(SDL_Renderer *ren)
 {
-	int quit = 0, my_id = 0, num_cars = 0;
+	int quit = 0, num_cars = 0;
 	SDL_Event event;
 	char state[MAX_JSON_SIZE];
 	cJSON *root;
@@ -382,8 +382,6 @@ int run_client(SDL_Renderer *ren)
 	else
 	{
 		cJSON *cur;
-		cur = cJSON_GetObjectItem(root, "id");
-		my_id = cur->valueint;
 		cur = cJSON_GetObjectItem(root, "num_cars");
 		num_cars = cur->valueint;
 		/* TODO: map */
@@ -727,10 +725,10 @@ void show_menu(SDL_Renderer *ren)
 		selection_rect.w = 400;
 		SDL_RenderDrawRect(ren, &selection_rect);
 
-		render_string("server mode",        550, 275 + 32 * 0, 22);
-		render_string("client mode (todo)", 550, 275 + 32 * 1, 22);
-		render_string("local mode",         550, 275 + 32 * 2, 22);
-		render_string("quit",               550, 275 + 32 * 3, 22);
+		render_string("server mode", 550, 275 + 32 * 0, 22);
+		render_string("client mode", 550, 275 + 32 * 1, 22);
+		render_string("local mode",  550, 275 + 32 * 2, 22);
+		render_string("quit",        550, 275 + 32 * 3, 22);
 
 		// fancy useless effect
 /*		for (int i=1; i<140; i++) {
