@@ -16,8 +16,6 @@
 
 static int sockfd = -1;
 #define MAX_JSON_SIZE 2048
-#define NET_REQUEST_STATE 1337
-#define NUM_CLIENTS 1
 struct client {
 	int idx;
 	int fd;
