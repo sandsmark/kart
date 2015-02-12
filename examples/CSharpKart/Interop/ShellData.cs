@@ -2,6 +2,7 @@
 
 namespace Interop
 {
+    [JsonConverter(typeof(ServerStringEnumConverter))]
     public enum ShellType
     {
         Blue
@@ -9,7 +10,7 @@ namespace Interop
 
     public class ShellData
     {
-        [JsonProperty(PropertyName = "type"), JsonConverter(typeof(ServerStringEnumConverter))]
+        [JsonProperty(PropertyName = "type")]
         public ShellType Type;
 
         [JsonProperty(PropertyName = "x")]

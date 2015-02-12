@@ -55,7 +55,8 @@ namespace Interop
         public void Send(byte key)
         {
             var msg = key.ToString(new NumberFormatInfo()) + '\n';
-            _client.GetStream().Write(Encoding.ASCII.GetBytes(msg), 0, 1);
+            var msgInBytes = Encoding.ASCII.GetBytes(msg);
+            _client.GetStream().Write(msgInBytes, 0, msgInBytes.Length);
         }
     }
 }
