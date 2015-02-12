@@ -20,7 +20,7 @@ def write(sock, msg):
 
 def read(sock):
     try:
-        msg = sock.recv(2048)
+        msg = sock.makefile().readline()
         return msg
     except:
         pass
