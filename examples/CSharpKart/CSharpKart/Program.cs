@@ -20,7 +20,7 @@ namespace CSharpKart
             {
                 var rdGen = new Random(1337);
                 var interop = new InteropService(-1, address, port);
-                var map = interop.QueryForState<MapState>().Result;
+                var map = interop.QueryForState<GameInfo>().Result;
                 interop.Send(0); // Ask for game state update
 
                 while (true)
