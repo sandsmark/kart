@@ -2,6 +2,7 @@
 #include "renderer.h"
 #include "powerup.h"
 #include "map.h"
+#include "car.h"
 
 #include <SDL2/SDL.h>
 
@@ -92,9 +93,29 @@ void shell_remove(int index)
 
 void shell_move(Shell *shell)
 {
+	if (shell->type == SHELL_BLUE) {
+		Car *leader = car_get_leader();
+		if (leader) {
+			vec2 target = leader->pos;
+			if (target.x > shell->pos.x) {
+				shell->direction.x += 0.1;
+			} else {
+				shell->direction.x -= 0.1;
+			}
+			if (target.y > shell->pos.y) {
+				shell->direction.y += 0.1;
+			} else {
+				shell->direction.y -= 0.1;
+			}
+			vec_normalize(&shell->direction);
+			vec_scale(&shell->direction, 5.5);
+		}
+	}
+
 	ivec2 next_pos;
 	next_pos.x = shell->pos.x + shell->direction.x;
 	next_pos.y = shell->pos.y + shell->direction.y;
+
 	AreaType type = map_get_type(next_pos);
 	if (type == MAP_GRASS) { // bounce
 		vec2 direction = shell->direction;
