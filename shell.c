@@ -37,7 +37,7 @@ int shell_init()
 			shell_blue_texture);
 }
 
-void shell_render(SDL_Renderer *ren)
+void shells_render(SDL_Renderer *ren)
 {
 	ivec2 pos;
 	for (int i=0; i<shells_count; i++) {
@@ -90,28 +90,31 @@ void shell_remove(int index)
 	}
 }
 
-void shell_move()
+void shell_move(Shell *shell)
+{
+	ivec2 next_pos;
+	next_pos.x = shell->pos.x + shell->direction.x;
+	next_pos.y = shell->pos.y + shell->direction.y;
+	AreaType type = map_get_type(next_pos);
+	if (type == MAP_GRASS) { // bounce
+		vec2 direction = shell->direction;
+		vec_scale(&direction, -1);
+		vec2 edge_normal = map_get_edge_normal(next_pos.x, next_pos.y);
+		vec_normalize(&edge_normal);
+		float angle = vec_angle(edge_normal, direction);
+		vec_rotate(&direction, -2.0* angle);
+		shell->direction = direction;
+	}
+	next_pos.x = shell->pos.x + shell->direction.x;
+	next_pos.y = shell->pos.y + shell->direction.y;
+	shell->pos.x = next_pos.x;
+	shell->pos.y = next_pos.y;
+}
+
+void shells_move()
 {
 	for (int i=0; i<shells_count; i++) {
-		ivec2 next_pos;
-		next_pos.x = shells[i].pos.x + shells[i].direction.x;
-		next_pos.y = shells[i].pos.y + shells[i].direction.y;
-		next_pos.x += POWERUPS_WIDTH / 2;
-		next_pos.y += POWERUPS_HEIGHT / 2;
-		AreaType type = map_get_type(next_pos);
-		if (type == MAP_GRASS) {
-			vec2 direction = shells[i].direction;
-			vec_scale(&direction, -1);
-			vec2 edge_normal = map_get_edge_normal(next_pos.x, next_pos.y);
-			vec_normalize(&edge_normal);
-			float angle = vec_angle(edge_normal, direction);
-			vec_rotate(&direction, -2.0* angle);
-			shells[i].direction = direction;
-		}
-		next_pos.x = shells[i].pos.x + shells[i].direction.x;
-		next_pos.y = shells[i].pos.y + shells[i].direction.y;
-		shells[i].pos.x = next_pos.x;
-		shells[i].pos.y = next_pos.y;
+		shell_move(&shells[i]);
 	}
 }
 

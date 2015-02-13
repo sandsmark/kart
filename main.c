@@ -42,8 +42,8 @@ void do_render(SDL_Renderer *ren)
 	map_render(ren);
 	cars_move();
 	boxes_render(ren);
-	shell_move();
-	shell_render(ren);
+	shells_move();
+	shells_render(ren);
 	cars_render(ren);
 }
 
