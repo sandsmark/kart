@@ -482,13 +482,6 @@ int run_local(SDL_Renderer *ren)
 			car_use_powerup(car);
 		}
 
-
-		int freq = vec_length(car->velocity);
-		if (freq < 10) freq = 10;
-		freq = sqrt(freq);
-		freq = 1500 / freq;
-		sound_set_car_freq(freq);
-
 		do_render(ren);
 
 		SDL_RenderPresent(ren);
@@ -684,16 +677,6 @@ void show_menu(SDL_Renderer *ren)
 		render_string("local mode",  550, 275 + 32 * 2, 22);
 		render_string("quit",        550, 275 + 32 * 3, 22);
 
-		// fancy useless effect
-/*		for (int i=1; i<140; i++) {
-			Uint32 t = SDL_GetTicks() / 10.0;
-			SDL_Rect r;
-			r.x = i * 5 + 105;
-			r.y = sinf(t * ((i - 85)/500.0 + 0.02)) * 10 + 135;
-			r.w = 2;
-			r.h = 2;
-			SDL_RenderFillRect(ren, &r);
-		}*/
 		const char *verstring = "version " REVISION;
 		render_string(verstring, 50, 530, 22);
 
