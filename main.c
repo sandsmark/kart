@@ -338,10 +338,8 @@ int run_client(SDL_Renderer *ren)
 		/* TODO: map */
 	}
 
-	Car *cars[num_cars];
-
 	for (int i = 0; i < num_cars; i++)
-		cars[i] = car_add();
+		car_add();
 
 	while (!quit) {
 		while (SDL_PollEvent(&event)){
