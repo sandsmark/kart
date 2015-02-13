@@ -415,4 +415,44 @@ Car *car_get_leader()
 	return leader;
 }
 
+void cars_render(SDL_Renderer *ren)
+{
+	for (int i=0; i<cars_count; i++) {
+		SDL_Rect target;
+		target.x = cars[i].pos.x;
+		target.y = cars[i].pos.y;
+		target.w = cars[i].width;
+		target.h = cars[i].height;
+		SDL_RenderCopyEx(ren, cars[i].texture, 0, &target, vec_angle(car_start_dir, cars[i].direction), 0, 0);
+
+		const int vertical_position = 5 + (POWERUPS_HEIGHT + 5) * cars[i].id;
+		target.x = 5;
+		target.y = vertical_position;
+		target.h = POWERUPS_HEIGHT;
+		target.w = POWERUPS_HEIGHT * cars[i].width / cars[i].height;
+		SDL_RenderCopy(ren, cars[i].texture, 0, &target);
+
+		ivec2 powerup_pos;
+		powerup_pos.x = 50;
+		powerup_pos.y = vertical_position;
+		if (cars[i].powerup != POWERUP_NONE) {
+			powerup_render(ren, cars[i].powerup, powerup_pos);
+		}
+		target.h = POWERUPS_HEIGHT + 1;
+		target.w = POWERUPS_WIDTH + 1;
+		target.x = powerup_pos.x - 1;
+		target.y = powerup_pos.y - 1;
+		//r    g     b     a
+		SDL_SetRenderDrawColor(ren, 0xff, 0xff, 0xff, 0xff);
+		SDL_RenderDrawRect(ren, &target);
+
+		// TODO: allocating 500 is stupid
+		char *laps_string = malloc(500);
+		snprintf(laps_string, 500, "%d laps", cars[i].tiles_passed / map_get_path_length());
+		render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 32);
+		free(laps_string);
+	}
+}
+
+
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

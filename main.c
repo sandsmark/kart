@@ -36,45 +36,6 @@ typedef enum {
 	MENU_QUIT
 } MenuChoice;
 
-extern const vec2 car_start_dir;
-
-static void render_car(SDL_Renderer *ren, Car *car)
-{
-	SDL_Rect target;
-	target.x = car->pos.x;
-	target.y = car->pos.y;
-	target.w = car->width;
-	target.h = car->height;
-	SDL_RenderCopyEx(ren, car->texture, 0, &target, vec_angle(car_start_dir, car->direction), 0, 0);
-
-	const int vertical_position = 5 + (POWERUPS_HEIGHT + 5) * car->id;
-	target.x = 5;
-	target.y = vertical_position;
-	target.h = POWERUPS_HEIGHT;
-	target.w = POWERUPS_HEIGHT * car->width / car->height;
-        SDL_RenderCopy(ren, car->texture, 0, &target);
-
-	ivec2 powerup_pos;
-	powerup_pos.x = 50;
-	powerup_pos.y = vertical_position;
-	if (car->powerup != POWERUP_NONE) {
-		powerup_render(ren, car->powerup, powerup_pos);
-	}
-	target.h = POWERUPS_HEIGHT + 1;
-	target.w = POWERUPS_WIDTH + 1;
-	target.x = powerup_pos.x - 1;
-	target.y = powerup_pos.y - 1;
-	                             //r    g     b     a
-	SDL_SetRenderDrawColor(ren, 0xff, 0xff, 0xff, 0xff);
-	SDL_RenderDrawRect(ren, &target);
-
-	// TODO: allocating 500 is stupid
-	char *laps_string = malloc(500);
-	snprintf(laps_string, 500, "%d laps", car->tiles_passed / map_get_path_length());
-	render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 32);
-	free(laps_string);
-}
-
 void do_render(SDL_Renderer *ren)
 {
 	render_background();
@@ -83,6 +44,7 @@ void do_render(SDL_Renderer *ren)
 	boxes_render(ren);
 	shell_move();
 	shell_render(ren);
+	cars_render(ren);
 }
 
 static int server_recv_loop(void *data)
@@ -327,7 +289,6 @@ int run_server(SDL_Renderer *ren)
 		cJSON_AddItemToObject(state, "cars", car_json = cJSON_CreateArray());
 		for (int i = 0; i < NUM_CLIENTS; i++)
 		{
-			render_car(ren, clients[i].car);
 			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
 		}
 		cJSON_AddItemToObject(state, "shells", shells_serialize());
@@ -435,10 +396,6 @@ int run_client(SDL_Renderer *ren)
 
 		render_background();
 		map_render(ren);
-		for (int i = 0; i < num_cars; i++)
-		{
-			render_car(ren, cars[i]);
-		}
 
 		SDL_RenderPresent(ren);
 	}
@@ -533,9 +490,6 @@ int run_local(SDL_Renderer *ren)
 		sound_set_car_freq(freq);
 
 		do_render(ren);
-		for (int i=0; i<3; i++) {
-			render_car(ren, cars[i]);
-		}
 
 		SDL_RenderPresent(ren);
 

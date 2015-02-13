@@ -41,6 +41,7 @@ void cars_move();
 void car_use_powerup(Car *car);
 cJSON *car_serialize(Car *car);
 void car_deserialize(cJSON *root);
+void cars_render(SDL_Renderer *ren);
 
 Car *car_get_leader();
 
