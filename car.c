@@ -454,5 +454,28 @@ void cars_render(SDL_Renderer *ren)
 	}
 }
 
+void car_turn_left(Car *car)
+{
+	vec_rotate(&car->direction, -3);
+}
+
+void car_turn_right(Car *car)
+{
+	vec_rotate(&car->direction, 3);
+}
+
+void car_accelerate(Car *car)
+{
+	vec2 force = car->direction;
+	vec_scale(&force, 2500);
+	car_apply_force(car, force);
+}
+
+void car_decelerate(Car *car)
+{
+	vec2 force = car->direction;
+	vec_scale(&force, -2500);
+	car_apply_force(car, force);
+}
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

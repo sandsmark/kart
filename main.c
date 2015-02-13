@@ -249,32 +249,22 @@ int run_server(SDL_Renderer *ren)
 			if (SDL_LockMutex(clients[i].cmd_lock) == 0)
 			{
 				unsigned cmd = clients[i].cmd;
-				if (cmd & NET_INPUT_UP)
-				{
-					vec2 force = car->direction;
-					vec_scale(&force, 2500);
-					car_apply_force(car, force);
+				if (cmd & NET_INPUT_UP) {
+					car_accelerate(car);
 				}
-				if (cmd & NET_INPUT_DOWN)
-				{
-					vec2 force = car->direction;
-					vec_scale(&force, -2500);
-					car_apply_force(car, force);
+				if (cmd & NET_INPUT_DOWN) {
+					car_decelerate(car);
 				}
-				if (cmd & NET_INPUT_LEFT)
-				{
-					vec_rotate(&car->direction, -3);
+				if (cmd & NET_INPUT_LEFT) {
+					car_turn_left(car);
 				}
-				if (cmd & NET_INPUT_RIGHT)
-				{
-					vec_rotate(&car->direction, 3);
+				if (cmd & NET_INPUT_RIGHT) {
+					car_turn_right(car);
 				}
-				if (cmd & NET_INPUT_SPACE)
-				{
+				if (cmd & NET_INPUT_SPACE) {
 					car->drift = 1;
 				}
-				if (cmd & NET_INPUT_RETURN)
-				{
+				if (cmd & NET_INPUT_RETURN) {
 					car_use_powerup(car);
 				}
 				// Clear cmd
@@ -436,20 +426,16 @@ int run_local(SDL_Renderer *ren)
 		const Uint8 *keystates = SDL_GetKeyboardState(NULL);
 		Car *car = cars[0];
 		if (keystates[SDL_SCANCODE_UP]) {
-			vec2 force = car->direction;
-			vec_scale(&force, 2500);
-			car_apply_force(car, force);
+			car_accelerate(car);
 		}
 		if (keystates[SDL_SCANCODE_DOWN]) {
-			vec2 force = car->direction;
-			vec_scale(&force, -2500);
-			car_apply_force(car, force);
+			car_decelerate(car);
 		}
 		if (keystates[SDL_SCANCODE_LEFT]) {
-			vec_rotate(&car->direction, -3);
+			car_turn_left(car);
 		}
 		if (keystates[SDL_SCANCODE_RIGHT]) {
-			vec_rotate(&car->direction, 3);
+			car_turn_right(car);
 		}
 		if (keystates[SDL_SCANCODE_COMMA]) {
 			car->drift = 1;
@@ -460,20 +446,16 @@ int run_local(SDL_Renderer *ren)
 
 		car = cars[1];
 		if (keystates[SDL_SCANCODE_W]) {
-			vec2 force = car->direction;
-			vec_scale(&force, 2500);
-			car_apply_force(car, force);
+			car_accelerate(car);
 		}
 		if (keystates[SDL_SCANCODE_S]) {
-			vec2 force = car->direction;
-			vec_scale(&force, -2500);
-			car_apply_force(car, force);
+			car_decelerate(car);
 		}
 		if (keystates[SDL_SCANCODE_A]) {
-			vec_rotate(&car->direction, -3);
+			car_turn_left(car);
 		}
 		if (keystates[SDL_SCANCODE_D]) {
-			vec_rotate(&car->direction, 3);
+			car_turn_right(car);
 		}
 		if (keystates[SDL_SCANCODE_C]) {
 			car->drift = 1;

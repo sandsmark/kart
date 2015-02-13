@@ -38,7 +38,13 @@ typedef struct {
 Car *car_add();
 void car_apply_force(Car *car, vec2 force);
 void cars_move();
+
+void car_turn_left(Car *car);
+void car_turn_right(Car *car);
+void car_accelerate(Car *car);
+void car_decelerate(Car *car);
 void car_use_powerup(Car *car);
+
 cJSON *car_serialize(Car *car);
 void car_deserialize(cJSON *root);
 void cars_render(SDL_Renderer *ren);
