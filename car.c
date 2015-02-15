@@ -352,6 +352,42 @@ cJSON *car_serialize(Car *car)
 	cJSON_AddNumberToObject(root, "width", car->width);
 	cJSON_AddNumberToObject(root, "height", car->height);
 
+	cJSON *powerup;
+	switch(car->powerup) {
+	case POWERUP_BANANA:
+		powerup = cJSON_CreateString("banana");
+		break;
+	case POWERUP_GREEN_SHELL:
+		powerup = cJSON_CreateString("greenshell");
+		break;
+	case POWERUP_RED_SHELL:
+		powerup = cJSON_CreateString("redshell");
+		break;
+	case POWERUP_BLUE_SHELL:
+		powerup = cJSON_CreateString("blueshell");
+		break;
+	case POWERUP_OIL:
+		powerup = cJSON_CreateString("oil");
+		break;
+	case POWERUP_MUSHROOM:
+		powerup = cJSON_CreateString("mushroom");
+		break;
+	case POWERUP_BIG_MUSHROOM:
+		powerup = cJSON_CreateString("bigmushroom");
+		break;
+	case POWERUP_LIGHTNING:
+		powerup = cJSON_CreateString("lightning");
+		break;
+	case POWERUP_STAR:
+		powerup = cJSON_CreateString("star");
+		break;
+	case POWERUP_NONE:
+	default:
+		powerup = cJSON_CreateString("none");
+		break;
+	}
+	cJSON_AddItemToObject(root, "powerup", powerup);
+
 	return root;
 }
 
@@ -394,6 +430,8 @@ void car_deserialize(cJSON *root)
 	car->width = cur->valueint;
 	cur = cJSON_GetObjectItem(root, "height");
 	car->height = cur->valueint;
+
+	// TODO: deseiralize powerup
 }
 
 // Not the world's most efficient implementation, but it's just 4 cars at max
