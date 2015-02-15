@@ -50,6 +50,10 @@ Car *car_add()
 	cars[i].width /= 1.5;
 	cars[i].height /= 1.5;
 
+	for (int j=0; j<TRAIL_LENGTH; j++) {
+		cars[i].trail[j] = cars[i].pos;
+	}
+
 	return &cars[i];
 }
 
@@ -228,6 +232,12 @@ void car_move(Car *car)
 	}
 
 	map_check_tile_passed(&car->tiles_passed, car->pos);
+
+	for (int j=1; j<TRAIL_LENGTH; j++) {
+		car->trail[j-1] = car->trail[j];
+	}
+	car->trail[TRAIL_LENGTH-1] = car->pos;
+
 }
 
 void cars_move()
@@ -464,7 +474,30 @@ Car *car_get_leader()
 
 void cars_render(SDL_Renderer *ren)
 {
+	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
 	for (int i=0; i<cars_count; i++) {
+		int r = 0xff, g = 0xff, b = 0xff;
+		if (i == 0) {
+			r = 0xff; g = 0; b = 0;
+		} else if (i == 1) {
+			r = 0xa0; g = 0xa0; b = 0xff;
+		} else if (i == 2) {
+			r = 0; g = 0xff; b = 0xa0;
+		} else if (i == 3) {
+			r = 0xff; g = 0xff; b = 0xff;
+		} else if (i == 4) {
+			r = 0xa0; g = 0xa0; b = 0xa0;
+		}
+
+		int ox = cars[i].width / 2;
+		int oy = cars[i].height / 2;
+		for (int j=0; j<TRAIL_LENGTH-1; j++) {
+			SDL_SetRenderDrawColor(ren, r, g, b, j * 0xff / TRAIL_LENGTH);
+			vec2 pos1 = cars[i].trail[j];
+			vec2 pos2 = cars[i].trail[j+1];
+			SDL_RenderDrawLine(ren, pos1.x + ox, pos1.y + oy, pos2.x + ox, pos2.y + oy);
+		}
+
 		SDL_Rect target;
 		target.x = cars[i].pos.x;
 		target.y = cars[i].pos.y;
@@ -489,8 +522,7 @@ void cars_render(SDL_Renderer *ren)
 		target.w = POWERUPS_WIDTH + 1;
 		target.x = powerup_pos.x - 1;
 		target.y = powerup_pos.y - 1;
-		//r    g     b     a
-		SDL_SetRenderDrawColor(ren, 0xff, 0xff, 0xff, 0xff);
+		SDL_SetRenderDrawColor(ren, r, g, b, 0xff);
 		SDL_RenderDrawRect(ren, &target);
 
 		// TODO: allocating 500 is stupid
@@ -498,6 +530,7 @@ void cars_render(SDL_Renderer *ren)
 		snprintf(laps_string, 500, "%d laps", cars[i].tiles_passed / map_get_path_length());
 		render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 32);
 		free(laps_string);
+
 	}
 }
 

@@ -7,6 +7,8 @@
 #include "defines.h"
 #include "libs/cJSON/cJSON.h"
 
+#define TRAIL_LENGTH 100
+
 typedef struct {
 	int id;
 	vec2 direction;
@@ -33,6 +35,8 @@ typedef struct {
 	Uint32 invincible_at;
 	Uint32 tipped_at;
 	Uint32 big_at;
+
+	vec2 trail[TRAIL_LENGTH];
 } Car;
 
 Car *car_add();
