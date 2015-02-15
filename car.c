@@ -47,6 +47,13 @@ Car *car_add()
 	sprintf(filename, "car%d.bmp", i);
 	cars[i].texture = ren_load_image_with_dims(filename, &cars[i].width, &cars[i].height);
 
+	cars[i].width /= 1.5;
+	cars[i].height /= 1.5;
+
+	for (int j=0; j<TRAIL_LENGTH; j++) {
+		cars[i].trail[j] = cars[i].pos;
+	}
+
 	return &cars[i];
 }
 
@@ -225,6 +232,12 @@ void car_move(Car *car)
 	}
 
 	map_check_tile_passed(&car->tiles_passed, car->pos);
+
+	for (int j=1; j<TRAIL_LENGTH; j++) {
+		car->trail[j-1] = car->trail[j];
+	}
+	car->trail[TRAIL_LENGTH-1] = car->pos;
+
 }
 
 void cars_move()
@@ -284,9 +297,11 @@ void car_use_powerup(Car *car)
     case POWERUP_BIG_MUSHROOM:
         printf("adding big mushram\n");
 	car->turbo_at = SDL_GetTicks();
+	if (!car->big_at) {
+		car->width *= 2;
+		car->height *= 2;
+	}
 	car->big_at = SDL_GetTicks();
-	car->width *= 2;
-	car->height *= 2;
         break;
     case POWERUP_LIGHTNING: {
         printf("triggering lightning\n");
@@ -302,9 +317,11 @@ void car_use_powerup(Car *car)
 		}
 		const int distance = map_dist_left_in_tile(cars[i].tiles_passed, cars[i].pos);
 		if (cars[i].tiles_passed > car->tiles_passed || my_dist > distance) {
+			if (!cars[i].stunned_at) {
+				cars[i].width /= 2;
+				cars[i].height /= 2;
+			}
 			cars[i].stunned_at = SDL_GetTicks();
-			cars[i].width /= 2;
-			cars[i].height /= 2;
 			cars[i].powerup = POWERUP_NONE;
 		}
 	}
@@ -314,9 +331,11 @@ void car_use_powerup(Car *car)
         printf("triggering star\n");
 	car->turbo_at = SDL_GetTicks();
 	car->invincible_at = SDL_GetTicks();
+	if (!car->big_at) {
+		car->width *= 2;
+		car->height *= 2;
+	}
 	car->big_at = SDL_GetTicks();
-	car->width *= 2;
-	car->height *= 2;
         break;
     default:
         printf("tried to trigger unknown powerup: %d\n", car->powerup);
@@ -342,6 +361,42 @@ cJSON *car_serialize(Car *car)
 	cJSON_AddNumberToObject(root, "drift", car->drift);
 	cJSON_AddNumberToObject(root, "width", car->width);
 	cJSON_AddNumberToObject(root, "height", car->height);
+
+	cJSON *powerup;
+	switch(car->powerup) {
+	case POWERUP_BANANA:
+		powerup = cJSON_CreateString("banana");
+		break;
+	case POWERUP_GREEN_SHELL:
+		powerup = cJSON_CreateString("greenshell");
+		break;
+	case POWERUP_RED_SHELL:
+		powerup = cJSON_CreateString("redshell");
+		break;
+	case POWERUP_BLUE_SHELL:
+		powerup = cJSON_CreateString("blueshell");
+		break;
+	case POWERUP_OIL:
+		powerup = cJSON_CreateString("oil");
+		break;
+	case POWERUP_MUSHROOM:
+		powerup = cJSON_CreateString("mushroom");
+		break;
+	case POWERUP_BIG_MUSHROOM:
+		powerup = cJSON_CreateString("bigmushroom");
+		break;
+	case POWERUP_LIGHTNING:
+		powerup = cJSON_CreateString("lightning");
+		break;
+	case POWERUP_STAR:
+		powerup = cJSON_CreateString("star");
+		break;
+	case POWERUP_NONE:
+	default:
+		powerup = cJSON_CreateString("none");
+		break;
+	}
+	cJSON_AddItemToObject(root, "powerup", powerup);
 
 	return root;
 }
@@ -385,6 +440,8 @@ void car_deserialize(cJSON *root)
 	car->width = cur->valueint;
 	cur = cJSON_GetObjectItem(root, "height");
 	car->height = cur->valueint;
+
+	// TODO: deseiralize powerup
 }
 
 // Not the world's most efficient implementation, but it's just 4 cars at max
@@ -413,6 +470,92 @@ Car *car_get_leader()
 		}
 	}
 	return leader;
+}
+
+void cars_render(SDL_Renderer *ren)
+{
+	SDL_SetRenderDrawBlendMode(ren, SDL_BLENDMODE_BLEND);
+	for (int i=0; i<cars_count; i++) {
+		int r = 0xff, g = 0xff, b = 0xff;
+		if (i == 0) {
+			r = 0xff; g = 0; b = 0;
+		} else if (i == 1) {
+			r = 0xa0; g = 0xa0; b = 0xff;
+		} else if (i == 2) {
+			r = 0; g = 0xff; b = 0xa0;
+		} else if (i == 3) {
+			r = 0xff; g = 0xff; b = 0xff;
+		} else if (i == 4) {
+			r = 0xa0; g = 0xa0; b = 0xa0;
+		}
+
+		int ox = cars[i].width / 2;
+		int oy = cars[i].height / 2;
+		for (int j=0; j<TRAIL_LENGTH-1; j++) {
+			SDL_SetRenderDrawColor(ren, r, g, b, j * 0xff / TRAIL_LENGTH);
+			vec2 pos1 = cars[i].trail[j];
+			vec2 pos2 = cars[i].trail[j+1];
+			SDL_RenderDrawLine(ren, pos1.x + ox, pos1.y + oy, pos2.x + ox, pos2.y + oy);
+		}
+
+		SDL_Rect target;
+		target.x = cars[i].pos.x;
+		target.y = cars[i].pos.y;
+		target.w = cars[i].width;
+		target.h = cars[i].height;
+		SDL_RenderCopyEx(ren, cars[i].texture, 0, &target, vec_angle(car_start_dir, cars[i].direction), 0, 0);
+
+		const int vertical_position = 5 + (POWERUPS_HEIGHT + 5) * cars[i].id;
+		target.x = 5;
+		target.y = vertical_position;
+		target.h = POWERUPS_HEIGHT;
+		target.w = POWERUPS_HEIGHT * cars[i].width / cars[i].height;
+		SDL_RenderCopy(ren, cars[i].texture, 0, &target);
+
+		ivec2 powerup_pos;
+		powerup_pos.x = 50;
+		powerup_pos.y = vertical_position;
+		if (cars[i].powerup != POWERUP_NONE) {
+			powerup_render(ren, cars[i].powerup, powerup_pos);
+		}
+		target.h = POWERUPS_HEIGHT + 1;
+		target.w = POWERUPS_WIDTH + 1;
+		target.x = powerup_pos.x - 1;
+		target.y = powerup_pos.y - 1;
+		SDL_SetRenderDrawColor(ren, r, g, b, 0xff);
+		SDL_RenderDrawRect(ren, &target);
+
+		// TODO: allocating 500 is stupid
+		char *laps_string = malloc(500);
+		snprintf(laps_string, 500, "%d laps", cars[i].tiles_passed / map_get_path_length());
+		render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 32);
+		free(laps_string);
+
+	}
+}
+
+void car_turn_left(Car *car)
+{
+	vec_rotate(&car->direction, -3);
+}
+
+void car_turn_right(Car *car)
+{
+	vec_rotate(&car->direction, 3);
+}
+
+void car_accelerate(Car *car)
+{
+	vec2 force = car->direction;
+	vec_scale(&force, 2500);
+	car_apply_force(car, force);
+}
+
+void car_decelerate(Car *car)
+{
+	vec2 force = car->direction;
+	vec_scale(&force, -2500);
+	car_apply_force(car, force);
 }
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

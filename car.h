@@ -7,6 +7,8 @@
 #include "defines.h"
 #include "libs/cJSON/cJSON.h"
 
+#define TRAIL_LENGTH 100
+
 typedef struct {
 	int id;
 	vec2 direction;
@@ -33,14 +35,23 @@ typedef struct {
 	Uint32 invincible_at;
 	Uint32 tipped_at;
 	Uint32 big_at;
+
+	vec2 trail[TRAIL_LENGTH];
 } Car;
 
 Car *car_add();
 void car_apply_force(Car *car, vec2 force);
 void cars_move();
+
+void car_turn_left(Car *car);
+void car_turn_right(Car *car);
+void car_accelerate(Car *car);
+void car_decelerate(Car *car);
 void car_use_powerup(Car *car);
+
 cJSON *car_serialize(Car *car);
 void car_deserialize(cJSON *root);
+void cars_render(SDL_Renderer *ren);
 
 Car *car_get_leader();
 

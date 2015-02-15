@@ -2,6 +2,7 @@
 
 namespace Interop
 {
+    [JsonConverter(typeof(ServerStringEnumConverter))]
     public enum ModifierType
     {
         Mud,
@@ -11,7 +12,7 @@ namespace Interop
 
     public class ModifierData
     {
-        [JsonProperty(PropertyName = "type"), JsonConverter(typeof (ServerStringEnumConverter))]
+        [JsonProperty(PropertyName = "type")]
         public ModifierType Type;
 
         [JsonProperty(PropertyName = "x")]
