@@ -29,6 +29,8 @@ int net_start_server(int port)
 	struct sockaddr_in serv;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		die("Failed to create socket");
+    int reuseaddr = 1;
+    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr));
 	memset(&serv, 0, sizeof(serv));
 	serv.sin_family = AF_INET;
 	serv.sin_addr.s_addr = INADDR_ANY;
