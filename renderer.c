@@ -106,3 +106,14 @@ void render_background()
         }
     }
 }
+
+void render_time(Uint32 time, int x, int y, int size)
+{
+    Uint32 m = time / 60000;
+    Uint32 s = (time / 1000) % 60;
+    Uint32 ms = (time / 10) % 100;
+    char *time_string = malloc(500);
+    snprintf(time_string, 500, "%01d:%02d.%02d", m, s, ms);
+    render_string(time_string, x, y, size);
+    free(time_string);
+}

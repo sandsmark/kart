@@ -29,6 +29,9 @@ typedef struct {
 
 	int tiles_passed;
 
+	Uint32 best_lap_time;
+	Uint32 lap_started_at;
+
 	// Effects
 	Uint32 stunned_at;
 	Uint32 turbo_at;

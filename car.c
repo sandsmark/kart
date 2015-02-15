@@ -17,8 +17,11 @@
 #define MAX_CARS 8
 Car cars[MAX_CARS];
 int cars_count = 0;
-extern ivec2 map_starting_position;
 const vec2 car_start_dir = {1.0, 0.0};
+
+extern ivec2 map_starting_position;
+extern ivec2 map_path[];
+extern int map_path_length;
 
 Car *car_add()
 {
@@ -53,6 +56,8 @@ Car *car_add()
 	for (int j=0; j<TRAIL_LENGTH; j++) {
 		cars[i].trail[j] = cars[i].pos;
 	}
+
+	cars[i].lap_started_at = SDL_GetTicks();
 
 	return &cars[i];
 }
@@ -218,6 +223,7 @@ void car_move(Car *car)
 	car->pos.x += car->velocity.x * SECS_PER_FRAME;
 	car->pos.y += car->velocity.y * SECS_PER_FRAME;
 
+	// Check if we hit a box with powerups
 	if (car->powerup == POWERUP_NONE) {
 		SDL_Rect car_geometry;
 		car_geometry.x = car->pos.x;
@@ -231,8 +237,25 @@ void car_move(Car *car)
 		}
 	}
 
-	map_check_tile_passed(&car->tiles_passed, car->pos);
+	// Check tile/lap count stuff
+	const int px = car->pos.x / TILE_WIDTH;
+	const int py = car->pos.y / TILE_HEIGHT;
 
+	int next_tile = (car->tiles_passed + 1) % map_path_length;
+	if (map_path[next_tile].x == px && map_path[next_tile].y == py) {
+		car->tiles_passed++;
+		if (car->tiles_passed % map_path_length == 0) {
+			Uint32 new_time = SDL_GetTicks();
+			if (!car->best_lap_time || new_time - car->lap_started_at < car->best_lap_time) {
+				car->best_lap_time = new_time - car->lap_started_at;
+			}
+			car->lap_started_at = new_time;
+		}
+
+		printf("tiles passed: %d, laps: %d\n", car->tiles_passed, car->tiles_passed / map_path_length);
+	}
+
+	// Update trail
 	for (int j=1; j<TRAIL_LENGTH; j++) {
 		car->trail[j-1] = car->trail[j];
 	}
@@ -489,6 +512,7 @@ void cars_render(SDL_Renderer *ren)
 			r = 0xa0; g = 0xa0; b = 0xa0;
 		}
 
+		// Draw trail
 		int ox = cars[i].width / 2;
 		int oy = cars[i].height / 2;
 		for (int j=0; j<TRAIL_LENGTH-1; j++) {
@@ -498,6 +522,7 @@ void cars_render(SDL_Renderer *ren)
 			SDL_RenderDrawLine(ren, pos1.x + ox, pos1.y + oy, pos2.x + ox, pos2.y + oy);
 		}
 
+		// Draw the car itself
 		SDL_Rect target;
 		target.x = cars[i].pos.x;
 		target.y = cars[i].pos.y;
@@ -505,6 +530,7 @@ void cars_render(SDL_Renderer *ren)
 		target.h = cars[i].height;
 		SDL_RenderCopyEx(ren, cars[i].texture, 0, &target, vec_angle(car_start_dir, cars[i].direction), 0, 0);
 
+		// Draw list in top-left corner
 		const int vertical_position = 5 + (POWERUPS_HEIGHT + 5) * cars[i].id;
 		target.x = 5;
 		target.y = vertical_position;
@@ -512,6 +538,7 @@ void cars_render(SDL_Renderer *ren)
 		target.w = POWERUPS_HEIGHT * cars[i].width / cars[i].height;
 		SDL_RenderCopy(ren, cars[i].texture, 0, &target);
 
+		// Draw powerup in top-left corner
 		ivec2 powerup_pos;
 		powerup_pos.x = 50;
 		powerup_pos.y = vertical_position;
@@ -525,12 +552,18 @@ void cars_render(SDL_Renderer *ren)
 		SDL_SetRenderDrawColor(ren, r, g, b, 0xff);
 		SDL_RenderDrawRect(ren, &target);
 
+		// Draw lap count
 		// TODO: allocating 500 is stupid
 		char *laps_string = malloc(500);
-		snprintf(laps_string, 500, "%d laps", cars[i].tiles_passed / map_get_path_length());
+		snprintf(laps_string, 500, "%d laps", cars[i].tiles_passed / map_path_length);
 		render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 32);
 		free(laps_string);
 
+		// Draw lap time
+		render_time(SDL_GetTicks() - cars[i].lap_started_at, target.x + POWERUPS_WIDTH + 250, target.y, 32);
+		if (cars[i].best_lap_time) {
+			render_time(cars[i].best_lap_time, target.x + POWERUPS_WIDTH + 500, target.y, 32);
+		}
 	}
 }
 

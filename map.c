@@ -55,8 +55,8 @@ ivec2 *boxlocations = 0;
 ivec2 map_starting_position;
 
 #define MAX_PATH_LENGTH 100
-static ivec2 map_path[MAX_PATH_LENGTH];
-static int map_path_length = 0;
+ivec2 map_path[MAX_PATH_LENGTH];
+int map_path_length = 0;
 
 void remove_modifier(int index)
 {
@@ -561,23 +561,6 @@ vec2 map_get_edge_normal(int x, int y)
 	normal.y -= y;
 
 	return normal;
-}
-
-void map_check_tile_passed(int *tile_count, vec2 pos)
-{
-	const int px = pos.x / TILE_WIDTH;
-	const int py = pos.y / TILE_HEIGHT;
-
-	int next_tile = (*tile_count + 1) % map_path_length;
-	if (map_path[next_tile].x == px && map_path[next_tile].y == py) {
-		(*tile_count)++;
-		printf("tiles passed: %d, laps: %d\n", *tile_count, *tile_count / map_path_length);
-	}
-}
-
-int map_get_path_length()
-{
-	return map_path_length;
 }
 
 cJSON *map_serialize()

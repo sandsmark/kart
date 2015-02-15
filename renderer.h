@@ -8,6 +8,7 @@ SDL_Texture *ren_load_image_with_dims(const char *file, int *w, int *h);
 
 int renderer_init(SDL_Renderer *ren);
 void render_string(const char *string, int x, int y, int size);
+void render_time(Uint32 time, int x, int y, int size);
 void render_background();
 
 #endif//COMMON_H
