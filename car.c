@@ -287,9 +287,11 @@ void car_use_powerup(Car *car)
     case POWERUP_BIG_MUSHROOM:
         printf("adding big mushram\n");
 	car->turbo_at = SDL_GetTicks();
+	if (!car->big_at) {
+		car->width *= 2;
+		car->height *= 2;
+	}
 	car->big_at = SDL_GetTicks();
-	car->width *= 2;
-	car->height *= 2;
         break;
     case POWERUP_LIGHTNING: {
         printf("triggering lightning\n");
@@ -305,9 +307,11 @@ void car_use_powerup(Car *car)
 		}
 		const int distance = map_dist_left_in_tile(cars[i].tiles_passed, cars[i].pos);
 		if (cars[i].tiles_passed > car->tiles_passed || my_dist > distance) {
+			if (!cars[i].stunned_at) {
+				cars[i].width /= 2;
+				cars[i].height /= 2;
+			}
 			cars[i].stunned_at = SDL_GetTicks();
-			cars[i].width /= 2;
-			cars[i].height /= 2;
 			cars[i].powerup = POWERUP_NONE;
 		}
 	}
@@ -317,9 +321,11 @@ void car_use_powerup(Car *car)
         printf("triggering star\n");
 	car->turbo_at = SDL_GetTicks();
 	car->invincible_at = SDL_GetTicks();
+	if (!car->big_at) {
+		car->width *= 2;
+		car->height *= 2;
+	}
 	car->big_at = SDL_GetTicks();
-	car->width *= 2;
-	car->height *= 2;
         break;
     default:
         printf("tried to trigger unknown powerup: %d\n", car->powerup);
