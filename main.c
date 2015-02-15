@@ -45,6 +45,15 @@ void do_render(SDL_Renderer *ren)
 	shells_move();
 	shells_render(ren);
 	cars_render(ren);
+
+	static Uint32 last_time = 0;
+	const Uint32 delta = SDL_GetTicks() - last_time;
+	last_time = SDL_GetTicks();
+	if (last_time && delta) {
+		char buf[64];
+		sprintf(buf, "%d fps", 1000 / delta);
+		render_string(buf, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 15, 11);
+	}
 }
 
 static int server_recv_loop(void *data)
