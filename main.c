@@ -52,7 +52,7 @@ void do_render(SDL_Renderer *ren)
 	if (last_time && delta) {
 		char buf[64];
 		sprintf(buf, "%d fps", 1000 / delta);
-		render_string(buf, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 15, 11);
+		render_string(buf, SCREEN_WIDTH - 100, 5, 11);
 	}
 }
 
