@@ -89,6 +89,7 @@ static int server_recv_loop(void *data)
 		}
 		else
 			break;
+		SDL_Delay(10); // just to quiet things down a bit
 	}
 	return 0;
 }
