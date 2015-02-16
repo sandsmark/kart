@@ -1,7 +1,7 @@
 CFILES=$(wildcard *.c) libs/cJSON/cJSON.c
 OBJECTS=$(patsubst %.c, %.o, $(CFILES))
 CFLAGS+=-std=c99 -Wall -Wextra -pedantic -O2 -g -DREVISION=\"$(shell git rev-parse --short HEAD)\"
-LDFLAGS+=-lSDL2 -lm
+LDFLAGS+=-lSDL2 -lm -rdynamic
 EXECUTABLE=kart
 
 all: $(EXECUTABLE)
