@@ -2,10 +2,6 @@
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
-#include <execinfo.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <signal.h>
 
 #include "box.h"
 #include "car.h"
@@ -16,6 +12,7 @@
 #include "sound.h"
 #include "vector.h"
 #include "shell.h"
+#include "debug.h"
 #include "libs/cJSON/cJSON.h"
 
 static int sockfd = -1;
@@ -705,22 +702,9 @@ void show_menu(SDL_Renderer *ren)
 	}
 }
 
-void segv_handler(int sig)
-{
-	void *stackptrs[10];
-	size_t num = backtrace(stackptrs, 10);
-	int btfile = open("backtrace.log", O_WRONLY | O_APPEND | O_CREAT, 0666);
-	write(btfile, "\n", 1);
-	backtrace_symbols_fd(stackptrs, num, btfile);
-	close(btfile);
-	printf("==== CRASH (signal %d) ====\n", sig);
-	backtrace_symbols_fd(stackptrs, num, STDERR_FILENO);
-	exit(1);
-}
-
 int main(int argc, char *argv[])
 {
-	signal(SIGSEGV, segv_handler);
+	debug_install_handler();
 	printf("kartering " REVISION " launching...\n");
 	srand(time(NULL));
 	net_init();
