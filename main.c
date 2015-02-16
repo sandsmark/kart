@@ -15,7 +15,7 @@
 #include "libs/cJSON/cJSON.h"
 
 static int sockfd = -1;
-#define MAX_JSON_SIZE 2048
+#define MAX_JSON_SIZE 64000
 struct client {
 	int idx;
 	int fd;
