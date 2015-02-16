@@ -13,6 +13,7 @@
 void segv_handler(int sig)
 {
 #ifdef __MINGW32__
+    //TODO: http://stackoverflow.com/a/5699483
 #else
 	void *stackptrs[10];
 	size_t num = backtrace(stackptrs, 10);
