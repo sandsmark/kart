@@ -277,7 +277,7 @@ int run_server(SDL_Renderer *ren)
 					car_use_powerup(car);
 				}
 				// Clear cmd
-				clients[i].cmd = 0;
+//				clients[i].cmd = 0;
 				SDL_UnlockMutex(clients[i].cmd_lock);
 			}
 		}
