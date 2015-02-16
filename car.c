@@ -555,7 +555,7 @@ void cars_render(SDL_Renderer *ren)
 		// Draw lap count
 		// TODO: allocating 500 is stupid
 		char laps_string[64];
-		snprintf(laps_string, 500, "%d laps", cars[i].tiles_passed / map_path_length);
+		snprintf(laps_string, 64, "%d laps", cars[i].tiles_passed / map_path_length);
 		render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 22);
 
 		// Draw lap time
