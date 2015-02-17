@@ -249,6 +249,7 @@ void car_move(Car *car)
 			if (!car->best_lap_time || new_time - car->lap_started_at < car->best_lap_time) {
 				car->best_lap_time = new_time - car->lap_started_at;
 			}
+			printf("laptime %d\n", new_time - car->lap_started_at);
 			car->lap_started_at = new_time;
 		}
 
