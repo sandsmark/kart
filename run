@@ -1,0 +1,20 @@
+#!/usr/bin/zsh
+
+TRAPINT() {
+    echo killing $KARTID
+    kill $KARTID
+    exit 0
+}
+
+for map in TESTMAP_*.map ; do
+    cp $map map1.map
+
+    ./kart server 31337 >$map.log 2>&1 &
+    export KARTID=$!
+
+    sleep 1
+    ../karthering/main.py &
+
+    while [[ $(grep laptime $map.log | wc -l) -lt 3 ]] ; do sleep 1 ; done
+    kill $KARTID
+done
