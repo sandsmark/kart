@@ -17,17 +17,18 @@
 
 static int sockfd = -1;
 #define MAX_JSON_SIZE 64000
-struct client {
+typedef struct {
 	int idx;
 	int fd;
 	Car *car;
 	SDL_mutex *cmd_lock;
 	unsigned cmd;
 	SDL_Thread *thr;
-};
+	SDL_atomic_t valid;
+} Client;
 char *json_state;
 SDL_mutex *json_state_lock;
-static struct client clients[NUM_CLIENTS];
+static Client clients[NUM_CLIENTS];
 SDL_atomic_t net_listen;
 SDL_cond *json_updated_cond;
 
@@ -60,7 +61,7 @@ void do_render(SDL_Renderer *ren)
 
 static int server_recv_loop(void *data)
 {
-	struct client *me = (struct client *)data;
+	Client *me = (Client *)data;
 	char buf[64];
 	ssize_t n = 0;
 	while (SDL_AtomicGet(&net_listen))
@@ -98,11 +99,14 @@ static int server_recv_loop(void *data)
 
 static int accpt_conn(void *data)
 {
-	int fd;
-	SDL_atomic_t *got_client = (SDL_atomic_t*)data;
-	fd = net_accept(sockfd);
-	SDL_AtomicSet(got_client, 1);
-	return fd;
+	Client *client = (Client*)data;
+
+	client->fd = net_accept(sockfd);
+	net_recv(client->fd, client->car->name, MAX_NAME_LENGTH);
+	client->car->name[MAX_NAME_LENGTH - 1] = 0;
+
+	SDL_AtomicSet(&client->valid, 1);
+	return 0;
 }
 
 char *json_to_text(cJSON *object)
@@ -141,6 +145,8 @@ int run_server(SDL_Renderer *ren)
 	/* Set up each client */
 	for (int i = 0; i < NUM_CLIENTS; i++)
 	{
+		clients[i].car = car_add();
+
 		SDL_Rect wfc_bg_target, car_target;
 		SDL_Texture *wfc_bg_tex = ren_load_image("waitforclients.bmp");
 		SDL_Texture *car_tex = ren_load_image_with_dims("car0.bmp", &car_target.w, &car_target.h);
@@ -152,16 +158,14 @@ int run_server(SDL_Renderer *ren)
 		car_target.x = SCREEN_WIDTH/2 - car_target.w/2;
 		car_target.y = 280;
 		float car_angle = 0;
-		SDL_atomic_t got_client;
-		SDL_AtomicSet(&got_client, 0);
-		int clientfd;
-		SDL_Thread *thr = SDL_CreateThread(accpt_conn, "Accpt conn thread", (void*)&got_client);
+		SDL_AtomicSet(&clients[i].valid, 0);
+		SDL_Thread *thr = SDL_CreateThread(accpt_conn, "Accpt conn thread", (void*)&clients[i]);
 		if (thr == NULL)
 		{
 			printf("Failed to create accpt conn thread\n");
 			return 1;
 		}
-		while (!SDL_AtomicGet(&got_client))
+		while (!SDL_AtomicGet(&clients[i].valid))
 		{
 			while (SDL_PollEvent(&event))
 			{
@@ -196,11 +200,11 @@ int run_server(SDL_Renderer *ren)
 			}
 			SDL_RenderPresent(ren);
 		}
-		SDL_WaitThread(thr, &clientfd);
-		clients[i].fd = clientfd;
-		if (clients[i].fd < 0)
+		SDL_WaitThread(thr, 0);
+		if (clients[i].fd < 0 || strlen(clients[i].car->name) < 2)
 		{
 			printf("Accept failed\n");
+			//TODO: just try again
 			return 1;
 		}
 		// Send initial state
@@ -212,8 +216,6 @@ int run_server(SDL_Renderer *ren)
 		net_send(clients[i].fd, initial_json);
 		cJSON_Delete(initial_object);
 		free(initial_json);
-
-		clients[i].car = car_add();
 
 		clients[i].cmd_lock = SDL_CreateMutex();
 		if (clients[i].cmd_lock == NULL)

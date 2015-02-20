@@ -52,6 +52,7 @@ Car *car_add()
 
 	cars[i].width /= 1.5;
 	cars[i].height /= 1.5;
+	cars[i].name[0] = 0;
 
 	for (int j=0; j<TRAIL_LENGTH; j++) {
 		cars[i].trail[j] = cars[i].pos;
@@ -564,6 +565,7 @@ void cars_render(SDL_Renderer *ren)
 		if (cars[i].best_lap_time) {
 			render_time(cars[i].best_lap_time, target.x + POWERUPS_WIDTH + 500, target.y, 22);
 		}
+		render_string(cars[i].name, target.x + POWERUPS_WIDTH + 500, target.y, 11);
 	}
 }
 

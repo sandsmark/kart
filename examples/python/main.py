@@ -29,6 +29,7 @@ def main():
     sock = socket.socket()
     sock.connect((ip, port))
 
+    write(sock, "123456789")
     msg = read(sock)
     data = json.loads(msg)
     write(sock, 1<<5) # Tell the server we are ready

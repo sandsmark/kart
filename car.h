@@ -8,6 +8,7 @@
 #include "libs/cJSON/cJSON.h"
 
 #define TRAIL_LENGTH 100
+#define MAX_NAME_LENGTH 10
 
 typedef struct {
 	int id;
@@ -40,6 +41,8 @@ typedef struct {
 	Uint32 big_at;
 
 	vec2 trail[TRAIL_LENGTH];
+
+	char name[MAX_NAME_LENGTH];
 } Car;
 
 Car *car_add();
