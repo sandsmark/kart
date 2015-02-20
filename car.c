@@ -22,6 +22,7 @@ const vec2 car_start_dir = {1.0, 0.0};
 extern ivec2 map_starting_position;
 extern ivec2 map_path[];
 extern int map_path_length;
+extern int map_laps;
 
 Car *car_add()
 {
@@ -557,7 +558,7 @@ void cars_render(SDL_Renderer *ren)
 		// Draw lap count
 		// TODO: allocating 500 is stupid
 		char laps_string[64];
-		snprintf(laps_string, 64, "%d laps", cars[i].tiles_passed / map_path_length);
+		snprintf(laps_string, 64, "%d/%d laps", cars[i].tiles_passed / map_path_length, map_laps);
 		render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 22);
 
 		// Draw lap time
@@ -591,6 +592,17 @@ void car_decelerate(Car *car)
 	vec2 force = car->direction;
 	vec_scale(&force, -2500);
 	car_apply_force(car, force);
+}
+
+int cars_finished()
+{
+	const int total_length = map_path_length * map_laps;
+	for (int i=0; i<cars_count; i++) {
+		if (cars[i].tiles_passed >= total_length) {
+			return 1;
+		}
+	}
+	return 0;
 }
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

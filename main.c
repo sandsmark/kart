@@ -241,7 +241,7 @@ int run_server(SDL_Renderer *ren)
 	SDL_Event event;
 	Uint32 time0 = SDL_GetTicks();
 
-	while (!quit) {
+	while (!quit && !cars_finished()) {
 		while (SDL_PollEvent(&event))
 		{
 			//If user closes the window
@@ -426,7 +426,7 @@ int run_local(SDL_Renderer *ren)
 
 	Uint32 time0 = SDL_GetTicks();
 
-	while (!quit) {
+	while (!quit && !cars_finished()) {
 		while (SDL_PollEvent(&event)){
 			//If user closes the window
 			if (event.type == SDL_QUIT) {

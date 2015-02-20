@@ -61,6 +61,8 @@ void cars_render(SDL_Renderer *ren);
 
 Car *car_get_leader();
 
+int cars_finished();
+
 #endif
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

@@ -58,6 +58,8 @@ ivec2 map_starting_position;
 ivec2 map_path[MAX_PATH_LENGTH];
 int map_path_length = 0;
 
+int map_laps = 4;
+
 void remove_modifier(int index)
 {
 	modifiers_count--;
