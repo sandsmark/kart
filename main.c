@@ -29,6 +29,7 @@ char *json_state;
 SDL_mutex *json_state_lock;
 static struct client clients[NUM_CLIENTS];
 SDL_atomic_t net_listen;
+SDL_cond *json_updated_cond;
 
 typedef enum {
 	MENU_SERVER,
@@ -76,8 +77,9 @@ static int server_recv_loop(void *data)
 					me->cmd = cmd;
 					SDL_UnlockMutex(me->cmd_lock);
 				}
-				if (SDL_LockMutex(json_state_lock) == 0)
+				if (SDL_LockMutex(json_state_lock) == 0 && SDL_CondWait(json_updated_cond, json_state_lock) == 0)
 				{
+					printf("T%d: got json\n", me->idx);
 					net_send(me->fd, json_state);
 					SDL_UnlockMutex(json_state_lock);
 				}
@@ -90,7 +92,6 @@ static int server_recv_loop(void *data)
 		}
 		else
 			break;
-		SDL_Delay(10); // just to quiet things down a bit
 	}
 	return 0;
 }
@@ -123,6 +124,7 @@ int run_server(SDL_Renderer *ren)
 {
 	sockfd = net_start_server(NET_PORT);
 	json_state_lock = SDL_CreateMutex();
+	json_updated_cond = SDL_CreateCond();
 	if (json_state_lock == NULL)
 	{
 		printf("Failed to create mutex\n");
@@ -298,6 +300,7 @@ int run_server(SDL_Renderer *ren)
 		{
 			free(json_state);
 			json_state = json_to_text(state);
+			SDL_CondBroadcast(json_updated_cond);
 			SDL_UnlockMutex(json_state_lock);
 		}
 		cJSON_Delete(state);
@@ -315,6 +318,9 @@ int run_server(SDL_Renderer *ren)
 
 	// Clean up
 	SDL_AtomicSet(&net_listen, 0);
+	SDL_LockMutex(json_state_lock);
+	SDL_CondBroadcast(json_updated_cond);
+	SDL_UnlockMutex(json_state_lock);
 	for (int i = 0; i < NUM_CLIENTS; i++)
 	{
 		int t_status;
@@ -324,6 +330,7 @@ int run_server(SDL_Renderer *ren)
 	}
 	net_close(sockfd);
 	SDL_DestroyMutex(json_state_lock);
+	SDL_DestroyCond(json_updated_cond);
 	map_destroy();
 	return 0;
 }
