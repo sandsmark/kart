@@ -32,6 +32,8 @@ static Client clients[NUM_CLIENTS];
 SDL_atomic_t net_listen;
 SDL_cond *json_updated_cond;
 
+extern int cars_count;
+
 typedef enum {
 	MENU_SERVER,
 	MENU_CLIENT,
@@ -792,6 +794,12 @@ int main(int argc, char *argv[])
 	} else {
 		show_menu(ren);
 	}
+
+	Car *sorted = cars_get_sorted();
+	for (int i=0; i<cars_count; i++) {
+		printf("%d: %s\n", i+1, sorted[i].name);
+	}
+	free(sorted);
 
 	if (sockfd != -1)
 		net_cleanup();

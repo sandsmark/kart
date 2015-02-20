@@ -63,6 +63,8 @@ Car *car_get_leader();
 
 int cars_finished();
 
+Car *cars_get_sorted();
+
 #endif
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

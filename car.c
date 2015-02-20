@@ -53,7 +53,8 @@ Car *car_add()
 
 	cars[i].width /= 1.5;
 	cars[i].height /= 1.5;
-	cars[i].name[0] = 0;
+	cars[i].name[0] = '0' + i;
+	cars[i].name[1] = 0;
 
 	for (int j=0; j<TRAIL_LENGTH; j++) {
 		cars[i].trail[j] = cars[i].pos;
@@ -603,6 +604,29 @@ int cars_finished()
 		}
 	}
 	return 0;
+}
+
+static int car_compare(const void *first, const void *second)
+{
+	const Car *car1 = (Car*)first;
+	const Car *car2 = (Car*)second;
+	if (car1->tiles_passed < car2->tiles_passed) {
+		return 1;
+	} else if (car1->tiles_passed > car2->tiles_passed) {
+		return -1;
+	} else {
+		const int dist1 = map_dist_left_in_tile(car1->tiles_passed, car1->pos);
+		const int dist2 = map_dist_left_in_tile(car2->tiles_passed, car2->pos);
+		return dist2 - dist1;
+	}
+}
+
+Car *cars_get_sorted()
+{
+	Car *sorted = malloc(sizeof(Car) * cars_count);
+	memcpy(sorted, cars, sizeof(Car) * cars_count);
+	qsort(sorted, cars_count, sizeof(Car), car_compare);
+	return sorted;
 }
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/
