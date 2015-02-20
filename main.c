@@ -624,6 +624,42 @@ char *show_get_ip(SDL_Renderer *ren)
 	return 0;
 }
 
+void show_scores(SDL_Renderer *ren)
+{
+	SDL_Event event;
+	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
+	SDL_RenderClear(ren);
+	render_string("scores:", 10, 10, 44);
+	Car *sorted = cars_get_sorted();
+	for (int i=0; i<cars_count; i++) {
+		char buf[32];
+		snprintf(buf, 32, "%d: %s\n", i+1, sorted[i].name);
+		render_string(buf, 250, 50 * i + 250, 44);
+	}
+	free(sorted);
+	SDL_RenderPresent(ren);
+	int quit = 0;
+	while (!quit) {
+		while (SDL_PollEvent(&event)){
+			//If user closes the window
+			if (event.type == SDL_QUIT) {
+				return;
+			}
+			//If user presses any key
+			if (event.type == SDL_KEYDOWN) {
+				switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
+				case SDLK_RETURN:
+					quit = 1;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
+}
+
 void show_menu(SDL_Renderer *ren)
 {
 	SDL_Texture *image = ren_load_image("startscreen.bmp");
@@ -694,6 +730,7 @@ void show_menu(SDL_Renderer *ren)
 	{
 		case 0:
 			run_server(ren);
+			show_scores(ren);
 			break;
 		case 1: {
 			char *address = show_get_ip(ren);
@@ -706,6 +743,7 @@ void show_menu(SDL_Renderer *ren)
 		}
 		case 2:
 			run_local(ren);
+			show_scores(ren);
 			break;
 		case 3:
 		default:
