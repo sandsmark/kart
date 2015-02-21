@@ -40,12 +40,12 @@ Car *car_add()
 	cars[i].invincible_at = 0;
 	cars[i].tipped_at = 0;
 	cars[i].big_at = 0;
-	/* DEBUG: re-add once map does deserialization
+	///* DEBUG: re-add once map does deserialization
 	cars[i].pos.x = map_starting_position.x;
-	cars[i].pos.y = map_starting_position.y + i * 20;
-	*/
-	cars[i].pos.x = 500;
-	cars[i].pos.y = 200;
+	cars[i].pos.y = map_starting_position.y + i * 25;
+	
+//	cars[i].pos.x = 500;
+//	cars[i].pos.y = 200;
 	cars[i].direction = car_start_dir;
 	char filename[10];
 	sprintf(filename, "car%d.bmp", i);
