@@ -74,7 +74,8 @@ static int server_recv_loop(void *data)
 			unsigned cmd;
 			if (sscanf(buf, "%u", &cmd) == 1)
 			{
-				printf("T%d: Received: %d\n", me->idx, cmd);
+				buf[63] = 0;
+				printf("T%d: Received: %d: %s\n", me->idx, cmd, buf);
 				if (SDL_LockMutex(me->cmd_lock) == 0)
 				{
 					me->cmd = cmd;
