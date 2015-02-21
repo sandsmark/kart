@@ -567,7 +567,7 @@ void cars_render(SDL_Renderer *ren)
 		if (cars[i].best_lap_time) {
 			render_time(cars[i].best_lap_time, target.x + POWERUPS_WIDTH + 500, target.y, 22);
 		}
-		render_string(cars[i].name, target.x + POWERUPS_WIDTH + 500, target.y, 11);
+		render_string(cars[i].name, target.x + POWERUPS_WIDTH + 660, target.y + 5, 11);
 	}
 }
 
