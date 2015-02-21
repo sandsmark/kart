@@ -556,11 +556,21 @@ void cars_render(SDL_Renderer *ren)
 		SDL_SetRenderDrawColor(ren, r, g, b, 0xff);
 		SDL_RenderDrawRect(ren, &target);
 
+
+		// Draw progress thing
+		target.x = target.x + POWERUPS_WIDTH + 20;
+		target.y = vertical_position;
+		target.h = 22;
+		target.w = 22 * (cars[i].tiles_passed % map_path_length) / map_path_length + 1;
+		SDL_SetRenderDrawColor(ren, r, g, b, 0x7f);
+		SDL_RenderFillRect(ren, &target);
+		target.w = 22;
+		SDL_RenderDrawRect(ren, &target);
+
 		// Draw lap count
-		// TODO: allocating 500 is stupid
 		char laps_string[64];
 		snprintf(laps_string, 64, "%d/%d laps", cars[i].tiles_passed / map_path_length, map_laps);
-		render_string(laps_string, target.x + POWERUPS_WIDTH + 20, target.y, 22);
+		render_string(laps_string, target.x + 2, target.y, 22);
 
 		// Draw lap time
 		render_time(SDL_GetTicks() - cars[i].lap_started_at, target.x + POWERUPS_WIDTH + 250, target.y, 33);
