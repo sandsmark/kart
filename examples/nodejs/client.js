@@ -32,6 +32,7 @@ client.on('connect', function()
 {
     // Say something useful
     console.log('CONNECTED TO: ' + HOST + ':' + PORT);
+    client.write("NodeBot");
 });
 
 /**
