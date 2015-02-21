@@ -137,6 +137,12 @@ void shells_move()
 	for (int i=0; i<shells_count; i++) {
 		shell_move(&shells[i]);
 	}
+	for (int i=0; i<shells_count; i++) {
+		if (shells[i].pos.x < 0 || shells[i].pos.x > SCREEN_WIDTH ||
+		    shells[i].pos.y < 0 || shells[i].pos.y > SCREEN_HEIGHT){
+			shell_remove(i);
+		}
+	}
 }
 
 cJSON *shells_serialize()
