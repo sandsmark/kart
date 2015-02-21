@@ -28,9 +28,11 @@ typedef struct {
 } Client;
 char *json_state;
 SDL_mutex *json_state_lock;
-static Client clients[NUM_CLIENTS];
+static Client *clients;
 SDL_atomic_t net_listen;
 SDL_cond *json_updated_cond;
+
+static int num_clients = 1;
 
 extern int cars_count;
 
@@ -139,6 +141,7 @@ int run_server(SDL_Renderer *ren)
 	}
 
 	cJSON *map_object = map_serialize();
+	clients = malloc(sizeof(Client) * num_clients);
 
 	json_state = malloc(1);
 	*json_state = 0;
@@ -146,7 +149,7 @@ int run_server(SDL_Renderer *ren)
 	SDL_AtomicSet(&net_listen, 1);
 	printf("Waiting for clients...\n");
 	/* Set up each client */
-	for (int i = 0; i < NUM_CLIENTS; i++)
+	for (int i = 0; i < num_clients; i++)
 	{
 		clients[i].car = car_add();
 
@@ -188,14 +191,14 @@ int run_server(SDL_Renderer *ren)
 			SDL_RenderCopyEx(ren, car_tex, 0, &car_target, car_angle, 0, 0);
 			car_angle += 2*(i+1);
 			if (car_angle >= 360) car_angle -= 360;
-			for (int j = 0; j < NUM_CLIENTS; j++)
+			for (int j = 0; j < num_clients; j++)
 			{
 				if (i > j)
 					SDL_SetRenderDrawColor(ren, 0x00, 0xff, 0x00, 0xff);
 				else
 					SDL_SetRenderDrawColor(ren, 0xff, 0x00, 0x00, 0xff);
 				SDL_Rect client_rect;
-				client_rect.x = SCREEN_WIDTH/2 - ((NUM_CLIENTS-1)*10 + 5) + j * 20;
+				client_rect.x = SCREEN_WIDTH/2 - ((num_clients-1)*10 + 5) + j * 20;
 				client_rect.y = 378;
 				client_rect.h = 10;
 				client_rect.w = 10;
@@ -213,7 +216,7 @@ int run_server(SDL_Renderer *ren)
 		// Send initial state
 		cJSON *initial_object = cJSON_CreateObject();
 		cJSON_AddNumberToObject(initial_object, "id", i);
-		cJSON_AddNumberToObject(initial_object, "num_cars", NUM_CLIENTS);
+		cJSON_AddNumberToObject(initial_object, "num_cars", num_clients);
 		cJSON_AddItemToObject(initial_object, "map", cJSON_Duplicate(map_object, 1));
 		char *initial_json = json_to_text(initial_object);
 		net_send(clients[i].fd, initial_json);
@@ -261,7 +264,7 @@ int run_server(SDL_Renderer *ren)
 			}
 		}
 
-		for (int i = 0; i < NUM_CLIENTS; i++)
+		for (int i = 0; i < num_clients; i++)
 		{
 			Car *car = clients[i].car;
 			if (SDL_LockMutex(clients[i].cmd_lock) == 0)
@@ -295,7 +298,7 @@ int run_server(SDL_Renderer *ren)
 
 		cJSON *state = cJSON_CreateObject(), *car_json;
 		cJSON_AddItemToObject(state, "cars", car_json = cJSON_CreateArray());
-		for (int i = 0; i < NUM_CLIENTS; i++)
+		for (int i = 0; i < num_clients; i++)
 		{
 			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
 		}
@@ -326,7 +329,7 @@ int run_server(SDL_Renderer *ren)
 	SDL_LockMutex(json_state_lock);
 	SDL_CondBroadcast(json_updated_cond);
 	SDL_UnlockMutex(json_state_lock);
-	for (int i = 0; i < NUM_CLIENTS; i++)
+	for (int i = 0; i < num_clients; i++)
 	{
 		int t_status;
 		SDL_WaitThread(clients[i].thr, &t_status);
@@ -337,6 +340,7 @@ int run_server(SDL_Renderer *ren)
 	SDL_DestroyMutex(json_state_lock);
 	SDL_DestroyCond(json_updated_cond);
 	map_destroy();
+	free(clients);
 	return 0;
 }
 
@@ -802,10 +806,12 @@ int main(int argc, char *argv[])
 		{
 			if (argc != 3)
 			{
-				printf("Usage: %s server <port>\n", argv[0]);
+				printf("Usage: %s server <num_clients>\n", argv[0]);
 				return 1;
 			}
+			num_clients = atoi(argv[2]);
 			run_server(ren);
+			show_scores(ren);
 		}
 		else if (strcmp(argv[1], "client") == 0)
 		{

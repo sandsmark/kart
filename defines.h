@@ -29,7 +29,6 @@ typedef struct {
 #define NET_PORT 31337
 
 // Settings
-#define NUM_CLIENTS 1
 #define SCREEN_WIDTH  1024
 #define SCREEN_HEIGHT 768
 #define FRAMETIME_MS 30
