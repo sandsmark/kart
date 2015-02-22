@@ -13,19 +13,22 @@ namespace Interop
     {
         TcpClient _client;     
 
-        public InteropService(int connectTries, string address, int port)
+        public InteropService(string botName, int connectTries, string address, int port)
         {
-            Connect(connectTries, address, port);            
+            Connect(botName, connectTries, address, port);            
         }
 
-        void Connect(int connectTries, string address, int port)
+        void Connect(string botName, int connectTries, string address, int port)
         {
             var curTry = 0;
             while (connectTries == -1 || (++curTry) <= connectTries)
             {
                 try
                 {
-                    _client = new TcpClient(address, port);                    
+                    _client = new TcpClient(address, port);
+
+                    var msgInBytes = Encoding.ASCII.GetBytes(botName);
+                    _client.GetStream().Write(msgInBytes, 0, msgInBytes.Length); 
                     return;
                 }
                 catch (SocketException e)
