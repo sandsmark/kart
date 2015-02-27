@@ -815,15 +815,15 @@ int main(int argc, char *argv[])
 		}
 		else if (strcmp(argv[1], "client") == 0)
 		{
-			if (argc != 4)
+			if (argc != 3)
 			{
-				printf("Usage: %s client <address> <port>\n", argv[0]);
+				printf("Usage: %s client <address>\n", argv[0]);
 				return 1;
 			}
 			if (strcmp(argv[2], "localhost") == 0)
-				sockfd = net_start_client("127.0.0.1", atoi(argv[3]));
+				sockfd = net_start_client("127.0.0.1", NET_PORT);
 			else
-				sockfd = net_start_client(argv[2], atoi(argv[3]));
+				sockfd = net_start_client(argv[2], NET_PORT);
 			run_client(ren);
 		}
 		else if (strcmp(argv[1], "local") == 0)
