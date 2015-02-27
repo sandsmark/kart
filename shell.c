@@ -93,24 +93,29 @@ void shell_remove(int index)
 
 void shell_move(Shell *shell)
 {
+	Car *target_car = 0;
 	if (shell->type == SHELL_BLUE) {
-		Car *leader = car_get_leader();
-		if (leader) {
-			vec2 target = leader->pos;
-			if (target.x > shell->pos.x) {
-				shell->direction.x += 0.1;
-			} else {
-				shell->direction.x -= 0.1;
-			}
-			if (target.y > shell->pos.y) {
-				shell->direction.y += 0.1;
-			} else {
-				shell->direction.y -= 0.1;
-			}
-			vec_normalize(&shell->direction);
-			vec_scale(&shell->direction, 5.5);
-		}
+		target_car = car_get_leader();
+	} else if (shell->type == SHELL_GREEN) {
+		target_car = car_get_closest(shell->pos);
 	}
+
+	if (target_car) {
+		vec2 target = target_car->pos;
+		if (target.x > shell->pos.x) {
+			shell->direction.x += 0.1;
+		} else {
+			shell->direction.x -= 0.1;
+		}
+		if (target.y > shell->pos.y) {
+			shell->direction.y += 0.1;
+		} else {
+			shell->direction.y -= 0.1;
+		}
+		vec_normalize(&shell->direction);
+		vec_scale(&shell->direction, 5.5);
+	}
+
 
 	ivec2 next_pos;
 	next_pos.x = shell->pos.x + shell->direction.x;

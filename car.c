@@ -639,4 +639,18 @@ Car *cars_get_sorted()
 	return sorted;
 }
 
+Car *car_get_closest(vec2 pos)
+{
+	Car *ret = &cars[0];
+	double min_dist = hypot(pos.x - ret->pos.x, pos.y - ret->pos.y);
+	for (int i=1; i<cars_count; i++) {
+		const double dist = hypot(pos.x - cars[i].pos.x, pos.y - cars[i].pos.y);
+		if (dist < min_dist) {
+			min_dist = dist;
+			ret = &cars[i];
+		}
+	}
+	return ret;
+}
+
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/
