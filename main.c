@@ -61,6 +61,8 @@ void do_render(SDL_Renderer *ren)
 		sprintf(buf, "%d fps", 1000 / delta);
 		render_string(buf, SCREEN_WIDTH - 100, 5, 11);
 	}
+
+	SDL_RenderPresent(ren);
 }
 
 static int server_recv_loop(void *data)
@@ -313,8 +315,6 @@ int run_server(SDL_Renderer *ren)
 		}
 		cJSON_Delete(state);
 
-		SDL_RenderPresent(ren);
-
 		// Limit framerate
 		Uint32 time1 = SDL_GetTicks();
 		if (time1 - time0 < FRAMETIME_MS)
@@ -409,10 +409,7 @@ int run_client(SDL_Renderer *ren)
 			root = NULL;
 		}
 
-		render_background();
-		map_render(ren);
-
-		SDL_RenderPresent(ren);
+		do_render(ren);
 	}
 
 	// Clean up
@@ -490,8 +487,6 @@ int run_local(SDL_Renderer *ren)
 		}
 
 		do_render(ren);
-
-		SDL_RenderPresent(ren);
 
 		// Limit framerate
 		Uint32 time1 = SDL_GetTicks();
