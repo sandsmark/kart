@@ -138,11 +138,7 @@ void car_move(Car *car)
 		break;
 	case MAP_BANANA:
 		if (car->invincible_at) break;
-		vec_rotate(&car->direction, 45);
-		car->velocity.x = 0;
-		car->velocity.y = 0;
-		car->force.x = -10;
-		car->force.y = -10;
+		car->tipped_at = SDL_GetTicks();
 		break;
 	case MAP_OIL:
 		if (car->invincible_at) break;
