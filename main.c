@@ -632,8 +632,14 @@ char *show_get_ip(SDL_Renderer *ren)
 void show_scores(SDL_Renderer *ren)
 {
 	SDL_Event event;
-	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
-	SDL_RenderClear(ren);
+	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xe0);
+
+	SDL_Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = SCREEN_WIDTH;
+	rect.h = SCREEN_HEIGHT;
+	SDL_RenderFillRect(ren, &rect);
 	if (cars_finished()) {
 		render_string("scores:", 10, 10, 44);
 	} else {
