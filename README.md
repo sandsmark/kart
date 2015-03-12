@@ -17,6 +17,7 @@ Drift       | Comma    | C        | 4
 Use powerup | Period   | V        | 5
 
 Some pseudo C code to use it:
+
 ```C
     #define NET_INPUT_UP 1<<0
     #define NET_INPUT_DOWN 1<<1
@@ -34,6 +35,7 @@ Some pseudo C code to use it:
 
 On connect you will receive a JSON object giving you your ID and describing the
 map:
+
 ```JSON
 {
     "id": 0,
@@ -94,6 +96,7 @@ github or contact us otherwise so we can explain better here).
 
 Then, each time you send a command (invalid or valid), you will get back a
 status update JSON object like this:
+
 ```JSON
 {
     "cars": [
@@ -137,7 +140,6 @@ status update JSON object like this:
     ]
 }
 ```
-
 
 **NOTE: the actual JSON you receive is minified, and each initial or status update is a single
 object on a single line, terminated by a newline:**
