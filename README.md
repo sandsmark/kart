@@ -161,7 +161,7 @@ On Ubuntu (14.04), which packages you need to install might not be obvious, so t
 sudo apt-get install build-essential libsdl2-dev libsdl2-gfx-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-ttf-dev
 ```
 
-From there, it's just to run `make`, make `kart` executable, and execute!
+From there, it's just to run `make`, turn `kart` into an executable, and execute it!
 
 ```bash
 make
