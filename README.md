@@ -150,7 +150,22 @@ object on a single line, terminated by a newline:**
 
 
 ### Build instructions
-Install the SDL2 development headers, and run "make".
+TL;DR: Install the SDL2 development headers, and run "make".
+
+#### Building on Ubuntu
+On Ubuntu (14.04), which packages you need to install might not be obvious, so try this:
+
+```bash
+sudo apt-get install build-essential libsdl2-dev libsdl2-gfx-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-ttf-dev
+```
+
+From there, it's just to run `make`, make `kart` executable, and execute!
+
+```bash
+make
+chmod +x kart
+./kart
+```
 
 ### CREDITS:
 Graphics by 'Kari Nordmann' (alias).
