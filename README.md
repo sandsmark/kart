@@ -158,7 +158,7 @@ TL;DR: Install the SDL2 development headers, and run "make".
 On Ubuntu (14.04), which packages you need to install might not be obvious, so try this:
 
 ```bash
-sudo apt-get install build-essential libsdl2-dev libsdl2-gfx-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-net-dev libsdl2-ttf-dev
+sudo apt-get install build-essential libsdl2-dev
 ```
 
 From there, it's just to run `make`, turn `kart` into an executable, and execute it!
