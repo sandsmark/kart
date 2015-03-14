@@ -106,12 +106,6 @@ void car_collison(Car *car1, Car *car2)
 	}
 }
 
-void bullet_move(Car *car)
-{
-	//TODO: implement me
-	car_move(car);
-}
-
 void car_move(Car *car)
 {
 	float drag_coeff = CAR_DRAG_COEFF;
@@ -282,6 +276,12 @@ void cars_move()
 		car_move(&cars[i]);
 		memset(&cars[i].force, 0, sizeof(cars[i].force));
 	}
+}
+
+void bullet_move(Car *car)
+{
+	//TODO: implement me
+	car_move(car);
 }
 
 void car_use_powerup(Car *car)
