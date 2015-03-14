@@ -1,6 +1,7 @@
 language: c
 script: make
 before_install:
+    - sudo add-apt-repository ppa:team-xbmc/ppa
     - sudo apt-get update -qq
     - sudo apt-get install -y libsdl2-dev
 
