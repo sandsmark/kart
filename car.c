@@ -108,6 +108,8 @@ void car_collison(Car *car1, Car *car2)
 
 void bullet_move(Car *car)
 {
+	//TODO: implement me
+	car_move(car);
 }
 
 void car_move(Car *car)
