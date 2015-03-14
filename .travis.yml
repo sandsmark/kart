@@ -5,3 +5,17 @@ before_install:
     - sudo apt-get update -qq
     - sudo apt-get install -y libsdl2-dev
 
+env:
+    global:
+        secure: "RRgQAdJzMtNbCf+8QMtKsc42aY91mjqBzhGa60X9BmdhBQULJouwP+I+K3pg06kl8O0t5bJFP4m6S8lZ7PisvdJ5XQNghiGxLOKhh+tQLrJOe8Ca+S083JVEM13/ryc66GCKmSuh2hlyHsePru0sI2tnKhIu2RsGnbJ1mSjEaQA="
+
+addons:
+    coverity_scan:
+        project:
+            name: "sandsmark/kart"
+            description: "Build submitted via Travis CI"
+            notification_email: martin.sandsmark@kde.org
+            build_command_prepend: "./configure; make clean"
+            build_command:   "make -j 4"
+            branch_pattern: travis
+
