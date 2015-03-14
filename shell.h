@@ -12,6 +12,7 @@ typedef enum {
 } ShellType;
 
 int shell_init();
+void shell_destroy();
 
 void shells_render(SDL_Renderer *ren);
 void shell_add(ShellType type, vec2 pos, vec2 direction);

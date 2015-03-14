@@ -83,8 +83,8 @@ void car_collison(Car *car1, Car *car2)
 	difference.x = car1_center.x - car2_center.x;
 	difference.y = car1_center.y - car2_center.y;
 
-	if (abs(difference.x) < (car1->width/2 + car2->width/2) &&
-	    abs(difference.y) < (car1->height/2 + car2->height/2))
+	if (fabsf(difference.x) < (car1->width/2 + car2->width/2) &&
+	    fabsf(difference.y) < (car1->height/2 + car2->height/2))
 	{
 		vec_normalize(&difference);
 		vec_scale(&difference, 3000);
@@ -276,6 +276,12 @@ void cars_move()
 		car_move(&cars[i]);
 		memset(&cars[i].force, 0, sizeof(cars[i].force));
 	}
+}
+
+void bullet_move(Car *car)
+{
+	//TODO: implement me
+	car_move(car);
 }
 
 void car_use_powerup(Car *car)

@@ -128,7 +128,7 @@ char *json_to_text(cJSON *object)
 	cJSON_Minify(text);
 
 	if (total_length - strlen(text) < 1) { // less than two extra bytes available
-		json_state = realloc(text, total_length + 1);
+		text = realloc(text, total_length + 1);
 	}
 	size_t end = strlen(text);
 	text[end] = '\n';
@@ -345,7 +345,6 @@ int run_server(SDL_Renderer *ren)
 	net_close(sockfd);
 	SDL_DestroyMutex(json_state_lock);
 	SDL_DestroyCond(json_updated_cond);
-	map_destroy();
 	free(clients);
 	return 0;
 }
@@ -421,7 +420,6 @@ int run_client(SDL_Renderer *ren)
 
 	// Clean up
 	SDL_AtomicSet(&net_listen, 0);
-	map_destroy();
 	return 0;
 }
 
@@ -505,8 +503,6 @@ int run_local(SDL_Renderer *ren)
 		time0 = time1;
 	}
 
-	// Clean up
-	map_destroy();
 	return 0;
 }
 
@@ -862,6 +858,8 @@ int main(int argc, char *argv[])
 	if (sockfd != -1)
 		net_cleanup();
 	sound_destroy();
+	map_destroy();
+	boxes_destroy();
 	SDL_DestroyRenderer(ren); // cleans up all textures
 	SDL_DestroyWindow(win);
 	SDL_Quit();

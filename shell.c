@@ -10,8 +10,6 @@ static SDL_Texture *shell_green_texture  = 0;
 static SDL_Texture *shell_red_texture    = 0;
 static SDL_Texture *shell_blue_texture   = 0;
 
-static const int SHELL_LIFETIME = 5000;
-
 typedef struct {
 	vec2 direction;
 
@@ -36,6 +34,11 @@ int shell_init()
 	return (shell_green_texture &&
 			shell_red_texture &&
 			shell_blue_texture);
+}
+
+void shell_destroy()
+{
+	free(shells);
 }
 
 void shells_render(SDL_Renderer *ren)
