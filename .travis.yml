@@ -1,5 +1,3 @@
-language: c
-script: make
 before_install:
     - sudo add-apt-repository ppa:team-xbmc/ppa -y
     - sudo apt-get update -qq
