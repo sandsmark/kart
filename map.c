@@ -151,10 +151,10 @@ void map_destroy()
 	free(map_tiles);
 }
 
-static int get_r(unsigned int x, unsigned int y, unsigned int ox, unsigned int oy)
+static int get_r(int x, int y, int ox, int oy)
 {
-	unsigned int w = abs(x - ox);
-	unsigned int h = abs(y - oy);
+	int w = x - ox;
+	int h = y - oy;
 	return sqrtl(w*w + h*h);
 }
 

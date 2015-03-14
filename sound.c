@@ -56,7 +56,7 @@ void sound_car_audio_cb(void *userdata, Uint8 *stream, int len)
         Sint16* buf = (Sint16*)stream;
         int m=1000;
         for(int i = 0; i < len; i++) {
-            buf[i] = audio_volume * (m - abs((audio_pos/freq) % (2*m) - m));
+            buf[i] = audio_volume * (m - ((audio_pos/freq) % (2*m) - m));
             audio_pos++;
         }
     } else if (current_sound_type == SOUND_MENU && music_buffer) {

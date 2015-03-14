@@ -680,6 +680,7 @@ void show_scores(SDL_Renderer *ren)
 
 void show_menu(SDL_Renderer *ren)
 {
+	puts (NULL);
 	SDL_Texture *image = ren_load_image("startscreen.bmp");
 	sound_set_type(SOUND_MENU);
 	SDL_Event event;
