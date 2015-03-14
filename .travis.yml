@@ -1,3 +1,8 @@
+language: c
+compiler:
+    -gcc
+    -clang
+
 before_install:
     - sudo add-apt-repository ppa:team-xbmc/ppa -y
     - sudo apt-get update -qq
@@ -5,7 +10,7 @@ before_install:
 
 env:
     global:
-        secure: "RRgQAdJzMtNbCf+8QMtKsc42aY91mjqBzhGa60X9BmdhBQULJouwP+I+K3pg06kl8O0t5bJFP4m6S8lZ7PisvdJ5XQNghiGxLOKhh+tQLrJOe8Ca+S083JVEM13/ryc66GCKmSuh2hlyHsePru0sI2tnKhIu2RsGnbJ1mSjEaQA="
+        - secure: "RRgQAdJzMtNbCf+8QMtKsc42aY91mjqBzhGa60X9BmdhBQULJouwP+I+K3pg06kl8O0t5bJFP4m6S8lZ7PisvdJ5XQNghiGxLOKhh+tQLrJOe8Ca+S083JVEM13/ryc66GCKmSuh2hlyHsePru0sI2tnKhIu2RsGnbJ1mSjEaQA="
 
 addons:
     coverity_scan:
@@ -14,6 +19,8 @@ addons:
             description: "Build submitted via Travis CI"
             notification_email: martin.sandsmark@kde.org
             build_command_prepend: "make clean"
-            build_command:   "make"
+            build_command:   "make -j2"
             branch_pattern: travis
 
+script:
+    - make -j2
