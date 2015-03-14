@@ -36,6 +36,11 @@ int shell_init()
 			shell_blue_texture);
 }
 
+void shell_destroy()
+{
+	free(shells);
+}
+
 void shells_render(SDL_Renderer *ren)
 {
 	ivec2 pos;

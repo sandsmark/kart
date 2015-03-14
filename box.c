@@ -48,6 +48,10 @@ int boxes_init()
 
     return (box_texture != 0);
 }
+void boxes_destroy()
+{
+    free(boxes);
+}
 
 void boxes_render(SDL_Renderer *ren)
 {

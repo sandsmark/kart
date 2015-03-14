@@ -149,6 +149,8 @@ void map_destroy()
 		free(map_tiles[x]);
 	}
 	free(map_tiles);
+	free(boxlocations);
+	free(modifiers);
 }
 
 static int get_r(int x, int y, int ox, int oy)
