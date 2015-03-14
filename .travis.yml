@@ -1,4 +1,5 @@
 language: c
+script: make
 before_install:
     - sudo add-apt-repository ppa:team-xbmc/ppa -y
     - sudo apt-get update -qq
@@ -15,6 +16,6 @@ addons:
             description: "Build submitted via Travis CI"
             notification_email: martin.sandsmark@kde.org
             build_command_prepend: "make clean"
-            build_command:   "make -j 4"
+            build_command:   "make"
             branch_pattern: travis
 
