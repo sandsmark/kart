@@ -43,16 +43,15 @@ typedef enum {
 	MENU_QUIT
 } MenuChoice;
 
-void do_render(SDL_Renderer *ren)
+void render(SDL_Renderer *ren)
 {
 	render_background();
 	map_render(ren);
-	cars_move();
 	boxes_render(ren);
-	shells_move();
 	shells_render(ren);
 	cars_render(ren);
 
+	// Show fps counter
 	static Uint32 last_time = 0;
 	const Uint32 delta = SDL_GetTicks() - last_time;
 	last_time = SDL_GetTicks();
@@ -63,6 +62,12 @@ void do_render(SDL_Renderer *ren)
 	}
 
 	SDL_RenderPresent(ren);
+}
+
+void animate()
+{
+	cars_move();
+	shells_move();
 }
 
 static int server_recv_loop(void *data)
@@ -296,7 +301,8 @@ int run_server(SDL_Renderer *ren)
 			}
 		}
 
-		do_render(ren);
+		animate();
+		render(ren);
 
 		cJSON *state = cJSON_CreateObject(), *car_json;
 		cJSON_AddItemToObject(state, "cars", car_json = cJSON_CreateArray());
@@ -409,7 +415,8 @@ int run_client(SDL_Renderer *ren)
 			root = NULL;
 		}
 
-		do_render(ren);
+		animate();
+		render(ren);
 	}
 
 	// Clean up
@@ -486,7 +493,8 @@ int run_local(SDL_Renderer *ren)
 			car_use_powerup(car);
 		}
 
-		do_render(ren);
+		animate();
+		render(ren);
 
 		// Limit framerate
 		Uint32 time1 = SDL_GetTicks();
