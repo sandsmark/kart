@@ -470,7 +470,29 @@ void car_deserialize(cJSON *root)
 	cur = cJSON_GetObjectItem(root, "height");
 	car->height = cur->valueint;
 
-	// TODO: deseiralize powerup
+	cur = cJSON_GetObjectItem(root, "powerup");
+	const char *powerup = cur->valuestring;
+	if (!strcmp(powerup, "banana")) {
+		car->powerup = POWERUP_BANANA;
+	} else if (!strcmp(powerup, "greenshell")) {
+		car->powerup = POWERUP_GREEN_SHELL;
+	} else if (!strcmp(powerup, "redshell")) {
+		car->powerup = POWERUP_RED_SHELL;
+	} else if (!strcmp(powerup, "blueshell")) {
+		car->powerup = POWERUP_BLUE_SHELL;
+	} else if (!strcmp(powerup, "oil")) {
+		car->powerup = POWERUP_OIL;
+	} else if (!strcmp(powerup, "mushroom")) {
+		car->powerup = POWERUP_MUSHROOM;
+	} else if (!strcmp(powerup, "bigmushroom")) {
+		car->powerup = POWERUP_BIG_MUSHROOM;
+	} else if (!strcmp(powerup, "lightning")) {
+		car->powerup = POWERUP_LIGHTNING;
+	} else if (!strcmp(powerup, "star")) {
+		car->powerup = POWERUP_STAR;
+	} else {
+		car->powerup = POWERUP_NONE;
+	}
 }
 
 // Not the world's most efficient implementation, but it's just 4 cars at max
