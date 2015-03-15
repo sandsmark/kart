@@ -6,15 +6,9 @@
 
 #include <SDL2/SDL.h>
 
-static SDL_Texture *shell_green_texture  = 0;
-static SDL_Texture *shell_red_texture    = 0;
-static SDL_Texture *shell_blue_texture   = 0;
-
 typedef struct {
 	vec2 direction;
 
-	vec2 force;
-	vec2 velocity;
 	vec2 pos;
 
 	ShellType type;
@@ -23,18 +17,6 @@ typedef struct {
 static int shells_count = 0;
 static int shells_size = 0;
 static Shell *shells = 0;
-
-
-int shell_init()
-{
-	shell_green_texture = ren_load_image("green_shell.bmp");
-	shell_red_texture   = ren_load_image("red_shell.bmp");
-	shell_blue_texture  = ren_load_image("blue_shell.bmp");
-
-	return (shell_green_texture &&
-			shell_red_texture &&
-			shell_blue_texture);
-}
 
 void shell_destroy()
 {
