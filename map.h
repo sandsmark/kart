@@ -5,8 +5,8 @@
 #include "defines.h"
 #include "libs/cJSON/cJSON.h"
 
-#define TILE_WIDTH 128
-#define TILE_HEIGHT 128
+extern unsigned map_tile_width;
+extern unsigned map_tile_height;
 
 typedef enum {
 	MAP_TRACK,

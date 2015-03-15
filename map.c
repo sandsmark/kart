@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <string.h>
 
+unsigned map_tile_height = 128;
+unsigned map_tile_width = 128;
+
 typedef enum {
 	TILE_HORIZONTAL = 0,
 	TILE_VERTICAL,
@@ -181,14 +184,14 @@ AreaType map_get_type(const ivec2 pos)
 		}
 	}
 
-	const unsigned int px = pos.x / TILE_WIDTH;
-	const unsigned int py = pos.y / TILE_HEIGHT;
+	const unsigned int px = pos.x / map_tile_width;
+	const unsigned int py = pos.y / map_tile_height;
 	if (px >= width || py >= height) {
 		return MAP_WALL;
 	}
 
-	unsigned int rel_x = pos.x - (px * TILE_WIDTH);
-	unsigned int rel_y = pos.y - (py * TILE_HEIGHT);
+	unsigned int rel_x = pos.x - (px * map_tile_width);
+	unsigned int rel_y = pos.y - (py * map_tile_height);
 
 	int distance;
 	switch (map_tiles[px][py]) {
@@ -199,13 +202,13 @@ AreaType map_get_type(const ivec2 pos)
 		distance = rel_x;
 		break;
 	case TILE_UPPERLEFT:
-		distance = get_r(rel_x, rel_y, TILE_WIDTH, TILE_HEIGHT);
+		distance = get_r(rel_x, rel_y, map_tile_width, map_tile_height);
 		break;
 	case TILE_UPPERRIGHT:
-		distance = get_r(rel_x, rel_y, 0, TILE_HEIGHT);
+		distance = get_r(rel_x, rel_y, 0, map_tile_height);
 		break;
 	case TILE_BOTTOMLEFT:
-		distance = get_r(rel_x, rel_y, TILE_WIDTH, 0);
+		distance = get_r(rel_x, rel_y, map_tile_width, 0);
 		break;
 	case TILE_BOTTOMRIGHT:
 		distance = get_r(rel_x, rel_y, 0, 0);
@@ -327,8 +330,8 @@ int map_load_file(const char *filename)
 		fclose(file);
 		return 0;
 	}
-	map_starting_position.x = TILE_WIDTH * (starting_tile.x) + TILE_WIDTH / 2;
-	map_starting_position.y = TILE_HEIGHT * (starting_tile.y) + TILE_HEIGHT / 5;
+	map_starting_position.x = map_tile_width * (starting_tile.x) + map_tile_width / 2;
+	map_starting_position.y = map_tile_height * (starting_tile.y) + map_tile_height / 5;
 
 	if (fscanf(file, "%d\n", &modifiers_size) != 1) {
 		printf("unable to read amount of modifiers\n");
@@ -473,10 +476,10 @@ void map_render(SDL_Renderer *ren)
 	for (unsigned int x=0; x<width; x++) {
 		for (unsigned int y=0; y<height; y++) {
 			SDL_Rect target;
-			target.x = x * TILE_WIDTH;
-			target.y = y * TILE_HEIGHT;
-			target.w = TILE_WIDTH;
-			target.h = TILE_HEIGHT;
+			target.x = x * map_tile_width;
+			target.y = y * map_tile_height;
+			target.w = map_tile_width;
+			target.h = map_tile_height;
 			SDL_Texture *texture;
 			switch(map_tiles[x][y]) {
 			case TILE_HORIZONTAL:
@@ -522,19 +525,19 @@ vec2 map_get_edge_normal(int x, int y)
 		return normal;
 	}
 
-	const unsigned int px = x / TILE_WIDTH;
-	const unsigned int py = y / TILE_HEIGHT;
+	const unsigned int px = x / map_tile_width;
+	const unsigned int py = y / map_tile_height;
 	if (px >= width || py >= height) {
 		printf("asked for edge normal at out of bounds coordinates x: %d y: %d\n", x, y);
 		return normal;
 	}
 
-	unsigned int rel_x = x - (px * TILE_WIDTH);
-	unsigned int rel_y = y - (py * TILE_HEIGHT);
+	unsigned int rel_x = x - (px * map_tile_width);
+	unsigned int rel_y = y - (py * map_tile_height);
 
 	switch (map_tiles[px][py]) {
 	case TILE_HORIZONTAL:
-		if (rel_y > TILE_HEIGHT / 2) {
+		if (rel_y > map_tile_height / 2) {
 			normal.x = 0;
 			normal.y = -1;
 		} else {
@@ -543,7 +546,7 @@ vec2 map_get_edge_normal(int x, int y)
 		}
 		return normal;
 	case TILE_VERTICAL:
-		if (rel_x > TILE_WIDTH / 2) {
+		if (rel_x > map_tile_width / 2) {
 			normal.x = -1;
 			normal.y = 0;
 		} else {
@@ -552,20 +555,20 @@ vec2 map_get_edge_normal(int x, int y)
 		}
 		return normal;
 	case TILE_UPPERLEFT:
-		normal.x = (px + 1) * TILE_WIDTH;
-		normal.y = (py + 1) * TILE_HEIGHT;
+		normal.x = (px + 1) * map_tile_width;
+		normal.y = (py + 1) * map_tile_height;
 		break;
 	case TILE_UPPERRIGHT:
-		normal.x = (px) * TILE_WIDTH;
-		normal.y = (py + 1) * TILE_HEIGHT;
+		normal.x = (px) * map_tile_width;
+		normal.y = (py + 1) * map_tile_height;
 		break;
 	case TILE_BOTTOMLEFT:
-		normal.x = (px + 1) * TILE_WIDTH;
-		normal.y = (py) * TILE_HEIGHT;
+		normal.x = (px + 1) * map_tile_width;
+		normal.y = (py) * map_tile_height;
 		break;
 	case TILE_BOTTOMRIGHT:
-		normal.x = (px) * TILE_WIDTH;
-		normal.y = (py) * TILE_HEIGHT;
+		normal.x = (px) * map_tile_width;
+		normal.y = (py) * map_tile_height;
 		break;
 	case TILE_NONE:
 	default:
@@ -580,8 +583,8 @@ vec2 map_get_edge_normal(int x, int y)
 cJSON *map_serialize()
 {
 	cJSON *map_object = cJSON_CreateObject();
-	cJSON_AddNumberToObject(map_object, "tile_width", TILE_WIDTH);
-	cJSON_AddNumberToObject(map_object, "tile_height", TILE_HEIGHT);
+	cJSON_AddNumberToObject(map_object, "tile_width", map_tile_width);
+	cJSON_AddNumberToObject(map_object, "tile_height", map_tile_height);
 
 	cJSON *tile_array = cJSON_CreateArray();
 	for (unsigned int y=0; y<height; y++) {
@@ -666,20 +669,20 @@ int map_dist_left_in_tile(int pathcount, vec2 pos)
 	const unsigned int next_x = map_path[pathcount].x;
 	const unsigned int next_y = map_path[pathcount].y;
 
-	const unsigned int cur_tilex = pos.x / TILE_WIDTH;
-	const unsigned int cur_tiley = pos.y / TILE_HEIGHT;
+	const unsigned int cur_tilex = pos.x / map_tile_width;
+	const unsigned int cur_tiley = pos.y / map_tile_height;
 
 	if (next_x == cur_tilex) {
 		if (next_y < cur_tiley) {
-			return (pos.y - next_y * TILE_HEIGHT);
+			return (pos.y - next_y * map_tile_height);
 		} else {
-			return (next_y * TILE_HEIGHT - pos.y);
+			return (next_y * map_tile_height - pos.y);
 		}
 	} else {
 		if (next_x < cur_tilex) {
-			return (pos.x - next_x * TILE_WIDTH);
+			return (pos.x - next_x * map_tile_width);
 		} else {
-			return (next_x * TILE_WIDTH - pos.x);
+			return (next_x * map_tile_width - pos.x);
 		}
 	}
 }
