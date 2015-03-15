@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <string.h>
 
+unsigned map_tile_height = 128;
+unsigned map_tile_width = 128;
+
 typedef enum {
 	TILE_HORIZONTAL = 0,
 	TILE_VERTICAL,
@@ -41,7 +44,7 @@ static SDL_Texture *mod_banana_texture  = 0;
 
 static TileType **map_tiles = 0;
 
-static unsigned int height, width;
+static unsigned int map_height, map_width;
 
 static const unsigned int MODIFIER_WIDTH = 64;
 static const unsigned int MODIFIER_HEIGHT = 64;
@@ -147,7 +150,7 @@ int map_init(const char *map_file)
 
 void map_destroy()
 {
-	for (unsigned int x = 0; x < width; x++) {
+	for (unsigned int x = 0; x < map_width; x++) {
 		free(map_tiles[x]);
 	}
 	free(map_tiles);
@@ -181,14 +184,14 @@ AreaType map_get_type(const ivec2 pos)
 		}
 	}
 
-	const unsigned int px = pos.x / TILE_WIDTH;
-	const unsigned int py = pos.y / TILE_HEIGHT;
-	if (px >= width || py >= height) {
+	const unsigned int px = pos.x / map_tile_width;
+	const unsigned int py = pos.y / map_tile_height;
+	if (px >= map_width || py >= map_height) {
 		return MAP_WALL;
 	}
 
-	unsigned int rel_x = pos.x - (px * TILE_WIDTH);
-	unsigned int rel_y = pos.y - (py * TILE_HEIGHT);
+	unsigned int rel_x = pos.x - (px * map_tile_width);
+	unsigned int rel_y = pos.y - (py * map_tile_height);
 
 	int distance;
 	switch (map_tiles[px][py]) {
@@ -199,13 +202,13 @@ AreaType map_get_type(const ivec2 pos)
 		distance = rel_x;
 		break;
 	case TILE_UPPERLEFT:
-		distance = get_r(rel_x, rel_y, TILE_WIDTH, TILE_HEIGHT);
+		distance = get_r(rel_x, rel_y, map_tile_width, map_tile_height);
 		break;
 	case TILE_UPPERRIGHT:
-		distance = get_r(rel_x, rel_y, 0, TILE_HEIGHT);
+		distance = get_r(rel_x, rel_y, 0, map_tile_height);
 		break;
 	case TILE_BOTTOMLEFT:
-		distance = get_r(rel_x, rel_y, TILE_WIDTH, 0);
+		distance = get_r(rel_x, rel_y, map_tile_width, 0);
 		break;
 	case TILE_BOTTOMRIGHT:
 		distance = get_r(rel_x, rel_y, 0, 0);
@@ -262,35 +265,35 @@ int map_load_file(const char *filename)
 		return 0;
 	}
 
-	if (fscanf(file, "%ux%u\n", &width, &height) != 2) {
+	if (fscanf(file, "%ux%u\n", &map_width, &map_height) != 2) {
 		printf("invalid map file format in file %s\n", filename);
 		fclose(file);
 		return 0;
 	}
 
-	map_tiles = malloc((width + 1) * sizeof(TileType*));
+	map_tiles = malloc((map_width + 1) * sizeof(TileType*));
 	if (!map_tiles) {
-		printf("failed to allocate %lu bytes for map tiles\n", height * sizeof(TileType*));
+		printf("failed to allocate %lu bytes for map tiles\n", map_height * sizeof(TileType*));
 		fclose(file);
 		return 0;
 	}
-	for (unsigned int x = 0; x < width; x++) {
-		map_tiles[x] = malloc((height + 1) * sizeof(TileType));
+	for (unsigned int x = 0; x < map_width; x++) {
+		map_tiles[x] = malloc((map_height + 1) * sizeof(TileType));
 
 		if (!map_tiles[x]) {
-			printf("failed to allocate %lu bytes of memory for map tile line\n", height * sizeof(TileType*));
+			printf("failed to allocate %lu bytes of memory for map tile line\n", map_height * sizeof(TileType*));
 		}
 	}
 
 	char buf[128] = { 0 };
-	for (unsigned int y=0; y<height; y++) {
-		if (fgets(buf, sizeof(buf), file) == NULL || strlen(buf) < width) {
-			printf("line length %lu (of %s) is less than map width %u\n", strlen(buf), buf, width);
+	for (unsigned int y=0; y<map_height; y++) {
+		if (fgets(buf, sizeof(buf), file) == NULL || strlen(buf) < map_width) {
+			printf("line length %lu (of %s) is less than map width %u\n", strlen(buf), buf, map_width);
 			fclose(file);
 			return 0;
 		}
 
-		for (unsigned int x=0; x<width; x++) {
+		for (unsigned int x=0; x<map_width; x++) {
 			switch(buf[x]) {
 			case '-':
 				map_tiles[x][y] = TILE_HORIZONTAL;
@@ -327,8 +330,8 @@ int map_load_file(const char *filename)
 		fclose(file);
 		return 0;
 	}
-	map_starting_position.x = TILE_WIDTH * (starting_tile.x) + TILE_WIDTH / 2;
-	map_starting_position.y = TILE_HEIGHT * (starting_tile.y) + TILE_HEIGHT / 5;
+	map_starting_position.x = map_tile_width * (starting_tile.x) + map_tile_width / 2;
+	map_starting_position.y = map_tile_height * (starting_tile.y) + map_tile_height / 5;
 
 	if (fscanf(file, "%d\n", &modifiers_size) != 1) {
 		printf("unable to read amount of modifiers\n");
@@ -470,13 +473,13 @@ int map_load_file(const char *filename)
 
 void map_render(SDL_Renderer *ren)
 {
-	for (unsigned int x=0; x<width; x++) {
-		for (unsigned int y=0; y<height; y++) {
+	for (unsigned int x=0; x<map_width; x++) {
+		for (unsigned int y=0; y<map_height; y++) {
 			SDL_Rect target;
-			target.x = x * TILE_WIDTH;
-			target.y = y * TILE_HEIGHT;
-			target.w = TILE_WIDTH;
-			target.h = TILE_HEIGHT;
+			target.x = x * map_tile_width;
+			target.y = y * map_tile_height;
+			target.w = map_tile_width;
+			target.h = map_tile_height;
 			SDL_Texture *texture;
 			switch(map_tiles[x][y]) {
 			case TILE_HORIZONTAL:
@@ -522,19 +525,19 @@ vec2 map_get_edge_normal(int x, int y)
 		return normal;
 	}
 
-	const unsigned int px = x / TILE_WIDTH;
-	const unsigned int py = y / TILE_HEIGHT;
-	if (px >= width || py >= height) {
+	const unsigned int px = x / map_tile_width;
+	const unsigned int py = y / map_tile_height;
+	if (px >= map_width || py >= map_height) {
 		printf("asked for edge normal at out of bounds coordinates x: %d y: %d\n", x, y);
 		return normal;
 	}
 
-	unsigned int rel_x = x - (px * TILE_WIDTH);
-	unsigned int rel_y = y - (py * TILE_HEIGHT);
+	unsigned int rel_x = x - (px * map_tile_width);
+	unsigned int rel_y = y - (py * map_tile_height);
 
 	switch (map_tiles[px][py]) {
 	case TILE_HORIZONTAL:
-		if (rel_y > TILE_HEIGHT / 2) {
+		if (rel_y > map_tile_height / 2) {
 			normal.x = 0;
 			normal.y = -1;
 		} else {
@@ -543,7 +546,7 @@ vec2 map_get_edge_normal(int x, int y)
 		}
 		return normal;
 	case TILE_VERTICAL:
-		if (rel_x > TILE_WIDTH / 2) {
+		if (rel_x > map_tile_width / 2) {
 			normal.x = -1;
 			normal.y = 0;
 		} else {
@@ -552,20 +555,20 @@ vec2 map_get_edge_normal(int x, int y)
 		}
 		return normal;
 	case TILE_UPPERLEFT:
-		normal.x = (px + 1) * TILE_WIDTH;
-		normal.y = (py + 1) * TILE_HEIGHT;
+		normal.x = (px + 1) * map_tile_width;
+		normal.y = (py + 1) * map_tile_height;
 		break;
 	case TILE_UPPERRIGHT:
-		normal.x = (px) * TILE_WIDTH;
-		normal.y = (py + 1) * TILE_HEIGHT;
+		normal.x = (px) * map_tile_width;
+		normal.y = (py + 1) * map_tile_height;
 		break;
 	case TILE_BOTTOMLEFT:
-		normal.x = (px + 1) * TILE_WIDTH;
-		normal.y = (py) * TILE_HEIGHT;
+		normal.x = (px + 1) * map_tile_width;
+		normal.y = (py) * map_tile_height;
 		break;
 	case TILE_BOTTOMRIGHT:
-		normal.x = (px) * TILE_WIDTH;
-		normal.y = (py) * TILE_HEIGHT;
+		normal.x = (px) * map_tile_width;
+		normal.y = (py) * map_tile_height;
 		break;
 	case TILE_NONE:
 	default:
@@ -580,13 +583,13 @@ vec2 map_get_edge_normal(int x, int y)
 cJSON *map_serialize()
 {
 	cJSON *map_object = cJSON_CreateObject();
-	cJSON_AddNumberToObject(map_object, "tile_width", TILE_WIDTH);
-	cJSON_AddNumberToObject(map_object, "tile_height", TILE_HEIGHT);
+	cJSON_AddNumberToObject(map_object, "tile_width", map_tile_width);
+	cJSON_AddNumberToObject(map_object, "tile_height", map_tile_height);
 
 	cJSON *tile_array = cJSON_CreateArray();
-	for (unsigned int y=0; y<height; y++) {
+	for (unsigned int y=0; y<map_height; y++) {
 		cJSON *tile_row = cJSON_CreateArray();
-		for (unsigned int x=0; x<width; x++) {
+		for (unsigned int x=0; x<map_width; x++) {
 			cJSON *tile_item;
 			switch(map_tiles[x][y]) {
 			case TILE_HORIZONTAL:
@@ -657,6 +660,101 @@ cJSON *map_serialize()
 
 	return map_object;
 }
+void map_deserialize(cJSON *root)
+{
+	cJSON *cur, *tiles, *tile_row, *modifiers, *modifier, *path, *path_item;
+
+	// Read tile size
+	cur = cJSON_GetObjectItem(root, "tile_width");
+	map_tile_width = cur->valueint;
+	cur = cJSON_GetObjectItem(root, "tile_height");
+	map_tile_height = cur->valueint;
+
+	// Read map size
+	tiles = cJSON_GetObjectItem(root, "tiles");
+	map_height = cJSON_GetArraySize(tiles);
+	map_width = cJSON_GetArraySize(cJSON_GetArrayItem(tiles, 0));
+
+	// Alocate space for tiles
+	map_tiles = malloc((map_width + 1) * sizeof(TileType*));
+	if (!map_tiles) {
+		printf("failed to allocate %lu bytes for map tiles\n", map_height * sizeof(TileType*));
+		return;
+	}
+	for (unsigned int x = 0; x < map_width; x++) {
+		map_tiles[x] = malloc((map_height + 1) * sizeof(TileType));
+
+		if (!map_tiles[x]) {
+			printf("failed to allocate %lu bytes of memory for map tile line\n", map_height * sizeof(TileType*));
+			return;
+		}
+	}
+
+	// Parse tiles
+	for (unsigned y=0; y<map_height; y++) {
+		tile_row = cJSON_GetArrayItem(tiles, y);
+		for (unsigned x=0; x<map_width; x++) {
+			cur = cJSON_GetArrayItem(tile_row, x);
+			const char *type = cur->valuestring;
+			switch(type[0]) {
+			case '-':
+				map_tiles[x][y] = TILE_HORIZONTAL;
+				break;
+			case '|':
+				map_tiles[x][y] = TILE_VERTICAL;
+				break;
+			case '/':
+				map_tiles[x][y] = TILE_UPPERLEFT;
+				break;
+			case '`':
+				map_tiles[x][y] = TILE_UPPERRIGHT;
+				break;
+			case '\\':
+				map_tiles[x][y] = TILE_BOTTOMLEFT;
+				break;
+			case ',':
+				map_tiles[x][y] = TILE_BOTTOMRIGHT;
+				break;
+			case '.':
+			default:
+				map_tiles[x][y] = TILE_NONE;
+			}
+		}
+	}
+
+	// Parse modifiers
+	modifiers = cJSON_GetObjectItem(root, "modifiers");
+	for (int i=0; i<cJSON_GetArraySize(modifiers); i++) {
+		modifier = cJSON_GetArrayItem(modifiers, i);
+
+		ivec2 pos;
+		cur = cJSON_GetObjectItem(modifier, "x");
+		pos.x = cur->valueint;
+		cur = cJSON_GetObjectItem(modifier, "y");
+		pos.y = cur->valueint;
+
+		cur = cJSON_GetObjectItem(modifier, "type");
+		const char *typestr = cur->valuestring;
+		if (!strcmp(typestr, "mud")) {
+			map_add_modifier(MAP_MUD, pos);
+		} else if (!strcmp(typestr, "ice")) {
+			map_add_modifier(MAP_ICE, pos);
+		} else if (!strcmp(typestr, "booster")) {
+			map_add_modifier(MAP_BOOST, pos);
+		}
+	}
+
+	// Parse path
+	path = cJSON_GetObjectItem(root, "path");
+	map_path_length = cJSON_GetArraySize(path);
+	for (int i=0; i<map_path_length; i++) {
+		path_item = cJSON_GetArrayItem(path, i);
+		cur = cJSON_GetObjectItem(path_item, "tile_x");
+		map_path[i].x = cur->valueint;
+		cur = cJSON_GetObjectItem(path_item, "tile_y");
+		map_path[i].y = cur->valueint;
+	}
+}
 
 int map_dist_left_in_tile(int pathcount, vec2 pos)
 {
@@ -666,20 +764,20 @@ int map_dist_left_in_tile(int pathcount, vec2 pos)
 	const unsigned int next_x = map_path[pathcount].x;
 	const unsigned int next_y = map_path[pathcount].y;
 
-	const unsigned int cur_tilex = pos.x / TILE_WIDTH;
-	const unsigned int cur_tiley = pos.y / TILE_HEIGHT;
+	const unsigned int cur_tilex = pos.x / map_tile_width;
+	const unsigned int cur_tiley = pos.y / map_tile_height;
 
 	if (next_x == cur_tilex) {
 		if (next_y < cur_tiley) {
-			return (pos.y - next_y * TILE_HEIGHT);
+			return (pos.y - next_y * map_tile_height);
 		} else {
-			return (next_y * TILE_HEIGHT - pos.y);
+			return (next_y * map_tile_height - pos.y);
 		}
 	} else {
 		if (next_x < cur_tilex) {
-			return (pos.x - next_x * TILE_WIDTH);
+			return (pos.x - next_x * map_tile_width);
 		} else {
-			return (next_x * TILE_WIDTH - pos.x);
+			return (next_x * map_tile_width - pos.x);
 		}
 	}
 }

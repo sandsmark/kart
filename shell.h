@@ -20,6 +20,7 @@ void shells_move();
 int shells_check_collide(vec2 pos);
 
 cJSON *shells_serialize();
+void shells_deserialize(cJSON *root);
 
 #endif//SHELL_H
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

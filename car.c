@@ -237,8 +237,8 @@ void car_move(Car *car)
 	}
 
 	// Check tile/lap count stuff
-	const int px = car->pos.x / TILE_WIDTH;
-	const int py = car->pos.y / TILE_HEIGHT;
+	const int px = car->pos.x / map_tile_width;
+	const int py = car->pos.y / map_tile_height;
 
 	int next_tile = (car->tiles_passed + 1) % map_path_length;
 	if (map_path[next_tile].x == px && map_path[next_tile].y == py) {
@@ -470,7 +470,29 @@ void car_deserialize(cJSON *root)
 	cur = cJSON_GetObjectItem(root, "height");
 	car->height = cur->valueint;
 
-	// TODO: deseiralize powerup
+	cur = cJSON_GetObjectItem(root, "powerup");
+	const char *powerup = cur->valuestring;
+	if (!strcmp(powerup, "banana")) {
+		car->powerup = POWERUP_BANANA;
+	} else if (!strcmp(powerup, "greenshell")) {
+		car->powerup = POWERUP_GREEN_SHELL;
+	} else if (!strcmp(powerup, "redshell")) {
+		car->powerup = POWERUP_RED_SHELL;
+	} else if (!strcmp(powerup, "blueshell")) {
+		car->powerup = POWERUP_BLUE_SHELL;
+	} else if (!strcmp(powerup, "oil")) {
+		car->powerup = POWERUP_OIL;
+	} else if (!strcmp(powerup, "mushroom")) {
+		car->powerup = POWERUP_MUSHROOM;
+	} else if (!strcmp(powerup, "bigmushroom")) {
+		car->powerup = POWERUP_BIG_MUSHROOM;
+	} else if (!strcmp(powerup, "lightning")) {
+		car->powerup = POWERUP_LIGHTNING;
+	} else if (!strcmp(powerup, "star")) {
+		car->powerup = POWERUP_STAR;
+	} else {
+		car->powerup = POWERUP_NONE;
+	}
 }
 
 // Not the world's most efficient implementation, but it's just 4 cars at max

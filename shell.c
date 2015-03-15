@@ -167,6 +167,36 @@ cJSON *shells_serialize()
 	return root;
 }
 
+void shells_deserialize(cJSON *root)
+{
+	cJSON *shell, *cur;
+	for (int i=0; i<cJSON_GetArraySize(root); i++) {
+		shell = cJSON_GetArrayItem(root, i);
+
+		vec2 pos;
+		cur = cJSON_GetObjectItem(shell, "x");
+		pos.x = cur->valueint;
+		cur = cJSON_GetObjectItem(shell, "y");
+		pos.y = cur->valueint;
+
+		vec2 direction;
+		cur = cJSON_GetObjectItem(shell, "dx");
+		direction.x = cur->valueint;
+		cur = cJSON_GetObjectItem(shell, "dy");
+		direction.y = cur->valueint;
+
+		cur = cJSON_GetObjectItem(shell, "type");
+		const char *typestr = cur->valuestring;
+		if (!strcmp(typestr, "green")) {
+			shell_add(SHELL_GREEN, pos, direction);
+		} else if (!strcmp(typestr, "blue")) {
+			shell_add(SHELL_BLUE, pos, direction);
+		} else if (!strcmp(typestr, "red")) {
+			shell_add(SHELL_RED, pos, direction);
+		}
+	}
+}
+
 int shells_check_collide(vec2 pos)
 {
 	for (int i=0; i<shells_count; i++) {

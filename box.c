@@ -36,13 +36,13 @@ int boxes_init()
     }
     for (int i=0; i<boxlocations_count; i++) {
         ivec2 box_position;
-        box_position.x = boxlocations[i].x * TILE_WIDTH + TILE_WIDTH / 2;
-        box_position.y = boxlocations[i].y * TILE_HEIGHT + TILE_HEIGHT / 5;
+        box_position.x = boxlocations[i].x * map_tile_width + map_tile_width / 2;
+        box_position.y = boxlocations[i].y * map_tile_height + map_tile_height / 5;
         for (int j=0; j<4; j++) {
             boxes[i*BOXES_PER_TILE + j].pos = box_position;
             boxes[i*BOXES_PER_TILE + j].hit_time = 0;
 
-            box_position.y += TILE_HEIGHT / 6;
+            box_position.y += map_tile_height / 6;
         }
     }
 
@@ -110,4 +110,20 @@ cJSON *boxes_serialize()
         cJSON_AddItemToArray(boxes_array, box_object);
     }
 	return boxes_array;
+}
+
+void boxes_deserialize(cJSON *root)
+{
+    cJSON *box, *cur;
+    box_count = cJSON_GetArraySize(root);
+    free(boxes);
+    boxes = malloc((box_count + 1) * sizeof(Box));
+    for (int i=0; i<box_count; i++) {
+        box = cJSON_GetArrayItem(root, i);
+
+        cur = cJSON_GetObjectItem(box, "x");
+        boxes[i].pos.x = cur->valueint;
+        cur = cJSON_GetObjectItem(box, "y");
+        boxes[i].pos.y = cur->valueint;
+    }
 }
