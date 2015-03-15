@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <errno.h>
 
 #ifdef __MINGW32__
 #include <winsock2.h>
@@ -19,13 +20,13 @@ static unsigned input_mask = 0;
 
 static void die(const char *msg)
 {
-	fprintf(stderr, "%s\n", msg);
+	fprintf(stderr, "%s (%s)\n", msg, strerror(errno));
 	exit(1);
 }
 
 int net_start_server(int port)
 {
-	int sockfd, err;
+	int sockfd;
 	struct sockaddr_in serv;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		die("Failed to create socket");
@@ -35,9 +36,9 @@ int net_start_server(int port)
 	serv.sin_family = AF_INET;
 	serv.sin_addr.s_addr = INADDR_ANY;
 	serv.sin_port = htons(port);
-	if ((err = bind(sockfd, (struct sockaddr *)&serv, sizeof(serv))) < 0)
+	if (bind(sockfd, (struct sockaddr *)&serv, sizeof(serv)) < 0)
 		die("Failed to bind to port");
-	if ((err = listen(sockfd, 10)) < 0)
+	if (listen(sockfd, 10) < 0)
 		die("Failed to call listen on socket");
 	printf("Started server on port %d\n", port);
 	return sockfd;
@@ -45,7 +46,7 @@ int net_start_server(int port)
 
 int net_start_client(const char *addr, int port)
 {
-	int sockfd, err;
+	int sockfd;
 	struct sockaddr_in serv;
 	struct timeval tv;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -53,9 +54,9 @@ int net_start_client(const char *addr, int port)
 	memset(&serv, 0, sizeof(serv));
 	serv.sin_family = AF_INET;
 	serv.sin_port = htons(port);
-	if ((err = inet_pton(AF_INET, addr, &serv.sin_addr)) < 1)
+	if (inet_pton(AF_INET, addr, &serv.sin_addr) < 1)
 		die("inet_ptons failed, inet address probably not valid");
-	if ((err = connect(sockfd, (struct sockaddr *)&serv, sizeof(serv))) < 0)
+	if (connect(sockfd, (struct sockaddr *)&serv, sizeof(serv)) < 0)
 		die("Failed to connect to server");
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
@@ -130,7 +131,7 @@ ssize_t net_send_input(int sockfd)
 {
 	ssize_t n;
 	char send_buf[64];
-	snprintf(send_buf, 64, "%d", input_mask);
+	snprintf(send_buf, 64, "%u", input_mask);
 	n = send(sockfd, send_buf, strlen(send_buf), 0);
 	input_mask = 0;
 	return n;

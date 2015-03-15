@@ -72,9 +72,11 @@ int map_add_modifier(AreaType type, ivec2 pos)
 {
 	if (modifiers_size < modifiers_count) {
 		modifiers_size += 10; // grow linearly, makes more sense for this
+		Modifier *old_address = modifiers;
 		modifiers = realloc(modifiers, modifiers_size * sizeof(Modifier));
 		if (!modifiers) {
 			printf("failed to grow array for modifiers\n");
+			free(old_address);
 			return 1;
 		}
 	}
@@ -269,6 +271,7 @@ int map_load_file(const char *filename)
 	map_tiles = malloc((width + 1) * sizeof(TileType*));
 	if (!map_tiles) {
 		printf("failed to allocate %lu bytes for map tiles\n", height * sizeof(TileType*));
+		fclose(file);
 		return 0;
 	}
 	for (unsigned int x = 0; x < width; x++) {
@@ -283,6 +286,7 @@ int map_load_file(const char *filename)
 	for (unsigned int y=0; y<height; y++) {
 		if (fgets(buf, sizeof(buf), file) == NULL || strlen(buf) < width) {
 			printf("line length %lu (of %s) is less than map width %u\n", strlen(buf), buf, width);
+			fclose(file);
 			return 0;
 		}
 
@@ -311,6 +315,7 @@ int map_load_file(const char *filename)
 				break;
 			default:
 				printf("invalid map tile type %c at x: %u y: %u\n", buf[x], x, y);
+				fclose(file);
 				return 0;
 			}
 		}
@@ -334,6 +339,7 @@ int map_load_file(const char *filename)
 	modifiers = malloc(sizeof(Modifier) * (modifiers_size + 1));
 	if (!modifiers) {
 		printf("failed to allocate memory for modifiers\n");
+		fclose(file);
 		return 0;
 	}
 	ivec2 modifier_pos;
@@ -353,6 +359,7 @@ int map_load_file(const char *filename)
 		}
 		if (ret) {
 			printf("error while adding modifier\n");
+			fclose(file);
 			return 0;
 		}
 	}
@@ -368,6 +375,7 @@ int map_load_file(const char *filename)
 	boxlocations = malloc(sizeof(ivec2) * (boxlocations_size + 1));
 	if (!boxlocations) {
 		printf("failed to allocate memory for box locations\n");
+		fclose(file);
 		return 0;
 	}
 
@@ -375,10 +383,12 @@ int map_load_file(const char *filename)
 	for (int i=0; i<boxlocations_size; i++) {
 		if (fscanf(file, "%d %d\n", &box_location.x, &box_location.y) != 2) {
 			printf("unable to read box location from file!");
+			fclose(file);
 			return 0;
 		}
 		if (add_box_location(box_location)) {
 			printf("error while adding box location\n");
+			fclose(file);
 			return 0;
 		}
 	}

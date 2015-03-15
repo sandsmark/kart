@@ -11,7 +11,6 @@ typedef enum {
 	SHELL_BLUE
 } ShellType;
 
-int shell_init();
 void shell_destroy();
 
 void shells_render(SDL_Renderer *ren);

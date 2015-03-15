@@ -84,7 +84,7 @@ static int server_recv_loop(void *data)
 			if (sscanf(buf, "%u", &cmd) == 1)
 			{
 				buf[63] = 0;
-				printf("T%d: Received: %d: %s\n", me->idx, cmd, buf);
+				printf("T%d: Received: %u: %s\n", me->idx, cmd, buf);
 				if (SDL_LockMutex(me->cmd_lock) == 0)
 				{
 					me->cmd = cmd;
@@ -128,7 +128,11 @@ char *json_to_text(cJSON *object)
 	cJSON_Minify(text);
 
 	if (total_length - strlen(text) < 1) { // less than two extra bytes available
+		char *old_address = text;
 		text = realloc(text, total_length + 1);
+		if (!text) { // insanely unlikely
+			return old_address;
+		}
 	}
 	size_t end = strlen(text);
 	text[end] = '\n';
@@ -860,6 +864,7 @@ int main(int argc, char *argv[])
 	sound_destroy();
 	map_destroy();
 	boxes_destroy();
+	shell_destroy();
 	SDL_DestroyRenderer(ren); // cleans up all textures
 	SDL_DestroyWindow(win);
 	SDL_Quit();
