@@ -111,3 +111,19 @@ cJSON *boxes_serialize()
     }
 	return boxes_array;
 }
+
+void boxes_deserialize(cJSON *root)
+{
+    cJSON *box, *cur;
+    box_count = cJSON_GetArraySize(root);
+    free(boxes);
+    boxes = malloc((box_count + 1) * sizeof(Box));
+    for (int i=0; i<box_count; i++) {
+        box = cJSON_GetArrayItem(root, i);
+
+        cur = cJSON_GetObjectItem(box, "x");
+        boxes[i].pos.x = cur->valueint;
+        cur = cJSON_GetObjectItem(box, "y");
+        boxes[i].pos.y = cur->valueint;
+    }
+}

@@ -13,5 +13,6 @@ void boxes_render(SDL_Renderer *ren);
 PowerUp boxes_check_hit(SDL_Rect car);
 
 cJSON *boxes_serialize();
+void boxes_deserialize(cJSON *boxes);
 
 #endif//BOX_H
