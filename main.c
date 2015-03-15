@@ -84,7 +84,7 @@ static int server_recv_loop(void *data)
 			if (sscanf(buf, "%u", &cmd) == 1)
 			{
 				buf[63] = 0;
-				printf("T%d: Received: %u: %s\n", me->idx, cmd, buf);
+//				printf("T%d: Received: %u: %s\n", me->idx, cmd, buf);
 				if (SDL_LockMutex(me->cmd_lock) == 0)
 				{
 					me->cmd = cmd;
@@ -92,7 +92,7 @@ static int server_recv_loop(void *data)
 				}
 				if (SDL_LockMutex(json_state_lock) == 0 && SDL_CondWait(json_updated_cond, json_state_lock) == 0)
 				{
-					printf("T%d: got json\n", me->idx);
+//					printf("T%d: got json\n", me->idx);
 					net_send(me->fd, json_state);
 					SDL_UnlockMutex(json_state_lock);
 				}
