@@ -128,7 +128,11 @@ char *json_to_text(cJSON *object)
 	cJSON_Minify(text);
 
 	if (total_length - strlen(text) < 1) { // less than two extra bytes available
+		char *old_address = text;
 		text = realloc(text, total_length + 1);
+		if (!text) { // insanely unlikely
+			return old_address;
+		}
 	}
 	size_t end = strlen(text);
 	text[end] = '\n';

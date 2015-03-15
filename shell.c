@@ -47,10 +47,12 @@ void shell_add(ShellType type, vec2 pos, vec2 direction)
 {
 	if (shells_count >= shells_size) {
 		shells_size += 10;
+		Shell *old_address = shells;
 		shells = realloc(shells, shells_size * sizeof(Shell));
 		if (!shells) {
 			printf("failed to allocate memory for shells!\n");
 			shells_size -= 10;
+			shells = old_address;
 			return;
 		}
 	}

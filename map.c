@@ -72,9 +72,11 @@ int map_add_modifier(AreaType type, ivec2 pos)
 {
 	if (modifiers_size < modifiers_count) {
 		modifiers_size += 10; // grow linearly, makes more sense for this
+		Modifier *old_address = modifiers;
 		modifiers = realloc(modifiers, modifiers_size * sizeof(Modifier));
 		if (!modifiers) {
 			printf("failed to grow array for modifiers\n");
+			free(old_address);
 			return 1;
 		}
 	}
