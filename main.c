@@ -510,7 +510,7 @@ int run_local(SDL_Renderer *ren)
 	return 0;
 }
 
-char *show_get_ip(SDL_Renderer *ren)
+char *show_get_ip(SDL_Renderer *ren, const char *errormessage)
 {
 	sound_set_type(SOUND_MENU);
 	SDL_Event event;
@@ -611,6 +611,8 @@ char *show_get_ip(SDL_Renderer *ren)
 		render_string(address, box.x + 2, box.y, 32);
 
 		render_string("enter ip:", box.x, box.y - 40, 32);
+
+		render_string(errormessage, box.x, box.y + 40, 11);
 
 		SDL_Rect line;
 		line.x = box.x + pos * 32;
@@ -751,12 +753,19 @@ void show_menu(SDL_Renderer *ren)
 			show_scores(ren);
 			break;
 		case 1: {
-			char *address = show_get_ip(ren);
-			if (address) {
-				printf("addy: %s\n", address);
-				sockfd = net_start_client(address, NET_PORT);
-			run_client(ren);
-			}
+			char *address = 0;
+			char *errors = alloca(64);
+			errors[0] = 0;
+			do {
+				address = show_get_ip(ren, errors);
+				if (address) {
+					printf("addy: %s\n", address);
+					sockfd = net_start_client(address, NET_PORT, &errors);
+					printf("sockfd: %d\n", sockfd);
+					if (sockfd < 0) continue;
+					run_client(ren);
+				}
+			} while (address && sockfd < 0);
 			break;
 		}
 		case 2:
@@ -829,10 +838,12 @@ int main(int argc, char *argv[])
 				printf("Usage: %s client <address>\n", argv[0]);
 				return 1;
 			}
-			if (strcmp(argv[2], "localhost") == 0)
-				sockfd = net_start_client("127.0.0.1", NET_PORT);
-			else
-				sockfd = net_start_client(argv[2], NET_PORT);
+			char *errors = alloca(64);
+			if (strcmp(argv[2], "localhost") == 0) {
+				sockfd = net_start_client("127.0.0.1", NET_PORT, &errors);
+			} else {
+				sockfd = net_start_client(argv[2], NET_PORT, &errors);
+			}
 			run_client(ren);
 		}
 		else if (strcmp(argv[1], "local") == 0)
