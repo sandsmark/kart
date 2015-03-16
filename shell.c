@@ -170,6 +170,7 @@ cJSON *shells_serialize()
 void shells_deserialize(cJSON *root)
 {
 	cJSON *shell, *cur;
+	shells_count = 0;
 	for (int i=0; i<cJSON_GetArraySize(root); i++) {
 		shell = cJSON_GetArrayItem(root, i);
 
