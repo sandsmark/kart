@@ -361,6 +361,8 @@ int run_client(SDL_Renderer *ren)
 	char state[MAX_JSON_SIZE];
 	cJSON *root;
 
+	/* TODO: get in UI */
+	net_send(sockfd, "supernick!");
 	/* Set up initial state */
 	net_recv(sockfd, state, MAX_JSON_SIZE);
 	root = cJSON_Parse(state);
@@ -371,7 +373,8 @@ int run_client(SDL_Renderer *ren)
 		cJSON *cur;
 		cur = cJSON_GetObjectItem(root, "num_cars");
 		num_cars = cur->valueint;
-		/* TODO: map */
+		cur = cJSON_GetObjectItem(root, "map");
+		map_deserialize(cur);
 	}
 
 	for (int i = 0; i < num_cars; i++)
@@ -418,7 +421,6 @@ int run_client(SDL_Renderer *ren)
 			root = NULL;
 		}
 
-		animate();
 		render(ren);
 	}
 
