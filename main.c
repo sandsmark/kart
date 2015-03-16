@@ -417,6 +417,10 @@ int run_client(SDL_Renderer *ren)
 				cJSON *car = cJSON_GetArrayItem(cars, i);
 				car_deserialize(car);
 			}
+			cJSON *shells = cJSON_GetObjectItem(root, "shells");
+			shells_deserialize(shells);
+			cJSON *boxes = cJSON_GetObjectItem(root, "boxes");
+			boxes_deserialize(boxes);
 			cJSON_Delete(root);
 			root = NULL;
 		}
