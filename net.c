@@ -60,11 +60,13 @@ int net_start_client(const char *addr, int port, char **errors)
 	if (inet_pton(AF_INET, addr, &serv.sin_addr) < 1) {
 		strcpy(*errors, "inet_ptons failed, probably invalid address");
 		printf("inet_ptons failed, inet address probably not valid\n");
+		shutdown(sockfd, SHUT_RDWR);
 		return -1;
 	}
 	if (connect(sockfd, (struct sockaddr *)&serv, sizeof(serv)) < 0) {
 		strcpy(*errors, "failed to connect to server");
 		printf("Failed to connect to server\n");
+		shutdown(sockfd, SHUT_RDWR);
 		return -1;
 	}
 	tv.tv_sec = 1;

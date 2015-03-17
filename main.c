@@ -115,6 +115,9 @@ static int accpt_conn(void *data)
 	Client *client = (Client*)data;
 
 	client->fd = net_accept(sockfd);
+	if (client->fd < 0) {
+		return;
+	}
 	net_recv(client->fd, client->car->name, MAX_NAME_LENGTH);
 	client->car->name[MAX_NAME_LENGTH - 1] = 0;
 
@@ -521,10 +524,9 @@ char *show_get_ip(SDL_Renderer *ren, const char *errormessage)
 {
 	sound_set_type(SOUND_MENU);
 	SDL_Event event;
-	int quit = 0;
 	int pos = 0;
 	char *address = calloc(16, sizeof(*address));
-	while (!quit) {
+	while (1) {
 		while (SDL_PollEvent(&event)){
 			//If user closes the window
 			if (event.type == SDL_QUIT) {
