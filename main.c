@@ -35,6 +35,7 @@ SDL_cond *json_updated_cond;
 static int num_clients = 1;
 
 extern int cars_count;
+extern int map_laps;
 
 typedef enum {
 	MENU_SERVER,
@@ -828,12 +829,13 @@ int main(int argc, char *argv[])
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0)
 		{
-			if (argc != 3)
+			if (argc != 4)
 			{
-				printf("Usage: %s server <num_clients>\n", argv[0]);
+				printf("Usage: %s server <num_clients> <num_laps>\n", argv[0]);
 				return 1;
 			}
 			num_clients = atoi(argv[2]);
+			map_laps = atoi(argv[3]);
 			run_server(ren);
 			show_scores(ren);
 		}

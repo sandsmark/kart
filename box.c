@@ -117,7 +117,7 @@ void boxes_deserialize(cJSON *root)
     cJSON *box, *cur;
     box_count = cJSON_GetArraySize(root);
     free(boxes);
-    boxes = malloc((box_count + 1) * sizeof(Box));
+    boxes = calloc(box_count + 1, sizeof(Box));
     for (int i=0; i<box_count; i++) {
         box = cJSON_GetArrayItem(root, i);
 
