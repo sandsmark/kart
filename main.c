@@ -116,7 +116,7 @@ static int accpt_conn(void *data)
 
 	client->fd = net_accept(sockfd);
 	if (client->fd < 0) {
-		return;
+		return 0;
 	}
 	net_recv(client->fd, client->car->name, MAX_NAME_LENGTH);
 	client->car->name[MAX_NAME_LENGTH - 1] = 0;
