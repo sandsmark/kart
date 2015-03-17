@@ -35,6 +35,7 @@ SDL_cond *json_updated_cond;
 static int num_clients = 1;
 
 extern int cars_count;
+extern int map_laps;
 
 typedef enum {
 	MENU_SERVER,
@@ -114,6 +115,9 @@ static int accpt_conn(void *data)
 	Client *client = (Client*)data;
 
 	client->fd = net_accept(sockfd);
+	if (client->fd < 0) {
+		return;
+	}
 	net_recv(client->fd, client->car->name, MAX_NAME_LENGTH);
 	client->car->name[MAX_NAME_LENGTH - 1] = 0;
 
@@ -361,6 +365,8 @@ int run_client(SDL_Renderer *ren)
 	char state[MAX_JSON_SIZE];
 	cJSON *root;
 
+	/* TODO: get in UI */
+	net_send(sockfd, "supernick!");
 	/* Set up initial state */
 	net_recv(sockfd, state, MAX_JSON_SIZE);
 	root = cJSON_Parse(state);
@@ -371,7 +377,8 @@ int run_client(SDL_Renderer *ren)
 		cJSON *cur;
 		cur = cJSON_GetObjectItem(root, "num_cars");
 		num_cars = cur->valueint;
-		/* TODO: map */
+		cur = cJSON_GetObjectItem(root, "map");
+		map_deserialize(cur);
 	}
 
 	for (int i = 0; i < num_cars; i++)
@@ -414,11 +421,14 @@ int run_client(SDL_Renderer *ren)
 				cJSON *car = cJSON_GetArrayItem(cars, i);
 				car_deserialize(car);
 			}
+			cJSON *shells = cJSON_GetObjectItem(root, "shells");
+			shells_deserialize(shells);
+			cJSON *boxes = cJSON_GetObjectItem(root, "boxes");
+			boxes_deserialize(boxes);
 			cJSON_Delete(root);
 			root = NULL;
 		}
 
-		animate();
 		render(ren);
 	}
 
@@ -514,10 +524,9 @@ char *show_get_ip(SDL_Renderer *ren, const char *errormessage)
 {
 	sound_set_type(SOUND_MENU);
 	SDL_Event event;
-	int quit = 0;
 	int pos = 0;
 	char *address = calloc(16, sizeof(*address));
-	while (!quit) {
+	while (1) {
 		while (SDL_PollEvent(&event)){
 			//If user closes the window
 			if (event.type == SDL_QUIT) {
@@ -822,12 +831,13 @@ int main(int argc, char *argv[])
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0)
 		{
-			if (argc != 3)
+			if (argc != 4)
 			{
-				printf("Usage: %s server <num_clients>\n", argv[0]);
+				printf("Usage: %s server <num_clients> <num_laps>\n", argv[0]);
 				return 1;
 			}
 			num_clients = atoi(argv[2]);
+			map_laps = atoi(argv[3]);
 			run_server(ren);
 			show_scores(ren);
 		}

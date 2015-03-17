@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#define MAX_WIDTH  64
+#define MAX_HEIGHT 64
+
 unsigned map_tile_height = 128;
 unsigned map_tile_width = 128;
 
@@ -267,6 +270,12 @@ int map_load_file(const char *filename)
 
 	if (fscanf(file, "%ux%u\n", &map_width, &map_height) != 2) {
 		printf("invalid map file format in file %s\n", filename);
+		fclose(file);
+		return 0;
+	}
+
+	if (map_width > MAX_WIDTH || map_width < 3 || map_height > MAX_HEIGHT || map_height < 3) {
+		printf("invalid sizes in map file %s\n", filename);
 		fclose(file);
 		return 0;
 	}
