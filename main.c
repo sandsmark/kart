@@ -817,7 +817,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (!map_init("map1.map")) {
+	if (!map_init("map1.json")) {
 		printf("unable to initialize map!\n");
 		return 1;
 	}

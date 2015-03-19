@@ -1,6 +1,7 @@
 #include "map.h"
 
 #include "renderer.h"
+#include "box.h"
 
 #include <SDL2/SDL.h>
 #include <math.h>
@@ -55,10 +56,7 @@ static int modifiers_count = 0;
 static int modifiers_size = 0;
 static Modifier *modifiers = 0;
 
-int boxlocations_count = 0;
-ivec2 *boxlocations = 0;
-
-ivec2 map_starting_position;
+ivec2 map_starting_positions[MAX_CARS];
 
 #define MAX_PATH_LENGTH 100
 ivec2 map_path[MAX_PATH_LENGTH];
@@ -76,7 +74,7 @@ void remove_modifier(int index)
 
 int map_add_modifier(AreaType type, ivec2 pos)
 {
-	if (modifiers_size < modifiers_count) {
+	if (modifiers_size <= modifiers_count) {
 		modifiers_size += 10; // grow linearly, makes more sense for this
 		Modifier *old_address = modifiers;
 		modifiers = realloc(modifiers, modifiers_size * sizeof(Modifier));
@@ -123,16 +121,6 @@ int map_add_modifier(AreaType type, ivec2 pos)
 	return 0;
 }
 
-int add_box_location(ivec2 pos)
-{
-	ivec2 boxlocation;
-	boxlocation.x = pos.x;
-	boxlocation.y = pos.y;
-	boxlocations[boxlocations_count] = boxlocation;
-	boxlocations_count++;
-	return 0;
-}
-
 int map_load_tiles();
 int map_load_file(const char *file);
 
@@ -157,7 +145,6 @@ void map_destroy()
 		free(map_tiles[x]);
 	}
 	free(map_tiles);
-	free(boxlocations);
 	free(modifiers);
 }
 
@@ -262,219 +249,70 @@ int map_load_tiles()
 
 int map_load_file(const char *filename)
 {
-	FILE *file = fopen(filename, "r");
+	FILE *file = fopen(filename, "rb");
 	if (file == NULL) {
 		printf("failed to open map file %s\n", filename);
 		return 0;
 	}
-
-	if (fscanf(file, "%ux%u\n", &map_width, &map_height) != 2) {
-		printf("invalid map file format in file %s\n", filename);
-		fclose(file);
-		return 0;
-	}
-
-	if (map_width > MAX_WIDTH || map_width < 3 || map_height > MAX_HEIGHT || map_height < 3) {
-		printf("invalid sizes in map file %s\n", filename);
-		fclose(file);
-		return 0;
-	}
-
-	map_tiles = malloc((map_width + 1) * sizeof(TileType*));
-	if (!map_tiles) {
-		printf("failed to allocate %lu bytes for map tiles\n", map_height * sizeof(TileType*));
-		fclose(file);
-		return 0;
-	}
-	for (unsigned int x = 0; x < map_width; x++) {
-		map_tiles[x] = malloc((map_height + 1) * sizeof(TileType));
-
-		if (!map_tiles[x]) {
-			printf("failed to allocate %lu bytes of memory for map tile line\n", map_height * sizeof(TileType*));
-		}
-	}
-
-	char buf[128] = { 0 };
-	for (unsigned int y=0; y<map_height; y++) {
-		if (fgets(buf, sizeof(buf), file) == NULL || strlen(buf) < map_width) {
-			printf("line length %lu (of %s) is less than map width %u\n", strlen(buf), buf, map_width);
-			fclose(file);
-			return 0;
-		}
-
-		for (unsigned int x=0; x<map_width; x++) {
-			switch(buf[x]) {
-			case '-':
-				map_tiles[x][y] = TILE_HORIZONTAL;
-				break;
-			case '|':
-				map_tiles[x][y] = TILE_VERTICAL;
-				break;
-			case '/':
-				map_tiles[x][y] = TILE_UPPERLEFT;
-				break;
-			case '`':
-				map_tiles[x][y] = TILE_UPPERRIGHT;
-				break;
-			case '\\':
-				map_tiles[x][y] = TILE_BOTTOMLEFT;
-				break;
-			case ',':
-				map_tiles[x][y] = TILE_BOTTOMRIGHT;
-				break;
-			case '.':
-				map_tiles[x][y] = TILE_NONE;
-				break;
-			default:
-				printf("invalid map tile type %c at x: %u y: %u\n", buf[x], x, y);
-				fclose(file);
-				return 0;
-			}
-		}
-	}
-
-	ivec2 starting_tile;
-	if (fscanf(file, "%d,%d\n", &starting_tile.x, &starting_tile.y) != 2) {
-		printf("unable to read starting position from map file!\n");
-		fclose(file);
-		return 0;
-	}
-	map_starting_position.x = map_tile_width * (starting_tile.x) + map_tile_width / 2;
-	map_starting_position.y = map_tile_height * (starting_tile.y) + map_tile_height / 5;
-
-	if (fscanf(file, "%d\n", &modifiers_size) != 1) {
-		printf("unable to read amount of modifiers\n");
-		fclose(file);
-		return 0;
-	}
-
-	modifiers = malloc(sizeof(Modifier) * (modifiers_size + 1));
-	if (!modifiers) {
-		printf("failed to allocate memory for modifiers\n");
-		fclose(file);
-		return 0;
-	}
-	ivec2 modifier_pos;
-	int ret = 0;
-	for (int i=0; i<modifiers_size; i++) {
-		if (fscanf(file, "%d %d %s\n", &modifier_pos.x, &modifier_pos.y, buf) != 3) {
-			printf("Unable to read modifier!\n");
-			fclose(file);
-			return 0;
-		}
-		if (strcmp(buf, "mud") == 0) {
-			ret = map_add_modifier(MAP_MUD, modifier_pos);
-		} else if (strcmp(buf, "ice") == 0) {
-			ret = map_add_modifier(MAP_ICE, modifier_pos);
-		} else if (strcmp(buf, "booster") == 0) {
-			ret = map_add_modifier(MAP_BOOST, modifier_pos);
-		}
-		if (ret) {
-			printf("error while adding modifier\n");
-			fclose(file);
-			return 0;
-		}
-	}
-
-
-	int boxlocations_size;
-	if (fscanf(file, "%d\n", &boxlocations_size) != 1) {
-		printf("unable to read amount of box locations!\n");
-		fclose(file);
-		return 0;
-	}
-
-	boxlocations = malloc(sizeof(ivec2) * (boxlocations_size + 1));
-	if (!boxlocations) {
-		printf("failed to allocate memory for box locations\n");
-		fclose(file);
-		return 0;
-	}
-
-	ivec2 box_location;
-	for (int i=0; i<boxlocations_size; i++) {
-		if (fscanf(file, "%d %d\n", &box_location.x, &box_location.y) != 2) {
-			printf("unable to read box location from file!");
-			fclose(file);
-			return 0;
-		}
-		if (add_box_location(box_location)) {
-			printf("error while adding box location\n");
-			fclose(file);
-			return 0;
-		}
-	}
-
+	fseek(file, 0, SEEK_END);
+	size_t size = ftell(file);
 	rewind(file);
+	if (size > 1000 * 1000) {
+		printf("map file over 1MB, refusing to load\n");
+		fclose(file);
+		return 0;
+	}
+
+	char *buf = malloc(size + 1);
+	if (!buf) {
+		printf("unable to allocate memory for map file buffer\n");
+		fclose(file);
+	}
+	fread(buf, 1, size, file);
 	fclose(file);
 
-	// Find path through map
+	cJSON *root = cJSON_Parse(buf);
+	free(buf);
 
-	map_path[0] = starting_tile;
-	map_path[1] = starting_tile;
-	map_path[1].x++;
-	for (int i=1; i<MAX_PATH_LENGTH - 1; i++) {
-		ivec2 next_tile = map_path[i];
-		switch(map_tiles[next_tile.x][next_tile.y]) {
-		case TILE_HORIZONTAL:
-			if (map_path[i-1].x == next_tile.x - 1) {
-				next_tile.x++;
-			} else {
-				next_tile.x--;
-			}
-			break;
-		case TILE_VERTICAL:
-			if (map_path[i-1].y == next_tile.y - 1) {
-				next_tile.y++;
-			} else {
-				next_tile.y--;
-			}
-			break;
-		case TILE_UPPERLEFT:
-			if (map_path[i-1].x == next_tile.x + 1) {
-				next_tile.y++;
-			} else {
-				next_tile.x++;
-			}
-			break;
-		case TILE_UPPERRIGHT:
-			if (map_path[i-1].x == next_tile.x - 1) {
-				next_tile.y++;
-			} else {
-				next_tile.x--;
-			}
-			break;
-		case TILE_BOTTOMLEFT:
-			if (map_path[i-1].x == next_tile.x + 1) {
-				next_tile.y--;
-			} else {
-				next_tile.x++;
-			}
-			break;
-		case TILE_BOTTOMRIGHT:
-			if (map_path[i-1].x == next_tile.x - 1) {
-				next_tile.y--;
-			} else {
-				next_tile.x--;
-			}
-			break;
-		case TILE_NONE:
-		default:
-			printf("invalid tile found trying to find path\n");
+	if (!root) {
+		printf("invalid json in map file %s\n", filename);
+		return 0;
+	}
+	cJSON *map = cJSON_GetObjectItem(root, "map");
+
+	if (!map) {
+		printf("missing map item in map file %s\n", filename);
+		return 0;
+	}
+
+	map_deserialize(map);
+
+	cJSON *boxes_array = cJSON_GetObjectItem(root, "boxes");
+	if (!boxes_array) {
+		printf("missing boxes array in %s\n", filename);
+		return 0;
+	}
+	boxes_deserialize(boxes_array);
+
+	cJSON *startpos_array = cJSON_GetObjectItem(root, "starting_positions");
+	if (cJSON_GetArraySize(startpos_array) != MAX_CARS) {
+		printf("a map needs exactly %d starting positions, got %d\n", MAX_CARS, cJSON_GetArraySize(startpos_array));
+		return 0;
+	}
+	for (int i=0; i < MAX_CARS; ++i) {
+		cJSON *cur = cJSON_GetArrayItem(startpos_array, i);
+		cJSON *x = cJSON_GetObjectItem(cur, "x");
+		if (!x) {
+			printf("no x for startpos\n");
 			return 0;
 		}
-
-		map_path[i+1] = next_tile;
-		map_path_length++;
-
-		// check if we're back to start
-		if (map_path[i].x == map_path[0].x && map_path[i].y == map_path[0].y) {
-			break;
+		cJSON *y = cJSON_GetObjectItem(cur, "y");
+		if (!y) {
+			printf("no y for startpos\n");
+			return 0;
 		}
-	}
-	printf("path:\n");
-	for (int i=0; i<map_path_length; i++) {
-		printf("x: %d y: %d\n", map_path[i].x, map_path[i].y);
+		map_starting_positions[i].x = x->valueint;
+		map_starting_positions[i].y = y->valueint;
 	}
 
 	return 1;

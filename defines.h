@@ -14,6 +14,8 @@ typedef struct {
 // Not defined with ansi C
 #define PI 3.14159265
 
+#define MAX_CARS 4
+
 // Car
 #define CAR_MASS 20 /*in kg*/
 #define CAR_DRAG_COEFF 0.1
