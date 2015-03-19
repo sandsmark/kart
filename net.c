@@ -9,6 +9,7 @@
 #ifdef __MINGW32__
 #include <winsock2.h>
 #include "windowssucks/inet_v6defs.h"
+#define SHUT_RDWR SD_BOTH
 #else
 #include <arpa/inet.h>
 #include <sys/socket.h>
