@@ -13,11 +13,9 @@ typedef enum {
 	MAP_GRASS,
 	MAP_WALL,
 	MAP_ICE,
-	MAP_OIL,
 	MAP_BOOST,
-	MAP_STARTAREA,
 	MAP_MUD,
-	MAP_WATER,
+	MAP_OIL,
 	MAP_BANANA
 } AreaType;
 
@@ -34,6 +32,9 @@ int map_dist_left_in_tile(int pathcount, vec2 pos);
 
 cJSON *map_serialize();
 void map_deserialize(cJSON *map);
+
+cJSON *map_items_serialize();
+void map_items_deserialize(cJSON *items);
 
 #endif
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

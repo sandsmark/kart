@@ -765,6 +765,62 @@ void map_deserialize(cJSON *root)
 	}
 }
 
+cJSON *map_items_serialize()
+{
+	cJSON *item_array = cJSON_CreateArray();
+	for (int i=0; i<modifiers_count; i++) {
+		cJSON *type_str;
+		switch(modifiers[i].type) {
+		case MAP_BANANA:
+			type_str = cJSON_CreateString("banana");
+			break;
+		case MAP_OIL:
+			type_str = cJSON_CreateString("oil");
+			break;
+		default:
+			continue;
+		}
+
+		cJSON *item_object = cJSON_CreateObject();
+		cJSON_AddItemToObject(item_object, "type", type_str);
+		cJSON_AddNumberToObject(item_object, "x", modifiers[i].rect.x);
+		cJSON_AddNumberToObject(item_object, "y", modifiers[i].rect.y);
+		cJSON_AddNumberToObject(item_object, "width", modifiers[i].rect.w);
+		cJSON_AddNumberToObject(item_object, "height", modifiers[i].rect.h);
+
+		cJSON_AddItemToArray(item_array, item_object);
+	}
+
+	return item_array;
+}
+
+void map_items_deserialize(cJSON *item_array)
+{
+	for (int i = 0; i < modifiers_count; ++i) {
+		if (modifiers[i].type == MAP_OIL || modifiers[i].type == MAP_BANANA) {
+			remove_modifier(i);
+		}
+	}
+	cJSON *cur;
+	for (int i=0; i<cJSON_GetArraySize(item_array); i++) {
+		cJSON *modifier = cJSON_GetArrayItem(item_array, i);
+
+		ivec2 pos;
+		cur = cJSON_GetObjectItem(modifier, "x");
+		pos.x = cur->valueint;
+		cur = cJSON_GetObjectItem(modifier, "y");
+		pos.y = cur->valueint;
+
+		cur = cJSON_GetObjectItem(modifier, "type");
+		const char *typestr = cur->valuestring;
+		if (!strcmp(typestr, "oil")) {
+			map_add_modifier(MAP_OIL, pos);
+		} else if (!strcmp(typestr, "banana")) {
+			map_add_modifier(MAP_BANANA, pos);
+		}
+	}
+}
+
 int map_dist_left_in_tile(int pathcount, vec2 pos)
 {
 	pathcount++;
