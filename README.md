@@ -137,6 +137,15 @@ status update JSON object like this:
         { "x": 448, "y": 558, "width": 16, "height": 16 },
         { "x": 448, "y": 579, "width": 16, "height": 16 },
         { "x": 448, "y": 600, "width": 16, "height": 16 }
+    ],
+    "items": [
+        {
+            "type": "oil",
+            "x": 168,
+            "y": 218,
+            "width": 64,
+            "height": 64
+        }
     ]
 }
 ```

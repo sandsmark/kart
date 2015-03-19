@@ -14,12 +14,11 @@
 #define INVINCIBLE_TIMEOUT 2500
 #define TIPPED_TIMEOUT 500
 
-#define MAX_CARS 8
 Car cars[MAX_CARS];
 int cars_count = 0;
 const vec2 car_start_dir = {1.0, 0.0};
 
-extern ivec2 map_starting_position;
+extern ivec2 map_starting_positions[];
 extern ivec2 map_path[];
 extern int map_path_length;
 extern int map_laps;
@@ -41,8 +40,8 @@ Car *car_add()
 	cars[i].tipped_at = 0;
 	cars[i].big_at = 0;
 	///* DEBUG: re-add once map does deserialization
-	cars[i].pos.x = map_starting_position.x;
-	cars[i].pos.y = map_starting_position.y + i * 25;
+	cars[i].pos.x = map_starting_positions[i].x;
+	cars[i].pos.y = map_starting_positions[i].y;
 	
 //	cars[i].pos.x = 500;
 //	cars[i].pos.y = 200;

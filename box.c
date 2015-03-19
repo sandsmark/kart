@@ -13,9 +13,6 @@ static int BOX_HEIGHT = 16;
 static int BOX_WIDTH = 16;
 static int RESPAWN_TIMEOUT = 5000;
 
-extern int boxlocations_count;
-extern ivec2 *boxlocations;
-
 typedef struct {
     ivec2 pos;
     Uint32 hit_time; // for respawning, 0 when never
@@ -27,24 +24,6 @@ Box *boxes = 0;
 int boxes_init()
 {
     box_texture = ren_load_image("box.bmp");
-
-    box_count = boxlocations_count * BOXES_PER_TILE;
-    boxes = malloc((box_count + 1) * sizeof(Box));
-    if (!boxes) {
-        printf("failed to grow array for modifiers\n");
-        return 1;
-    }
-    for (int i=0; i<boxlocations_count; i++) {
-        ivec2 box_position;
-        box_position.x = boxlocations[i].x * map_tile_width + map_tile_width / 2;
-        box_position.y = boxlocations[i].y * map_tile_height + map_tile_height / 5;
-        for (int j=0; j<4; j++) {
-            boxes[i*BOXES_PER_TILE + j].pos = box_position;
-            boxes[i*BOXES_PER_TILE + j].hit_time = 0;
-
-            box_position.y += map_tile_height / 6;
-        }
-    }
 
     return (box_texture != 0);
 }
@@ -116,6 +95,7 @@ void boxes_deserialize(cJSON *root)
 {
     cJSON *box, *cur;
     box_count = cJSON_GetArraySize(root);
+    printf("adding %d boxes\n", box_count);
     free(boxes);
     boxes = calloc(box_count + 1, sizeof(Box));
     for (int i=0; i<box_count; i++) {
@@ -125,5 +105,6 @@ void boxes_deserialize(cJSON *root)
         boxes[i].pos.x = cur->valueint;
         cur = cJSON_GetObjectItem(box, "y");
         boxes[i].pos.y = cur->valueint;
+        printf("added box at x: %d y: %d\n", boxes[i].pos.x, boxes[i].pos.y);
     }
 }

@@ -320,6 +320,7 @@ int run_server(SDL_Renderer *ren)
 		}
 		cJSON_AddItemToObject(state, "shells", shells_serialize());
 		cJSON_AddItemToObject(state, "boxes", boxes_serialize());
+		cJSON_AddItemToObject(state, "items", map_items_serialize());
 		if (SDL_LockMutex(json_state_lock) == 0)
 		{
 			free(json_state);
@@ -425,6 +426,8 @@ int run_client(SDL_Renderer *ren)
 			shells_deserialize(shells);
 			cJSON *boxes = cJSON_GetObjectItem(root, "boxes");
 			boxes_deserialize(boxes);
+			cJSON *items = cJSON_GetObjectItem(root, "items");
+			map_items_deserialize(items);
 			cJSON_Delete(root);
 			root = NULL;
 		}
@@ -814,7 +817,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (!map_init("map1.map")) {
+	if (!map_init("map1.json")) {
 		printf("unable to initialize map!\n");
 		return 1;
 	}
@@ -826,7 +829,7 @@ int main(int argc, char *argv[])
 		printf("unable to initialize powerups!\n");
 		return 1;
 	}
-	sound_init();
+	//sound_init();
 
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0)
