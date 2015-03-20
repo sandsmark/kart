@@ -267,6 +267,7 @@ int map_load_file(const char *filename)
 	if (!buf) {
 		printf("unable to allocate memory for map file buffer\n");
 		fclose(file);
+		return 0;
 	}
 	fread(buf, 1, size, file);
 	fclose(file);
