@@ -377,15 +377,22 @@ cJSON *car_serialize(Car *car)
 	cJSON *root, *dir, *velo, *pos;
 	root = cJSON_CreateObject();
 	cJSON_AddNumberToObject(root, "id", car->id);
+
 	cJSON_AddItemToObject(root, "direction", dir = cJSON_CreateObject());
 	cJSON_AddNumberToObject(dir, "x", car->direction.x);
 	cJSON_AddNumberToObject(dir, "y", car->direction.y);
+
 	cJSON_AddItemToObject(root, "velocity", velo = cJSON_CreateObject());
 	cJSON_AddNumberToObject(velo, "x", car->velocity.x);
 	cJSON_AddNumberToObject(velo, "y", car->velocity.y);
+
+	ivec2 center;
+	center.x = car->pos.x + car->width/2;
+	center.y = car->pos.y + car->height/2;
 	cJSON_AddItemToObject(root, "pos", pos = cJSON_CreateObject());
-	cJSON_AddNumberToObject(pos, "x", car->pos.x);
-	cJSON_AddNumberToObject(pos, "y", car->pos.y);
+	cJSON_AddNumberToObject(pos, "x", center.x);
+	cJSON_AddNumberToObject(pos, "y", center.y);
+
 	cJSON_AddNumberToObject(root, "drift", car->drift);
 	cJSON_AddNumberToObject(root, "width", car->width);
 	cJSON_AddNumberToObject(root, "height", car->height);
@@ -456,18 +463,21 @@ void car_deserialize(cJSON *root)
 	y = cJSON_GetObjectItem(cur, "y");
 	car->velocity.y = y->valuedouble;
 
-	cur = cJSON_GetObjectItem(root, "pos");
-	x = cJSON_GetObjectItem(cur, "x");
-	car->pos.x = x->valuedouble;
-	y = cJSON_GetObjectItem(cur, "y");
-	car->pos.y = y->valuedouble;
-
 	cur = cJSON_GetObjectItem(root, "drift");
 	car->drift = cur->valueint;
 	cur = cJSON_GetObjectItem(root, "width");
 	car->width = cur->valueint;
 	cur = cJSON_GetObjectItem(root, "height");
 	car->height = cur->valueint;
+
+	cur = cJSON_GetObjectItem(root, "pos");
+	x = cJSON_GetObjectItem(cur, "x");
+	car->pos.x = x->valuedouble;
+	car->pos.x -= car->width/2;
+	y = cJSON_GetObjectItem(cur, "y");
+	car->pos.y = y->valuedouble;
+	car->pos.y -= car->height/2;
+
 
 	cur = cJSON_GetObjectItem(root, "powerup");
 	const char *powerup = cur->valuestring;
