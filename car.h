@@ -65,6 +65,8 @@ int cars_finished();
 
 Car *cars_get_sorted();
 
+Car *car_get_closest(vec2 pos);
+
 #endif
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

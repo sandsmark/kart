@@ -17,10 +17,10 @@ void segv_handler(int sig)
 #else
 	void *stackptrs[10];
 	size_t num = backtrace(stackptrs, 10);
-	int btfile = open("backtrace.log", O_WRONLY | O_APPEND | O_CREAT, 0666);
-	write(btfile, "\n", 1);
-	backtrace_symbols_fd(stackptrs, num, btfile);
-	close(btfile);
+	FILE *btfile = fopen("backtraces.log", "a");
+	fprintf(btfile, "\n");
+	backtrace_symbols_fd(stackptrs, num, fileno(btfile));
+	fclose(btfile);
 	printf("==== CRASH (signal %d) ====\n", sig);
 	backtrace_symbols_fd(stackptrs, num, STDERR_FILENO);
 	exit(1);

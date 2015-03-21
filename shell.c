@@ -6,17 +6,9 @@
 
 #include <SDL2/SDL.h>
 
-static SDL_Texture *shell_green_texture  = 0;
-static SDL_Texture *shell_red_texture    = 0;
-static SDL_Texture *shell_blue_texture   = 0;
-
-static const int SHELL_LIFETIME = 5000;
-
 typedef struct {
 	vec2 direction;
 
-	vec2 force;
-	vec2 velocity;
 	vec2 pos;
 
 	ShellType type;
@@ -26,16 +18,9 @@ static int shells_count = 0;
 static int shells_size = 0;
 static Shell *shells = 0;
 
-
-int shell_init()
+void shell_destroy()
 {
-	shell_green_texture = ren_load_image("green_shell.bmp");
-	shell_red_texture   = ren_load_image("red_shell.bmp");
-	shell_blue_texture  = ren_load_image("blue_shell.bmp");
-
-	return (shell_green_texture &&
-			shell_red_texture &&
-			shell_blue_texture);
+	free(shells);
 }
 
 void shells_render(SDL_Renderer *ren)
@@ -62,10 +47,12 @@ void shell_add(ShellType type, vec2 pos, vec2 direction)
 {
 	if (shells_count >= shells_size) {
 		shells_size += 10;
+		Shell *old_address = shells;
 		shells = realloc(shells, shells_size * sizeof(Shell));
 		if (!shells) {
 			printf("failed to allocate memory for shells!\n");
 			shells_size -= 10;
+			shells = old_address;
 			return;
 		}
 	}
@@ -93,24 +80,29 @@ void shell_remove(int index)
 
 void shell_move(Shell *shell)
 {
+	Car *target_car = 0;
 	if (shell->type == SHELL_BLUE) {
-		Car *leader = car_get_leader();
-		if (leader) {
-			vec2 target = leader->pos;
-			if (target.x > shell->pos.x) {
-				shell->direction.x += 0.1;
-			} else {
-				shell->direction.x -= 0.1;
-			}
-			if (target.y > shell->pos.y) {
-				shell->direction.y += 0.1;
-			} else {
-				shell->direction.y -= 0.1;
-			}
-			vec_normalize(&shell->direction);
-			vec_scale(&shell->direction, 5.5);
-		}
+		target_car = car_get_leader();
+	} else if (shell->type == SHELL_GREEN) {
+		target_car = car_get_closest(shell->pos);
 	}
+
+	if (target_car) {
+		vec2 target = target_car->pos;
+		if (target.x > shell->pos.x) {
+			shell->direction.x += 0.1;
+		} else {
+			shell->direction.x -= 0.1;
+		}
+		if (target.y > shell->pos.y) {
+			shell->direction.y += 0.1;
+		} else {
+			shell->direction.y -= 0.1;
+		}
+		vec_normalize(&shell->direction);
+		vec_scale(&shell->direction, 5.5);
+	}
+
 
 	ivec2 next_pos;
 	next_pos.x = shell->pos.x + shell->direction.x;
@@ -136,6 +128,12 @@ void shells_move()
 {
 	for (int i=0; i<shells_count; i++) {
 		shell_move(&shells[i]);
+	}
+	for (int i=0; i<shells_count; i++) {
+		if (shells[i].pos.x < 0 || shells[i].pos.x > SCREEN_WIDTH ||
+		    shells[i].pos.y < 0 || shells[i].pos.y > SCREEN_HEIGHT){
+			shell_remove(i);
+		}
 	}
 }
 
@@ -167,6 +165,37 @@ cJSON *shells_serialize()
 		cJSON_AddItemToArray(root, shell);
 	}
 	return root;
+}
+
+void shells_deserialize(cJSON *root)
+{
+	cJSON *shell, *cur;
+	shells_count = 0;
+	for (int i=0; i<cJSON_GetArraySize(root); i++) {
+		shell = cJSON_GetArrayItem(root, i);
+
+		vec2 pos;
+		cur = cJSON_GetObjectItem(shell, "x");
+		pos.x = cur->valueint;
+		cur = cJSON_GetObjectItem(shell, "y");
+		pos.y = cur->valueint;
+
+		vec2 direction;
+		cur = cJSON_GetObjectItem(shell, "dx");
+		direction.x = cur->valueint;
+		cur = cJSON_GetObjectItem(shell, "dy");
+		direction.y = cur->valueint;
+
+		cur = cJSON_GetObjectItem(shell, "type");
+		const char *typestr = cur->valuestring;
+		if (!strcmp(typestr, "green")) {
+			shell_add(SHELL_GREEN, pos, direction);
+		} else if (!strcmp(typestr, "blue")) {
+			shell_add(SHELL_BLUE, pos, direction);
+		} else if (!strcmp(typestr, "red")) {
+			shell_add(SHELL_RED, pos, direction);
+		}
+	}
 }
 
 int shells_check_collide(vec2 pos)

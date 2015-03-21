@@ -14,12 +14,11 @@
 #define INVINCIBLE_TIMEOUT 2500
 #define TIPPED_TIMEOUT 500
 
-#define MAX_CARS 8
 Car cars[MAX_CARS];
 int cars_count = 0;
 const vec2 car_start_dir = {1.0, 0.0};
 
-extern ivec2 map_starting_position;
+extern ivec2 map_starting_positions[];
 extern ivec2 map_path[];
 extern int map_path_length;
 extern int map_laps;
@@ -40,12 +39,12 @@ Car *car_add()
 	cars[i].invincible_at = 0;
 	cars[i].tipped_at = 0;
 	cars[i].big_at = 0;
-	/* DEBUG: re-add once map does deserialization
-	cars[i].pos.x = map_starting_position.x;
-	cars[i].pos.y = map_starting_position.y + i * 20;
-	*/
-	cars[i].pos.x = 500;
-	cars[i].pos.y = 200;
+	///* DEBUG: re-add once map does deserialization
+	cars[i].pos.x = map_starting_positions[i].x;
+	cars[i].pos.y = map_starting_positions[i].y;
+	
+//	cars[i].pos.x = 500;
+//	cars[i].pos.y = 200;
 	cars[i].direction = car_start_dir;
 	char filename[10];
 	sprintf(filename, "car%d.bmp", i);
@@ -83,8 +82,8 @@ void car_collison(Car *car1, Car *car2)
 	difference.x = car1_center.x - car2_center.x;
 	difference.y = car1_center.y - car2_center.y;
 
-	if (abs(difference.x) < (car1->width/2 + car2->width/2) &&
-	    abs(difference.y) < (car1->height/2 + car2->height/2))
+	if (fabsf(difference.x) < (car1->width/2 + car2->width/2) &&
+	    fabsf(difference.y) < (car1->height/2 + car2->height/2))
 	{
 		vec_normalize(&difference);
 		vec_scale(&difference, 3000);
@@ -138,11 +137,7 @@ void car_move(Car *car)
 		break;
 	case MAP_BANANA:
 		if (car->invincible_at) break;
-		vec_rotate(&car->direction, 45);
-		car->velocity.x = 0;
-		car->velocity.y = 0;
-		car->force.x = -10;
-		car->force.y = -10;
+		car->tipped_at = SDL_GetTicks();
 		break;
 	case MAP_OIL:
 		if (car->invincible_at) break;
@@ -241,8 +236,8 @@ void car_move(Car *car)
 	}
 
 	// Check tile/lap count stuff
-	const int px = car->pos.x / TILE_WIDTH;
-	const int py = car->pos.y / TILE_HEIGHT;
+	const int px = car->pos.x / map_tile_width;
+	const int py = car->pos.y / map_tile_height;
 
 	int next_tile = (car->tiles_passed + 1) % map_path_length;
 	if (map_path[next_tile].x == px && map_path[next_tile].y == py) {
@@ -280,6 +275,12 @@ void cars_move()
 		car_move(&cars[i]);
 		memset(&cars[i].force, 0, sizeof(cars[i].force));
 	}
+}
+
+void bullet_move(Car *car)
+{
+	//TODO: implement me
+	car_move(car);
 }
 
 void car_use_powerup(Car *car)
@@ -468,7 +469,29 @@ void car_deserialize(cJSON *root)
 	cur = cJSON_GetObjectItem(root, "height");
 	car->height = cur->valueint;
 
-	// TODO: deseiralize powerup
+	cur = cJSON_GetObjectItem(root, "powerup");
+	const char *powerup = cur->valuestring;
+	if (!strcmp(powerup, "banana")) {
+		car->powerup = POWERUP_BANANA;
+	} else if (!strcmp(powerup, "greenshell")) {
+		car->powerup = POWERUP_GREEN_SHELL;
+	} else if (!strcmp(powerup, "redshell")) {
+		car->powerup = POWERUP_RED_SHELL;
+	} else if (!strcmp(powerup, "blueshell")) {
+		car->powerup = POWERUP_BLUE_SHELL;
+	} else if (!strcmp(powerup, "oil")) {
+		car->powerup = POWERUP_OIL;
+	} else if (!strcmp(powerup, "mushroom")) {
+		car->powerup = POWERUP_MUSHROOM;
+	} else if (!strcmp(powerup, "bigmushroom")) {
+		car->powerup = POWERUP_BIG_MUSHROOM;
+	} else if (!strcmp(powerup, "lightning")) {
+		car->powerup = POWERUP_LIGHTNING;
+	} else if (!strcmp(powerup, "star")) {
+		car->powerup = POWERUP_STAR;
+	} else {
+		car->powerup = POWERUP_NONE;
+	}
 }
 
 // Not the world's most efficient implementation, but it's just 4 cars at max
@@ -512,8 +535,6 @@ void cars_render(SDL_Renderer *ren)
 			r = 0; g = 0xff; b = 0xa0;
 		} else if (i == 3) {
 			r = 0xff; g = 0xff; b = 0xff;
-		} else if (i == 4) {
-			r = 0xa0; g = 0xa0; b = 0xa0;
 		}
 
 		// Draw trail
@@ -637,6 +658,20 @@ Car *cars_get_sorted()
 	memcpy(sorted, cars, sizeof(Car) * cars_count);
 	qsort(sorted, cars_count, sizeof(Car), car_compare);
 	return sorted;
+}
+
+Car *car_get_closest(vec2 pos)
+{
+	Car *ret = &cars[0];
+	double min_dist = hypot(pos.x - ret->pos.x, pos.y - ret->pos.y);
+	for (int i=1; i<cars_count; i++) {
+		const double dist = hypot(pos.x - cars[i].pos.x, pos.y - cars[i].pos.y);
+		if (dist < min_dist) {
+			min_dist = dist;
+			ret = &cars[i];
+		}
+	}
+	return ret;
 }
 
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

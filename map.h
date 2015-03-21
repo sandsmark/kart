@@ -5,19 +5,17 @@
 #include "defines.h"
 #include "libs/cJSON/cJSON.h"
 
-#define TILE_WIDTH 128
-#define TILE_HEIGHT 128
+extern unsigned map_tile_width;
+extern unsigned map_tile_height;
 
 typedef enum {
 	MAP_TRACK,
 	MAP_GRASS,
 	MAP_WALL,
 	MAP_ICE,
-	MAP_OIL,
 	MAP_BOOST,
-	MAP_STARTAREA,
 	MAP_MUD,
-	MAP_WATER,
+	MAP_OIL,
 	MAP_BANANA
 } AreaType;
 
@@ -33,6 +31,10 @@ AreaType map_get_type(const ivec2 pos);
 int map_dist_left_in_tile(int pathcount, vec2 pos);
 
 cJSON *map_serialize();
+void map_deserialize(cJSON *map);
+
+cJSON *map_items_serialize();
+void map_items_deserialize(cJSON *items);
 
 #endif
 /* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

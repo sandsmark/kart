@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <errno.h>
 
 #ifdef __MINGW32__
 #include <winsock2.h>
@@ -19,44 +20,55 @@ static unsigned input_mask = 0;
 
 static void die(const char *msg)
 {
-	fprintf(stderr, "%s\n", msg);
+	fprintf(stderr, "%s (%s)\n", msg, strerror(errno));
 	exit(1);
 }
 
 int net_start_server(int port)
 {
-	int sockfd, err;
+	int sockfd;
 	struct sockaddr_in serv;
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		die("Failed to create socket");
-    int reuseaddr = 1;
-    setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr));
+	int reuseaddr = 1;
+	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuseaddr, sizeof(reuseaddr));
 	memset(&serv, 0, sizeof(serv));
 	serv.sin_family = AF_INET;
 	serv.sin_addr.s_addr = INADDR_ANY;
 	serv.sin_port = htons(port);
-	if ((err = bind(sockfd, (struct sockaddr *)&serv, sizeof(serv))) < 0)
+	if (bind(sockfd, (struct sockaddr *)&serv, sizeof(serv)) < 0)
 		die("Failed to bind to port");
-	if ((err = listen(sockfd, 10)) < 0)
+	if (listen(sockfd, 10) < 0)
 		die("Failed to call listen on socket");
 	printf("Started server on port %d\n", port);
 	return sockfd;
 }
 
-int net_start_client(const char *addr, int port)
+int net_start_client(const char *addr, int port, char **errors)
 {
-	int sockfd, err;
+	int sockfd;
 	struct sockaddr_in serv;
 	struct timeval tv;
-	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		die("Failed to create socket");
+	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		strcpy(*errors, "Failed to create socket!");
+		printf("Failed to create socket\n");
+		return -1;
+	}
 	memset(&serv, 0, sizeof(serv));
 	serv.sin_family = AF_INET;
 	serv.sin_port = htons(port);
-	if ((err = inet_pton(AF_INET, addr, &serv.sin_addr)) < 1)
-		die("inet_ptons failed, inet address probably not valid");
-	if ((err = connect(sockfd, (struct sockaddr *)&serv, sizeof(serv))) < 0)
-		die("Failed to connect to server");
+	if (inet_pton(AF_INET, addr, &serv.sin_addr) < 1) {
+		strcpy(*errors, "inet_ptons failed, probably invalid address");
+		printf("inet_ptons failed, inet address probably not valid\n");
+		close(sockfd);
+		return -1;
+	}
+	if (connect(sockfd, (struct sockaddr *)&serv, sizeof(serv)) < 0) {
+		strcpy(*errors, "failed to connect to server");
+		printf("Failed to connect to server\n");
+		close(sockfd);
+		return -1;
+	}
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
 	setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (void *)&tv, sizeof(tv));
@@ -130,7 +142,7 @@ ssize_t net_send_input(int sockfd)
 {
 	ssize_t n;
 	char send_buf[64];
-	snprintf(send_buf, 64, "%d", input_mask);
+	snprintf(send_buf, 64, "%u", input_mask);
 	n = send(sockfd, send_buf, strlen(send_buf), 0);
 	input_mask = 0;
 	return n;
@@ -145,3 +157,4 @@ void net_close(int sockfd)
 {
 	close(sockfd);
 }
+/* vim: set ts=8 sw=8 tw=0 noexpandtab cindent softtabstop=8 :*/

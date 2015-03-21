@@ -17,6 +17,7 @@ Drift       | Comma    | C        | 4
 Use powerup | Period   | V        | 5
 
 Some pseudo C code to use it:
+
 ```C
     #define NET_INPUT_UP 1<<0
     #define NET_INPUT_DOWN 1<<1
@@ -34,6 +35,7 @@ Some pseudo C code to use it:
 
 On connect you will receive a JSON object giving you your ID and describing the
 map:
+
 ```JSON
 {
     "id": 0,
@@ -94,6 +96,7 @@ github or contact us otherwise so we can explain better here).
 
 Then, each time you send a command (invalid or valid), you will get back a
 status update JSON object like this:
+
 ```JSON
 {
     "cars": [
@@ -134,10 +137,18 @@ status update JSON object like this:
         { "x": 448, "y": 558, "width": 16, "height": 16 },
         { "x": 448, "y": 579, "width": 16, "height": 16 },
         { "x": 448, "y": 600, "width": 16, "height": 16 }
+    ],
+    "items": [
+        {
+            "type": "oil",
+            "x": 168,
+            "y": 218,
+            "width": 64,
+            "height": 64
+        }
     ]
 }
 ```
-
 
 **NOTE: the actual JSON you receive is minified, and each initial or status update is a single
 object on a single line, terminated by a newline:**
@@ -150,7 +161,22 @@ object on a single line, terminated by a newline:**
 
 
 ### Build instructions
-Install the SDL2 development headers, and run "make".
+TL;DR: Install the SDL2 development headers, and run "make".
+
+#### Building on Ubuntu
+On Ubuntu (14.04), which packages you need to install might not be obvious, so try this:
+
+```bash
+sudo apt-get install build-essential libsdl2-dev
+```
+
+From there, it's just to run `make`, turn `kart` into an executable, and execute it!
+
+```bash
+make
+chmod +x kart
+./kart
+```
 
 ### CREDITS:
 Graphics by 'Kari Nordmann' (alias).

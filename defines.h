@@ -14,6 +14,8 @@ typedef struct {
 // Not defined with ansi C
 #define PI 3.14159265
 
+#define MAX_CARS 4
+
 // Car
 #define CAR_MASS 20 /*in kg*/
 #define CAR_DRAG_COEFF 0.1
@@ -29,7 +31,6 @@ typedef struct {
 #define NET_PORT 31337
 
 // Settings
-#define NUM_CLIENTS 1
 #define SCREEN_WIDTH  1024
 #define SCREEN_HEIGHT 768
 #define FRAMETIME_MS 30

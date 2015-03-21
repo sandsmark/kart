@@ -28,11 +28,14 @@ typedef struct {
 } Client;
 char *json_state;
 SDL_mutex *json_state_lock;
-static Client clients[NUM_CLIENTS];
+static Client *clients;
 SDL_atomic_t net_listen;
 SDL_cond *json_updated_cond;
 
+static int num_clients = 1;
+
 extern int cars_count;
+extern int map_laps;
 
 typedef enum {
 	MENU_SERVER,
@@ -41,16 +44,15 @@ typedef enum {
 	MENU_QUIT
 } MenuChoice;
 
-void do_render(SDL_Renderer *ren)
+void render(SDL_Renderer *ren)
 {
 	render_background();
 	map_render(ren);
-	cars_move();
 	boxes_render(ren);
-	shells_move();
 	shells_render(ren);
 	cars_render(ren);
 
+	// Show fps counter
 	static Uint32 last_time = 0;
 	const Uint32 delta = SDL_GetTicks() - last_time;
 	last_time = SDL_GetTicks();
@@ -59,6 +61,14 @@ void do_render(SDL_Renderer *ren)
 		sprintf(buf, "%d fps", 1000 / delta);
 		render_string(buf, SCREEN_WIDTH - 100, 5, 11);
 	}
+
+	SDL_RenderPresent(ren);
+}
+
+void animate()
+{
+	cars_move();
+	shells_move();
 }
 
 static int server_recv_loop(void *data)
@@ -75,7 +85,7 @@ static int server_recv_loop(void *data)
 			if (sscanf(buf, "%u", &cmd) == 1)
 			{
 				buf[63] = 0;
-				printf("T%d: Received: %d: %s\n", me->idx, cmd, buf);
+//				printf("T%d: Received: %u: %s\n", me->idx, cmd, buf);
 				if (SDL_LockMutex(me->cmd_lock) == 0)
 				{
 					me->cmd = cmd;
@@ -83,7 +93,7 @@ static int server_recv_loop(void *data)
 				}
 				if (SDL_LockMutex(json_state_lock) == 0 && SDL_CondWait(json_updated_cond, json_state_lock) == 0)
 				{
-					printf("T%d: got json\n", me->idx);
+//					printf("T%d: got json\n", me->idx);
 					net_send(me->fd, json_state);
 					SDL_UnlockMutex(json_state_lock);
 				}
@@ -105,6 +115,9 @@ static int accpt_conn(void *data)
 	Client *client = (Client*)data;
 
 	client->fd = net_accept(sockfd);
+	if (client->fd < 0) {
+		return 0;
+	}
 	net_recv(client->fd, client->car->name, MAX_NAME_LENGTH);
 	client->car->name[MAX_NAME_LENGTH - 1] = 0;
 
@@ -119,7 +132,11 @@ char *json_to_text(cJSON *object)
 	cJSON_Minify(text);
 
 	if (total_length - strlen(text) < 1) { // less than two extra bytes available
-		json_state = realloc(text, total_length + 1);
+		char *old_address = text;
+		text = realloc(text, total_length + 1);
+		if (!text) { // insanely unlikely
+			return old_address;
+		}
 	}
 	size_t end = strlen(text);
 	text[end] = '\n';
@@ -139,6 +156,7 @@ int run_server(SDL_Renderer *ren)
 	}
 
 	cJSON *map_object = map_serialize();
+	clients = malloc(sizeof(Client) * num_clients);
 
 	json_state = malloc(1);
 	*json_state = 0;
@@ -146,7 +164,7 @@ int run_server(SDL_Renderer *ren)
 	SDL_AtomicSet(&net_listen, 1);
 	printf("Waiting for clients...\n");
 	/* Set up each client */
-	for (int i = 0; i < NUM_CLIENTS; i++)
+	for (int i = 0; i < num_clients; i++)
 	{
 		clients[i].car = car_add();
 
@@ -188,14 +206,14 @@ int run_server(SDL_Renderer *ren)
 			SDL_RenderCopyEx(ren, car_tex, 0, &car_target, car_angle, 0, 0);
 			car_angle += 2*(i+1);
 			if (car_angle >= 360) car_angle -= 360;
-			for (int j = 0; j < NUM_CLIENTS; j++)
+			for (int j = 0; j < num_clients; j++)
 			{
 				if (i > j)
 					SDL_SetRenderDrawColor(ren, 0x00, 0xff, 0x00, 0xff);
 				else
 					SDL_SetRenderDrawColor(ren, 0xff, 0x00, 0x00, 0xff);
 				SDL_Rect client_rect;
-				client_rect.x = SCREEN_WIDTH/2 - ((NUM_CLIENTS-1)*10 + 5) + j * 20;
+				client_rect.x = SCREEN_WIDTH/2 - ((num_clients-1)*10 + 5) + j * 20;
 				client_rect.y = 378;
 				client_rect.h = 10;
 				client_rect.w = 10;
@@ -213,7 +231,7 @@ int run_server(SDL_Renderer *ren)
 		// Send initial state
 		cJSON *initial_object = cJSON_CreateObject();
 		cJSON_AddNumberToObject(initial_object, "id", i);
-		cJSON_AddNumberToObject(initial_object, "num_cars", NUM_CLIENTS);
+		cJSON_AddNumberToObject(initial_object, "num_cars", num_clients);
 		cJSON_AddItemToObject(initial_object, "map", cJSON_Duplicate(map_object, 1));
 		char *initial_json = json_to_text(initial_object);
 		net_send(clients[i].fd, initial_json);
@@ -261,7 +279,7 @@ int run_server(SDL_Renderer *ren)
 			}
 		}
 
-		for (int i = 0; i < NUM_CLIENTS; i++)
+		for (int i = 0; i < num_clients; i++)
 		{
 			Car *car = clients[i].car;
 			if (SDL_LockMutex(clients[i].cmd_lock) == 0)
@@ -291,16 +309,18 @@ int run_server(SDL_Renderer *ren)
 			}
 		}
 
-		do_render(ren);
+		animate();
+		render(ren);
 
 		cJSON *state = cJSON_CreateObject(), *car_json;
 		cJSON_AddItemToObject(state, "cars", car_json = cJSON_CreateArray());
-		for (int i = 0; i < NUM_CLIENTS; i++)
+		for (int i = 0; i < num_clients; i++)
 		{
 			cJSON_AddItemToArray(car_json, car_serialize(clients[i].car));
 		}
 		cJSON_AddItemToObject(state, "shells", shells_serialize());
 		cJSON_AddItemToObject(state, "boxes", boxes_serialize());
+		cJSON_AddItemToObject(state, "items", map_items_serialize());
 		if (SDL_LockMutex(json_state_lock) == 0)
 		{
 			free(json_state);
@@ -309,8 +329,6 @@ int run_server(SDL_Renderer *ren)
 			SDL_UnlockMutex(json_state_lock);
 		}
 		cJSON_Delete(state);
-
-		SDL_RenderPresent(ren);
 
 		// Limit framerate
 		Uint32 time1 = SDL_GetTicks();
@@ -326,7 +344,7 @@ int run_server(SDL_Renderer *ren)
 	SDL_LockMutex(json_state_lock);
 	SDL_CondBroadcast(json_updated_cond);
 	SDL_UnlockMutex(json_state_lock);
-	for (int i = 0; i < NUM_CLIENTS; i++)
+	for (int i = 0; i < num_clients; i++)
 	{
 		int t_status;
 		SDL_WaitThread(clients[i].thr, &t_status);
@@ -336,7 +354,7 @@ int run_server(SDL_Renderer *ren)
 	net_close(sockfd);
 	SDL_DestroyMutex(json_state_lock);
 	SDL_DestroyCond(json_updated_cond);
-	map_destroy();
+	free(clients);
 	return 0;
 }
 
@@ -348,6 +366,8 @@ int run_client(SDL_Renderer *ren)
 	char state[MAX_JSON_SIZE];
 	cJSON *root;
 
+	/* TODO: get in UI */
+	net_send(sockfd, "supernick!");
 	/* Set up initial state */
 	net_recv(sockfd, state, MAX_JSON_SIZE);
 	root = cJSON_Parse(state);
@@ -358,7 +378,8 @@ int run_client(SDL_Renderer *ren)
 		cJSON *cur;
 		cur = cJSON_GetObjectItem(root, "num_cars");
 		num_cars = cur->valueint;
-		/* TODO: map */
+		cur = cJSON_GetObjectItem(root, "map");
+		map_deserialize(cur);
 	}
 
 	for (int i = 0; i < num_cars; i++)
@@ -401,19 +422,21 @@ int run_client(SDL_Renderer *ren)
 				cJSON *car = cJSON_GetArrayItem(cars, i);
 				car_deserialize(car);
 			}
+			cJSON *shells = cJSON_GetObjectItem(root, "shells");
+			shells_deserialize(shells);
+			cJSON *boxes = cJSON_GetObjectItem(root, "boxes");
+			boxes_deserialize(boxes);
+			cJSON *items = cJSON_GetObjectItem(root, "items");
+			map_items_deserialize(items);
 			cJSON_Delete(root);
 			root = NULL;
 		}
 
-		render_background();
-		map_render(ren);
-
-		SDL_RenderPresent(ren);
+		render(ren);
 	}
 
 	// Clean up
 	SDL_AtomicSet(&net_listen, 0);
-	map_destroy();
 	return 0;
 }
 
@@ -485,9 +508,8 @@ int run_local(SDL_Renderer *ren)
 			car_use_powerup(car);
 		}
 
-		do_render(ren);
-
-		SDL_RenderPresent(ren);
+		animate();
+		render(ren);
 
 		// Limit framerate
 		Uint32 time1 = SDL_GetTicks();
@@ -498,19 +520,16 @@ int run_local(SDL_Renderer *ren)
 		time0 = time1;
 	}
 
-	// Clean up
-	map_destroy();
 	return 0;
 }
 
-char *show_get_ip(SDL_Renderer *ren)
+char *show_get_ip(SDL_Renderer *ren, const char *errormessage)
 {
 	sound_set_type(SOUND_MENU);
 	SDL_Event event;
-	int quit = 0;
 	int pos = 0;
 	char *address = calloc(16, sizeof(*address));
-	while (!quit) {
+	while (1) {
 		while (SDL_PollEvent(&event)){
 			//If user closes the window
 			if (event.type == SDL_QUIT) {
@@ -605,6 +624,8 @@ char *show_get_ip(SDL_Renderer *ren)
 
 		render_string("enter ip:", box.x, box.y - 40, 32);
 
+		render_string(errormessage, box.x, box.y + 40, 11);
+
 		SDL_Rect line;
 		line.x = box.x + pos * 32;
 		line.y = box.y + 30;
@@ -628,8 +649,14 @@ char *show_get_ip(SDL_Renderer *ren)
 void show_scores(SDL_Renderer *ren)
 {
 	SDL_Event event;
-	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
-	SDL_RenderClear(ren);
+	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xe0);
+
+	SDL_Rect rect;
+	rect.x = 0;
+	rect.y = 0;
+	rect.w = SCREEN_WIDTH;
+	rect.h = SCREEN_HEIGHT;
+	SDL_RenderFillRect(ren, &rect);
 	if (cars_finished()) {
 		render_string("scores:", 10, 10, 44);
 	} else {
@@ -738,12 +765,19 @@ void show_menu(SDL_Renderer *ren)
 			show_scores(ren);
 			break;
 		case 1: {
-			char *address = show_get_ip(ren);
-			if (address) {
-				printf("addy: %s\n", address);
-				sockfd = net_start_client(address, NET_PORT);
-			run_client(ren);
-			}
+			char *address = 0;
+			char *errors = alloca(64);
+			errors[0] = 0;
+			do {
+				address = show_get_ip(ren, errors);
+				if (address) {
+					printf("addy: %s\n", address);
+					sockfd = net_start_client(address, NET_PORT, &errors);
+					printf("sockfd: %d\n", sockfd);
+					if (sockfd < 0) continue;
+					run_client(ren);
+				}
+			} while (address && sockfd < 0);
 			break;
 		}
 		case 2:
@@ -783,7 +817,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if (!map_init("map1.map")) {
+	if (!map_init("map1.json")) {
 		printf("unable to initialize map!\n");
 		return 1;
 	}
@@ -795,29 +829,34 @@ int main(int argc, char *argv[])
 		printf("unable to initialize powerups!\n");
 		return 1;
 	}
-	sound_init();
+	//sound_init();
 
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0)
 		{
-			if (argc != 3)
+			if (argc != 4)
 			{
-				printf("Usage: %s server <port>\n", argv[0]);
+				printf("Usage: %s server <num_clients> <num_laps>\n", argv[0]);
 				return 1;
 			}
+			num_clients = atoi(argv[2]);
+			map_laps = atoi(argv[3]);
 			run_server(ren);
+			show_scores(ren);
 		}
 		else if (strcmp(argv[1], "client") == 0)
 		{
-			if (argc != 4)
+			if (argc != 3)
 			{
-				printf("Usage: %s client <address> <port>\n", argv[0]);
+				printf("Usage: %s client <address>\n", argv[0]);
 				return 1;
 			}
-			if (strcmp(argv[2], "localhost") == 0)
-				sockfd = net_start_client("127.0.0.1", atoi(argv[3]));
-			else
-				sockfd = net_start_client(argv[2], atoi(argv[3]));
+			char *errors = alloca(64);
+			if (strcmp(argv[2], "localhost") == 0) {
+				sockfd = net_start_client("127.0.0.1", NET_PORT, &errors);
+			} else {
+				sockfd = net_start_client(argv[2], NET_PORT, &errors);
+			}
 			run_client(ren);
 		}
 		else if (strcmp(argv[1], "local") == 0)
@@ -847,6 +886,9 @@ int main(int argc, char *argv[])
 	if (sockfd != -1)
 		net_cleanup();
 	sound_destroy();
+	map_destroy();
+	boxes_destroy();
+	shell_destroy();
 	SDL_DestroyRenderer(ren); // cleans up all textures
 	SDL_DestroyWindow(win);
 	SDL_Quit();
