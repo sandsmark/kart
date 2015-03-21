@@ -5,7 +5,9 @@ namespace Interop
     [JsonConverter(typeof(ServerStringEnumConverter))]
     public enum ShellType
     {
-        Blue
+        Unknown,
+        Blue,
+        Red
     }
 
     public class ShellData

@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
@@ -11,11 +11,11 @@ namespace Interop
 {
     public class InteropService : IDisposable
     {
-        TcpClient _client;     
+        TcpClient _client;
 
         public InteropService(string botName, int connectTries, string address, int port)
         {
-            Connect(botName, connectTries, address, port);            
+            Connect(botName, connectTries, address, port);
         }
 
         void Connect(string botName, int connectTries, string address, int port)
@@ -28,7 +28,7 @@ namespace Interop
                     _client = new TcpClient(address, port);
 
                     var msgInBytes = Encoding.ASCII.GetBytes(botName);
-                    _client.GetStream().Write(msgInBytes, 0, msgInBytes.Length); 
+                    _client.GetStream().Write(msgInBytes, 0, msgInBytes.Length);
                     return;
                 }
                 catch (SocketException e)
@@ -41,7 +41,7 @@ namespace Interop
 
         public async Task<T> QueryForState<T>()
         {
-            var stream = _client.GetStream();            
+            var stream = _client.GetStream();
             var streamReader = new StreamReader(stream);
 
             var readTask = await streamReader.ReadLineAsync();
@@ -51,8 +51,8 @@ namespace Interop
         }
 
         public void Dispose()
-        {            
-            _client.Close();            
+        {
+            _client.Close();
         }
 
         public void Send(byte key)

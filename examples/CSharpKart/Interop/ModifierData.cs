@@ -5,9 +5,10 @@ namespace Interop
     [JsonConverter(typeof(ServerStringEnumConverter))]
     public enum ModifierType
     {
+        Unknown,
         Mud,
         Booster,
-        Ice
+        Ice      
     }
 
     public class ModifierData
