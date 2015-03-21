@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
 
@@ -40,14 +41,28 @@ namespace Interop
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var t = objectType;
+            try
+            {
+                var t = objectType;
 
-            if (reader.TokenType != JsonToken.String)
-                throw new Exception(string.Format((string) "Unexpected token {0} when parsing enum.", (object) reader.TokenType));
-            
-            var enumText = reader.Value.ToString();
-            enumText = enumText.Substring(0, 1).ToUpper() + enumText.Substring(1);
-            return ParseEnumName(enumText, t);
+                if (reader.TokenType != JsonToken.String)
+                    throw new Exception(string.Format((string) "Unexpected token {0} when parsing enum.", (object) reader.TokenType));
+
+                var enumText = reader.Value.ToString();
+                enumText = enumText.Substring(0, 1).ToUpper() + enumText.Substring(1);
+                return ParseEnumName(enumText, t);
+            }
+            catch (Exception e)
+            {
+                var enumNames = objectType.GetEnumNames();
+                var unknownName = enumNames.FirstOrDefault(name => name.Contains("Unknown"));
+                if (unknownName != null)
+                {
+                    return ParseEnumName("Unknown", objectType);
+                }
+                else
+                    throw;
+            }
         }
 
         static object ParseEnumName(string enumText, Type type)

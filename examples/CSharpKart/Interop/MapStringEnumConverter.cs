@@ -12,8 +12,8 @@ namespace Interop
         HorizontalStraight,
         RightCorner,
         LeftCorner,
-        RightFlippedCorner,
-        LeftFlippedCorner,
+        DownCorner,
+        UpCorner,
     }
 
     public class MapStringEnumConverter : JsonConverter
@@ -46,13 +46,13 @@ namespace Interop
                     enumText = "Empty";
                     break;
                 case "`":
-                    enumText = "RightCorner";
+                    enumText = "DownCorner";
                     break;
                 case "/":
-                    enumText = "RightFlippedCorner";
+                    enumText = "RightCorner";
                     break;
                 case "\\":
-                    enumText = "LeftFlippedCorner";
+                    enumText = "UpCorner";
                     break;
                 case ",":
                     enumText = "LeftCorner";
