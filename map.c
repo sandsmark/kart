@@ -11,8 +11,8 @@
 #define MAX_WIDTH  64
 #define MAX_HEIGHT 64
 
-unsigned map_tile_height = 128;
-unsigned map_tile_width = 128;
+unsigned map_tile_height = 64;
+unsigned map_tile_width = 64;
 
 typedef enum {
 	TILE_HORIZONTAL = 0,

@@ -8,6 +8,8 @@ SDL_Texture *font_texture = 0;
 SDL_Texture *background_texture = 0;
 ivec2 background_dims;
 
+extern int screen_height, screen_width;
+
 SDL_Texture *ren_load_image(const char *file)
 {
 	const char *prefix = "assets/";
@@ -95,8 +97,8 @@ void render_background()
 {
     if (!background_texture) return;
     const Uint32 t = SDL_GetTicks() / 66 % background_dims.y;
-    for (int x=-1; x<SCREEN_WIDTH / background_dims.x + 1; x++) {
-        for (int y=0; y<SCREEN_HEIGHT / background_dims.y; y++) {
+    for (int x=-1; x<screen_width / background_dims.x + 1; x++) {
+        for (int y=0; y<=screen_height / background_dims.y; y++) {
             SDL_Rect target;
             target.x = x * background_dims.x + t;
             target.y = y * background_dims.y;

@@ -6,6 +6,8 @@
 
 #include <SDL2/SDL.h>
 
+extern int screen_width, screen_height;
+
 typedef struct {
 	vec2 direction;
 
@@ -130,8 +132,8 @@ void shells_move()
 		shell_move(&shells[i]);
 	}
 	for (int i=0; i<shells_count; i++) {
-		if (shells[i].pos.x < 0 || shells[i].pos.x > SCREEN_WIDTH ||
-		    shells[i].pos.y < 0 || shells[i].pos.y > SCREEN_HEIGHT){
+		if (shells[i].pos.x < 0 || shells[i].pos.x > screen_width ||
+		    shells[i].pos.y < 0 || shells[i].pos.y > screen_height){
 			shell_remove(i);
 		}
 	}

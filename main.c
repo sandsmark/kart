@@ -37,6 +37,9 @@ static int num_clients = 1;
 extern int cars_count;
 extern int map_laps;
 
+int screen_width;
+int screen_height;
+
 typedef enum {
 	MENU_SERVER,
 	MENU_CLIENT,
@@ -59,7 +62,7 @@ void render(SDL_Renderer *ren)
 	if (last_time && delta) {
 		char buf[64];
 		sprintf(buf, "%d fps", 1000 / delta);
-		render_string(buf, SCREEN_WIDTH - 100, 5, 11);
+		render_string(buf, screen_width - 100, 5, 11);
 	}
 
 	SDL_RenderPresent(ren);
@@ -174,9 +177,9 @@ int run_server(SDL_Renderer *ren)
 		SDL_Event event;
 		wfc_bg_target.x = 0;
 		wfc_bg_target.y = 0;
-		wfc_bg_target.w = SCREEN_WIDTH;
-		wfc_bg_target.h = SCREEN_HEIGHT;
-		car_target.x = SCREEN_WIDTH/2 - car_target.w/2;
+		wfc_bg_target.w = screen_width;
+		wfc_bg_target.h = screen_height;
+		car_target.x = screen_width/2 - car_target.w/2;
 		car_target.y = 280;
 		float car_angle = 0;
 		SDL_AtomicSet(&clients[i].valid, 0);
@@ -213,7 +216,7 @@ int run_server(SDL_Renderer *ren)
 				else
 					SDL_SetRenderDrawColor(ren, 0xff, 0x00, 0x00, 0xff);
 				SDL_Rect client_rect;
-				client_rect.x = SCREEN_WIDTH/2 - ((num_clients-1)*10 + 5) + j * 20;
+				client_rect.x = screen_width/2 - ((num_clients-1)*10 + 5) + j * 20;
 				client_rect.y = 378;
 				client_rect.h = 10;
 				client_rect.w = 10;
@@ -617,8 +620,8 @@ char *show_get_ip(SDL_Renderer *ren, const char *errormessage)
 		SDL_Rect box;
 		box.w = 32 * 15;
 		box.h = 40;
-		box.x = SCREEN_WIDTH / 2 - box.w / 2 - 2;
-		box.y = SCREEN_HEIGHT / 2 - 32;
+		box.x = screen_width / 2 - box.w / 2 - 2;
+		box.y = screen_height / 2 - 32;
 		SDL_RenderDrawRect(ren, &box);
 		render_string(address, box.x + 2, box.y, 32);
 
@@ -634,10 +637,10 @@ char *show_get_ip(SDL_Renderer *ren, const char *errormessage)
 		SDL_RenderFillRect(ren, &line);
 
 		// fancy useless effect
-		for (int i=1; i<SCREEN_WIDTH/2; i++) {
+		for (int i=1; i<screen_width/2; i++) {
 			Uint32 t = SDL_GetTicks() / 10.0;
 			int x = i * 2;
-			int y = sinf(t * ((i - SCREEN_WIDTH/4)/500.0 + 0.01)) * (SCREEN_HEIGHT/2) + SCREEN_HEIGHT / 2;
+			int y = sinf(t * ((i - screen_width/4)/500.0 + 0.01)) * (screen_height/2) + screen_height / 2;
 			SDL_RenderDrawPoint(ren, x, y);
 		}
 
@@ -654,8 +657,8 @@ void show_scores(SDL_Renderer *ren)
 	SDL_Rect rect;
 	rect.x = 0;
 	rect.y = 0;
-	rect.w = SCREEN_WIDTH;
-	rect.h = SCREEN_HEIGHT;
+	rect.w = screen_width;
+	rect.h = screen_height;
 	SDL_RenderFillRect(ren, &rect);
 	if (cars_finished()) {
 		render_string("scores:", 10, 10, 44);
@@ -700,8 +703,8 @@ void show_menu(SDL_Renderer *ren)
 	SDL_Rect target;
 	target.x = 0;
 	target.y = 0;
-	target.w = SCREEN_WIDTH;
-	target.h = SCREEN_HEIGHT;
+	target.w = screen_width;
+	target.h = screen_height;
 	int quit = 0;
 	MenuChoice choice = 0;
 	while (!quit) {
@@ -733,22 +736,25 @@ void show_menu(SDL_Renderer *ren)
 
 		SDL_RenderCopy(ren, image, 0, &target);
 
+		const int base_x = screen_width * 4 / 7;
+		const int base_y = screen_height * 3 / 8;
+
 		                            //r    g     b     a
 		SDL_SetRenderDrawColor(ren, 0xff, 0xff, 0xff, 0xff);
 		SDL_Rect selection_rect;
-		selection_rect.x = 544;
-		selection_rect.y = 272 + choice * 32;
+		selection_rect.x = base_x - 6;
+		selection_rect.y = base_y + choice * 32;
 		selection_rect.h = 30;
 		selection_rect.w = 400;
 		SDL_RenderDrawRect(ren, &selection_rect);
 
-		render_string("server mode", 550, 275 + 32 * 0, 22);
-		render_string("client mode", 550, 275 + 32 * 1, 22);
-		render_string("local mode",  550, 275 + 32 * 2, 22);
-		render_string("quit",        550, 275 + 32 * 3, 22);
+		render_string("server mode", base_x, base_y + 32 * 0, 22);
+		render_string("client mode", base_x, base_y + 32 * 1, 22);
+		render_string("local mode",  base_x, base_y + 32 * 2, 22);
+		render_string("quit",        base_x, base_y + 32 * 3, 22);
 
 		const char *verstring = "version " REVISION;
-		render_string(verstring, 50, 530, 22);
+		render_string(verstring, screen_width/9, screen_height*3/4, 22);
 
 		SDL_RenderPresent(ren);
 	}
@@ -802,11 +808,12 @@ int main(int argc, char *argv[])
 		printf("SDL init failed: %s\n", SDL_GetError());
 		return 1;
 	}
-	SDL_Window *win = SDL_CreateWindow("The Kartering", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+	SDL_Window *win = SDL_CreateWindow("The Kartering", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_SHOWN);
 	if (win == NULL){
 		printf("SDL error creating window: %s\n", SDL_GetError());
 		return 1;
 	}
+	SDL_GetWindowSize(win, &screen_width, &screen_height);
 	SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (ren == NULL){
 		printf("SDL error while creating renderer: %s\n", SDL_GetError());
