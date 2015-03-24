@@ -170,6 +170,10 @@ int run_server(SDL_Renderer *ren)
 	for (int i = 0; i < num_clients; i++)
 	{
 		clients[i].car = car_add();
+		if (!clients[i].car) {
+			printf("WARNING! failed to add car! We're going to crash now.\n");
+		}
+
 
 		SDL_Rect wfc_bg_target, car_target;
 		SDL_Texture *wfc_bg_tex = ren_load_image("waitforclients.bmp");

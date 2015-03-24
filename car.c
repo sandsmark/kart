@@ -25,7 +25,7 @@ extern int map_laps;
 
 Car *car_add()
 {
-	if (cars_count + 1 >= MAX_CARS) {
+	if (cars_count >= MAX_CARS) {
 		printf("Asked to add a new car when we are at max!\n");
 		return 0;
 	}
