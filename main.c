@@ -851,6 +851,14 @@ int main(int argc, char *argv[])
 				return 1;
 			}
 			num_clients = atoi(argv[2]);
+			if (num_clients > MAX_CARS) {
+				printf("can't add more than %d clients!\n", MAX_CARS);
+				return 1;
+			}
+			if (num_clients > 4) {
+				printf("more than 4 cars, this will get ugly\n");
+			}
+
 			map_laps = atoi(argv[3]);
 			run_server(ren);
 			show_scores(ren);
