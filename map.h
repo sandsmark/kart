@@ -20,6 +20,7 @@ typedef enum {
 } AreaType;
 
 int map_init(const char *map_file);
+int map_load_file(const char *file);
 void map_destroy();
 void map_render(SDL_Renderer *ren);
 int map_add_modifier(AreaType type, ivec2 pos);

@@ -122,7 +122,6 @@ int map_add_modifier(AreaType type, ivec2 pos)
 }
 
 int map_load_tiles();
-int map_load_file(const char *file);
 
 int map_init(const char *map_file)
 {

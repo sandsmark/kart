@@ -845,9 +845,9 @@ int main(int argc, char *argv[])
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0)
 		{
-			if (argc != 4)
+			if (argc < 4)
 			{
-				printf("Usage: %s server <num_clients> <num_laps>\n", argv[0]);
+				printf("Usage: %s server <num_clients> <num_laps> [mapfile]\n", argv[0]);
 				return 1;
 			}
 			num_clients = atoi(argv[2]);
@@ -857,6 +857,9 @@ int main(int argc, char *argv[])
 			}
 			if (num_clients > 4) {
 				printf("more than 4 cars, this will get ugly\n");
+			}
+			if (argc > 4) {
+				map_load_file(argv[4]);
 			}
 
 			map_laps = atoi(argv[3]);
