@@ -613,6 +613,7 @@ void map_deserialize(cJSON *root)
 		}
 	}
 
+	modifiers_count = 0;
 	// Parse modifiers
 	modifiers = cJSON_GetObjectItem(root, "modifiers");
 	for (int i=0; i<cJSON_GetArraySize(modifiers); i++) {
