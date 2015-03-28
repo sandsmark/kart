@@ -27,7 +27,7 @@ int map_add_modifier(AreaType type, ivec2 pos);
 
 vec2 map_get_edge_normal(int x, int y);
 
-AreaType map_get_type(const ivec2 pos);
+AreaType map_get_type(const ivec2 pos, int remove_banana);
 
 int map_dist_left_in_tile(int pathcount, vec2 pos);
 
