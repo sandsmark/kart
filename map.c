@@ -156,17 +156,19 @@ static int get_r(int x, int y, int ox, int oy)
 	return sqrtl(w*w + h*h);
 }
 
-static int get_corner(int x, int y, int ox, int oy)
+static int get_corner(int rel_x, int rel_y)
 {
-	if(x < 64 && y < 64) // Upper left
-		return(get_r(rel_x, rel_y, map_tile_width, map_tile_height));
-	if(x > 64 && y < 64) // Upper right
-		return(get_r(rel_x, rel_y, 0, map_tile_height));
-	if(x < 64 && y > 64) // Bottom left
-		return(get_r(rel_x, rel_y, map_tile_width, 0));
-	if(x > 64 && y > 64) // Bottom right
+	const int half_width = map_tile_width / 2;
+	const int half_height = map_tile_height / 2;
+	if(rel_x < half_width && rel_y < half_height) // Upper left
 		return(get_r(rel_x, rel_y, 0, 0));
-	return(64); // we are in the middle, chill out!
+	if(rel_x > half_width && rel_y < half_height) // Upper right
+		return(get_r(rel_x, rel_y, map_tile_width, 0));
+	if(rel_x < half_width && rel_y > half_height) // Bottom left
+		return(get_r(rel_x, rel_y, 0, map_tile_height));
+	if(rel_x > half_width && rel_y > half_height) // Bottom right
+		return(get_r(rel_x, rel_y, map_tile_width, map_tile_height));
+	return half_width; // we are in the middle, chill out!
 }
 
 AreaType map_get_type(const ivec2 pos)
@@ -218,7 +220,7 @@ AreaType map_get_type(const ivec2 pos)
 		distance = get_r(rel_x, rel_y, 0, 0);
 		break;
 	case TILE_XING:
-		distance = get_corner(rel_x, rel_y, map_tile_width, map_tile_height);
+		distance = get_corner(rel_x, rel_y);
 		break;
 	case TILE_NONE:
 	default:
