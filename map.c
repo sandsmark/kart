@@ -21,6 +21,7 @@ typedef enum {
 	TILE_UPPERRIGHT,
 	TILE_BOTTOMLEFT,
 	TILE_BOTTOMRIGHT,
+	TILE_XING,
 	TILE_NONE
 } TileType;
 
@@ -38,6 +39,7 @@ static SDL_Texture *tile_upperleft  = 0;
 static SDL_Texture *tile_upperright = 0;
 static SDL_Texture *tile_lowerleft  = 0;
 static SDL_Texture *tile_lowerright = 0;
+static SDL_Texture *tile_xing       = 0;
 static SDL_Texture *tile_none       = 0;
 
 static SDL_Texture *mod_booster_texture = 0;
@@ -154,6 +156,19 @@ static int get_r(int x, int y, int ox, int oy)
 	return sqrtl(w*w + h*h);
 }
 
+static int get_corner(int x, int y, int ox, int oy)
+{
+	if(x < 64 && y < 64) // Upper left
+		return(get_r(rel_x, rel_y, map_tile_width, map_tile_height));
+	if(x > 64 && y < 64) // Upper right
+		return(get_r(rel_x, rel_y, 0, map_tile_height));
+	if(x < 64 && y > 64) // Bottom left
+		return(get_r(rel_x, rel_y, map_tile_width, 0));
+	if(x > 64 && y > 64) // Bottom right
+		return(get_r(rel_x, rel_y, 0, 0));
+	return(64); // we are in the middle, chill out!
+}
+
 AreaType map_get_type(const ivec2 pos)
 {
 	if (pos.x < 0 || pos.y < 0) {
@@ -202,6 +217,9 @@ AreaType map_get_type(const ivec2 pos)
 	case TILE_BOTTOMRIGHT:
 		distance = get_r(rel_x, rel_y, 0, 0);
 		break;
+	case TILE_XING:
+		distance = get_corner(rel_x, rel_y, map_tile_width, map_tile_height);
+		break;
 	case TILE_NONE:
 	default:
 		return MAP_GRASS;
@@ -223,6 +241,7 @@ int map_load_tiles()
 	tile_upperright = ren_load_image("map-topright.bmp");
 	tile_lowerleft  = ren_load_image("map-bottomleft.bmp");
 	tile_lowerright = ren_load_image("map-bottomright.bmp");
+	tile_xing       = ren_load_image("map-xing.bmp");
 	tile_none       = ren_load_image("map-none.bmp");
 
 	mod_booster_texture = ren_load_image("booster.bmp");
@@ -237,6 +256,7 @@ int map_load_tiles()
 		tile_upperright &&
 		tile_lowerleft  &&
 		tile_lowerright &&
+		tile_xing       &&
 		tile_none       &&
 		mod_booster_texture &&
 		mod_ice_texture     &&
@@ -347,6 +367,9 @@ void map_render(SDL_Renderer *ren)
 			case TILE_BOTTOMRIGHT:
 				texture = tile_lowerright;
 				break;
+			case TILE_XING:
+				texture = tile_xing;
+				break;
 			case TILE_NONE:
 			default:
 				texture = tile_none;
@@ -417,6 +440,19 @@ vec2 map_get_edge_normal(int x, int y)
 		normal.x = (px) * map_tile_width;
 		normal.y = (py) * map_tile_height;
 		break;
+	case TILE_XING:
+		// I have no idea what I'm doing here...
+		if (rel_x > map_tile_width / 2) {
+			normal.x = -1;
+		} else {
+			normal.x = 1;
+		}
+		if (rel_y > map_tile_height / 2) {
+			normal.y = -1;
+		} else {
+			normal.y = 1;
+		}
+		break;
 	case TILE_NONE:
 	default:
 		break;
@@ -456,6 +492,9 @@ cJSON *map_serialize()
 				break;
 			case TILE_BOTTOMRIGHT:
 				tile_item = cJSON_CreateString(",");
+				break;
+			case TILE_XING:
+				tile_item = cJSON_CreateString("+");
 				break;
 			case TILE_NONE:
 			default:
@@ -561,6 +600,9 @@ void map_deserialize(cJSON *root)
 				break;
 			case ',':
 				map_tiles[x][y] = TILE_BOTTOMRIGHT;
+				break;
+			case '+':
+				map_tiles[x][y] = TILE_XING;
 				break;
 			case '.':
 			default:
