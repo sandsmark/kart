@@ -306,6 +306,8 @@ void car_use_powerup(Car *car)
         vec_scale(&rot, 50);
         pos.x -= rot.x;
         pos.y -= rot.y;
+	pos.x -= POWERUPS_WIDTH/2;
+	pos.y -= POWERUPS_HEIGHT/2;
         map_add_modifier(MAP_BANANA, pos);
         break;
     }
