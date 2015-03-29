@@ -387,6 +387,12 @@ void map_render(SDL_Renderer *ren)
 	for (int i = 0; i < modifiers_count; i++) {
 		SDL_RenderCopy(ren, modifiers[i].texture, 0, &modifiers[i].rect);
 	}
+
+	char strbuf[64]; //oversize or bust
+	for (int i = 0; i < map_path_length; i++) {
+		snprintf(strbuf, 64, "%d", i);
+		render_string(strbuf, map_path[i].x * map_tile_width + map_tile_width / 2, map_path[i].y * map_tile_height + map_tile_height / 2, 11);
+	}
 }
 
 vec2 map_get_edge_normal(int x, int y)
