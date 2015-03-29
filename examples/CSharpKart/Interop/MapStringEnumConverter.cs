@@ -14,6 +14,7 @@ namespace Interop
         LeftCorner,
         DownCorner,
         UpCorner,
+        Intersection,
     }
 
     public class MapStringEnumConverter : JsonConverter
@@ -62,6 +63,9 @@ namespace Interop
                     break;
                 case "-":
                     enumText = "HorizontalStraight";
+                    break;
+                case "+":
+                    enumText = "Intersection";
                     break;
             }
 

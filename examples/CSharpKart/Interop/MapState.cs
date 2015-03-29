@@ -14,8 +14,6 @@ namespace Interop
 
     public class MapInfo
     {
-        [JsonProperty(PropertyName = "id")] public int PlayerId;
-
         [JsonProperty(PropertyName = "tile_width")] public int TileWidth;
 
         [JsonProperty(PropertyName = "tile_height")] public int TileHeight;
