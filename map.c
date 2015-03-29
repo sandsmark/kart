@@ -66,6 +66,9 @@ int map_path_length = 0;
 
 int map_laps = 4;
 
+extern int screen_height, screen_width;
+extern SDL_Renderer *ren;
+
 void remove_modifier(int index)
 {
 	modifiers_count--;
@@ -646,6 +649,20 @@ void map_deserialize(cJSON *root)
 		cur = cJSON_GetObjectItem(path_item, "tile_y");
 		map_path[i].y = cur->valueint;
 	}
+
+	int map_pixel_height = map_height * map_tile_height;
+	int map_pixel_width = map_width * map_tile_width;
+	float scale = 1;
+	if (map_pixel_height > screen_height) {
+		scale = (float)screen_height / map_pixel_height;
+	}
+	if (map_pixel_width > screen_width) {
+		if (scale > (float)screen_width / map_pixel_width) {
+			scale = (float)screen_width / map_pixel_width;
+		}
+	}
+	printf("scale: %f\n", scale);
+	SDL_RenderSetScale(ren, scale, scale);
 }
 
 cJSON *map_items_serialize()
