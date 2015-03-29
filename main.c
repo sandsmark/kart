@@ -268,6 +268,7 @@ int run_server(SDL_Renderer *ren)
 	int quit = 0;
 	SDL_Event event;
 	Uint32 time0 = SDL_GetTicks();
+	cars_start_round();
 
 	while (!quit && !cars_finished()) {
 		while (SDL_PollEvent(&event))

@@ -64,6 +64,13 @@ Car *car_add()
 	return &cars[i];
 }
 
+void cars_start_round()
+{
+	for (int i=0; i<cars_count; i++) {
+		cars[i].lap_started_at = SDL_GetTicks();
+	}
+}
+
 void car_apply_force(Car *car, vec2 force)
 {
 	car->force.x += force.x;

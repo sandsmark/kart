@@ -46,6 +46,7 @@ typedef struct {
 } Car;
 
 Car *car_add();
+void cars_start_round();
 void car_apply_force(Car *car, vec2 force);
 void cars_move();
 
