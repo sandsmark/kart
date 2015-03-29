@@ -243,8 +243,8 @@ void car_move(Car *car)
 	}
 
 	// Check tile/lap count stuff
-	const int px = car->pos.x / map_tile_width;
-	const int py = car->pos.y / map_tile_height;
+	const int px = center.x / map_tile_width;
+	const int py = center.y / map_tile_height;
 
 	int next_tile = (car->tiles_passed + 1) % map_path_length;
 	if (map_path[next_tile].x == px && map_path[next_tile].y == py) {
