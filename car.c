@@ -579,6 +579,15 @@ void cars_render(SDL_Renderer *ren)
 
 		// Draw list in top-left corner
 		const int vertical_position = 5 + (POWERUPS_HEIGHT + 5) * cars[i].id;
+
+		target.x = 5;
+		target.y = vertical_position - 2;
+		target.h = POWERUPS_HEIGHT + 2;
+		target.w = 700;
+		SDL_SetRenderDrawColor(ren, r, g, b, 0x7f);
+		SDL_RenderFillRect(ren, &target);
+		SDL_RenderDrawRect(ren, &target);
+
 		target.x = 5;
 		target.y = vertical_position;
 		target.h = POWERUPS_HEIGHT;
@@ -599,10 +608,13 @@ void cars_render(SDL_Renderer *ren)
 		SDL_SetRenderDrawColor(ren, r, g, b, 0xff);
 		SDL_RenderDrawRect(ren, &target);
 
+		// draw name
+		render_string(cars[i].name, target.x + POWERUPS_WIDTH + 20, target.y + 5, 22);
+
 
 		// Draw progress thing
-		target.x = target.x + POWERUPS_WIDTH + 20;
-		target.y = vertical_position;
+		target.x = target.x + POWERUPS_WIDTH + 320;
+		target.y = vertical_position + 5;
 		target.h = 22;
 		target.w = 22 * (cars[i].tiles_passed % map_path_length) / map_path_length + 1;
 		SDL_SetRenderDrawColor(ren, r, g, b, 0x7f);
@@ -616,11 +628,11 @@ void cars_render(SDL_Renderer *ren)
 		render_string(laps_string, target.x + 2, target.y, 22);
 
 		// Draw lap time
-		render_time(SDL_GetTicks() - cars[i].lap_started_at, target.x + POWERUPS_WIDTH + 250, target.y, 33);
+		target.y = vertical_position;
+		render_time(SDL_GetTicks() - cars[i].lap_started_at, target.x + POWERUPS_WIDTH + 175, target.y, 11);
 		if (cars[i].best_lap_time) {
-			render_time(cars[i].best_lap_time, target.x + POWERUPS_WIDTH + 500, target.y, 22);
+			render_time(cars[i].best_lap_time, target.x + POWERUPS_WIDTH + 175, target.y + 16, 11);
 		}
-		render_string(cars[i].name, target.x + POWERUPS_WIDTH + 660, target.y + 5, 11);
 	}
 }
 
