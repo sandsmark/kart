@@ -901,7 +901,7 @@ int main(int argc, char *argv[])
 	}
 
 	Car *sorted = cars_get_sorted();
-	FILE *scorefile = fopen("scores.log", "w+");
+	FILE *scorefile = fopen("scores.log", "w");
 	for (int i=0; i<cars_count; i++) {
 		printf("%d: %s\n", i+1, sorted[i].name);
 		if (scorefile) {

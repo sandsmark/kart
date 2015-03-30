@@ -582,7 +582,7 @@ void cars_render(SDL_Renderer *ren)
 
 		target.x = 5;
 		target.y = vertical_position - 2;
-		target.h = POWERUPS_HEIGHT + 2;
+		target.h = POWERUPS_HEIGHT + 3;
 		target.w = 700;
 		SDL_SetRenderDrawColor(ren, r, g, b, 0x7f);
 		SDL_RenderFillRect(ren, &target);
