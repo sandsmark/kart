@@ -13,6 +13,7 @@
 #define TURBO_TIMEOUT 2500
 #define INVINCIBLE_TIMEOUT 2500
 #define TIPPED_TIMEOUT 500
+#define POWERUP_COOLDOWN 1000
 
 Car cars[MAX_CARS];
 int cars_count = 0;
@@ -68,6 +69,7 @@ void cars_start_round()
 {
 	for (int i=0; i<cars_count; i++) {
 		cars[i].lap_started_at = SDL_GetTicks();
+		cars[i].picked_up_at = SDL_GetTicks();
 	}
 }
 
@@ -229,7 +231,7 @@ void car_move(Car *car)
 	car->pos.y += car->velocity.y * SECS_PER_FRAME;
 
 	// Check if we hit a box with powerups
-	if (car->powerup == POWERUP_NONE) {
+	if (car->powerup == POWERUP_NONE && SDL_GetTicks() - car->picked_up_at > POWERUP_COOLDOWN) {
 		SDL_Rect car_geometry;
 		car_geometry.x = car->pos.x;
 		car_geometry.y = car->pos.y;
@@ -239,6 +241,7 @@ void car_move(Car *car)
 
 		if (powerup != POWERUP_NONE) {
 			car->powerup = powerup;
+			car->picked_up_at = SDL_GetTicks();
 		}
 	}
 

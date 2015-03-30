@@ -26,6 +26,7 @@ typedef struct {
 
 	SDL_Texture *texture;
 
+	Uint32 picked_up_at;
 	PowerUp powerup;
 
 	int tiles_passed;
