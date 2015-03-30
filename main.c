@@ -159,7 +159,7 @@ int run_server(SDL_Renderer *ren)
 	}
 
 	cJSON *map_object = map_serialize();
-	clients = malloc(sizeof(Client) * num_clients);
+	clients = calloc(num_clients, sizeof(Client));
 
 	json_state = malloc(1);
 	*json_state = 0;
