@@ -865,7 +865,9 @@ int main(int argc, char *argv[])
 
 			map_laps = atoi(argv[3]);
 			run_server(ren);
-			show_scores(ren);
+			if (argc < 6) {
+				show_scores(ren);
+			}
 		}
 		else if (strcmp(argv[1], "client") == 0)
 		{
