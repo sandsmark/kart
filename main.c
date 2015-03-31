@@ -147,6 +147,49 @@ char *json_to_text(cJSON *object)
 	return text;
 }
 
+void show_countdown(SDL_Renderer *ren)
+{
+	Uint32 next_tick = SDL_GetTicks();
+	SDL_Texture *light_texture = 0;
+	int light = 0;
+	SDL_Rect target;
+	while (light < 4) {
+		if (SDL_GetTicks() > next_tick) {
+			SDL_DestroyTexture(light_texture);
+			char filename[16];
+			snprintf(filename, 16, "light%d.bmp", light);
+			light_texture = ren_load_image_with_dims(filename, &target.w, &target.h);
+			target.x = screen_width / 2 - target.w / 2;
+			target.y = screen_height / 2 - target.h / 2;
+			light++;
+			next_tick = SDL_GetTicks() + 1000;
+		}
+		SDL_Event event;
+		while (SDL_PollEvent(&event))
+		{
+			//If user closes the window
+			if (event.type == SDL_QUIT) {
+				return;
+			}
+			//If user presses any key
+			if (event.type == SDL_KEYDOWN) {
+				switch (event.key.keysym.sym) {
+					case SDLK_ESCAPE:
+						return;
+				}
+			}
+		}
+		render_background();
+		map_render(ren);
+		boxes_render(ren);
+		shells_render(ren);
+		cars_render(ren);
+		SDL_RenderCopy(ren, light_texture, 0, &target);
+		SDL_RenderPresent(ren);
+	}
+	SDL_DestroyTexture(light_texture);
+}
+
 int run_server(SDL_Renderer *ren)
 {
 	sockfd = net_start_server(NET_PORT);
@@ -264,6 +307,8 @@ int run_server(SDL_Renderer *ren)
 	cJSON_Delete(map_object);
 	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
 	SDL_RenderClear(ren);
+
+	show_countdown(ren);
 
 	int quit = 0;
 	SDL_Event event;
