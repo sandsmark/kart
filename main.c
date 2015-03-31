@@ -40,6 +40,8 @@ extern int map_laps;
 int screen_width;
 int screen_height;
 
+static int aborted = 0;
+
 typedef enum {
 	MENU_SERVER,
 	MENU_CLIENT,
@@ -175,6 +177,7 @@ void show_countdown(SDL_Renderer *ren)
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
 					case SDLK_ESCAPE:
+						aborted = 1;
 						return;
 				}
 			}
@@ -248,6 +251,7 @@ int run_server(SDL_Renderer *ren)
 				if (event.type == SDL_KEYDOWN) {
 					switch (event.key.keysym.sym) {
 					case SDLK_ESCAPE:
+						aborted = 1;
 						return 0;
 					}
 				}
@@ -326,6 +330,7 @@ int run_server(SDL_Renderer *ren)
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
 				case SDLK_ESCAPE:
+					aborted = 1;
 					quit = 1;
 					break;
 				}
@@ -448,6 +453,7 @@ int run_client(SDL_Renderer *ren)
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
 				case SDLK_ESCAPE:
+					aborted = 1;
 					quit = 1;
 					break;
 				}
@@ -515,6 +521,7 @@ int run_local(SDL_Renderer *ren)
 			if (event.type == SDL_KEYDOWN) {
 				switch (event.key.keysym.sym) {
 				case SDLK_ESCAPE:
+					aborted = 1;
 					quit = 1;
 					break;
 				}
@@ -947,11 +954,15 @@ int main(int argc, char *argv[])
 		show_menu(ren);
 	}
 
+	if (aborted) {
+		printf("RACE ABORTED\n");
+	}
+
 	Car *sorted = cars_get_sorted();
 	FILE *scorefile = fopen("scores.log", "w");
 	for (int i=0; i<cars_count; i++) {
 		printf("%d: %s\n", i+1, sorted[i].name);
-		if (scorefile) {
+		if (scorefile && !aborted) {
 			fprintf(scorefile, "%s\n", sorted[i].name);
 		}
 	}
