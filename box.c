@@ -95,7 +95,6 @@ void boxes_deserialize(cJSON *root)
 {
     cJSON *box, *cur;
     box_count = cJSON_GetArraySize(root);
-    printf("adding %d boxes\n", box_count);
     free(boxes);
     boxes = calloc(box_count + 1, sizeof(Box));
     for (int i=0; i<box_count; i++) {
@@ -105,6 +104,5 @@ void boxes_deserialize(cJSON *root)
         boxes[i].pos.x = cur->valueint;
         cur = cJSON_GetObjectItem(box, "y");
         boxes[i].pos.y = cur->valueint;
-        printf("added box at x: %d y: %d\n", boxes[i].pos.x, boxes[i].pos.y);
     }
 }
