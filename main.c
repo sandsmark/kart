@@ -397,6 +397,10 @@ int run_server(SDL_Renderer *ren)
 		time0 = time1;
 	}
 
+	// FUCKUP: SDL hangs if we try to destroy threads before they are fully
+	// launched, so way a bit before killing shit
+	SDL_Delay(500);
+
 	// Clean up
 	SDL_AtomicSet(&net_listen, 0);
 	SDL_LockMutex(json_state_lock);
