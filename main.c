@@ -9,7 +9,6 @@
 #include "net.h"
 #include "powerup.h"
 #include "renderer.h"
-#include "sound.h"
 #include "vector.h"
 #include "shell.h"
 #include "debug.h"
@@ -230,7 +229,7 @@ int run_server(SDL_Renderer *ren)
 		wfc_bg_target.w = screen_width;
 		wfc_bg_target.h = screen_height;
 		car_target.x = screen_width/2 - car_target.w/2;
-		car_target.y = 280;
+		car_target.y = screen_height/2;
 		float car_angle = 0;
 		SDL_AtomicSet(&clients[i].valid, 0);
 		SDL_Thread *thr = SDL_CreateThread(accpt_conn, "Accpt conn thread", (void*)&clients[i]);
@@ -268,9 +267,9 @@ int run_server(SDL_Renderer *ren)
 					SDL_SetRenderDrawColor(ren, 0xff, 0x00, 0x00, 0xff);
 				SDL_Rect client_rect;
 				client_rect.x = screen_width/2 - ((num_clients-1)*10 + 5) + j * 20;
-				client_rect.y = 378;
-				client_rect.h = 10;
-				client_rect.w = 10;
+				client_rect.y = screen_height / 3;
+				client_rect.h = 20;
+				client_rect.w = 20;
 				SDL_RenderFillRect(ren, &client_rect);
 			}
 			SDL_RenderPresent(ren);
@@ -590,7 +589,6 @@ int run_local(SDL_Renderer *ren)
 
 char *show_get_ip(SDL_Renderer *ren, const char *errormessage)
 {
-	sound_set_type(SOUND_MENU);
 	SDL_Event event;
 	int pos = 0;
 	char *address = calloc(16, sizeof(*address));
@@ -760,7 +758,6 @@ void show_scores(SDL_Renderer *ren)
 void show_menu(SDL_Renderer *ren)
 {
 	SDL_Texture *image = ren_load_image("startscreen.bmp");
-	sound_set_type(SOUND_MENU);
 	SDL_Event event;
 	SDL_Rect target;
 	target.x = 0;
@@ -821,8 +818,6 @@ void show_menu(SDL_Renderer *ren)
 		SDL_RenderPresent(ren);
 	}
 
-	//TODO: make not annoying sound
-	sound_set_type(SOUND_NONE);
 	SDL_SetRenderDrawColor(ren, 0x0, 0x0, 0x0, 0xff);
 	SDL_RenderClear(ren);
 	printf("menu choice: %d\n", choice);
@@ -898,7 +893,6 @@ int main(int argc, char *argv[])
 		printf("unable to initialize powerups!\n");
 		return 1;
 	}
-	//sound_init();
 
 	if (argc > 1) {
 		if (strcmp(argv[1], "server") == 0)
@@ -976,7 +970,6 @@ int main(int argc, char *argv[])
 
 	if (sockfd != -1)
 		net_cleanup();
-	sound_destroy();
 	map_destroy();
 	boxes_destroy();
 	shell_destroy();
