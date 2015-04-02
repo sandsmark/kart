@@ -23,6 +23,7 @@ extern ivec2 map_starting_positions[];
 extern ivec2 map_path[];
 extern int map_path_length;
 extern int map_laps;
+extern int ren_offset_x, ren_offset_y;
 
 Car *car_add()
 {
@@ -564,13 +565,17 @@ void cars_render(SDL_Renderer *ren)
 			SDL_SetRenderDrawColor(ren, r, g, b, j * 0xff / TRAIL_LENGTH);
 			vec2 pos1 = cars[i].trail[j];
 			vec2 pos2 = cars[i].trail[j+1];
+			pos1.x += ren_offset_x;
+			pos1.y += ren_offset_y;
+			pos2.x += ren_offset_x;
+			pos2.y += ren_offset_y;
 			SDL_RenderDrawLine(ren, pos1.x + ox, pos1.y + oy, pos2.x + ox, pos2.y + oy);
 		}
 
 		// Draw the car itself
 		SDL_Rect target;
-		target.x = cars[i].pos.x;
-		target.y = cars[i].pos.y;
+		target.x = cars[i].pos.x + ren_offset_x;
+		target.y = cars[i].pos.y + ren_offset_y;
 		target.w = cars[i].width;
 		target.h = cars[i].height;
 		SDL_RenderCopyEx(ren, cars[i].texture, 0, &target, vec_angle(car_start_dir, cars[i].direction), 0, 0);

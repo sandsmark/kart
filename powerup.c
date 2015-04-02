@@ -6,6 +6,8 @@
 // none doesnæt have an image
 static SDL_Texture *textures[POWERUP_STAR+1] = {0};
 
+extern int ren_offset_x, ren_offset_y;
+
 void powerup_render(SDL_Renderer *ren, PowerUp type, ivec2 pos)
 {
         SDL_Rect target;

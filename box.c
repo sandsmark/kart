@@ -21,6 +21,8 @@ typedef struct {
 int box_count = 0;
 Box *boxes = 0;
 
+extern int ren_offset_x, ren_offset_y;
+
 int boxes_init()
 {
     box_texture = ren_load_image("box.bmp");
@@ -43,8 +45,8 @@ void boxes_render(SDL_Renderer *ren)
         }
 
         SDL_Rect target;
-        target.x = boxes[i].pos.x;
-        target.y = boxes[i].pos.y;
+        target.x = boxes[i].pos.x + ren_offset_x;
+        target.y = boxes[i].pos.y + ren_offset_y;
         target.w = BOX_WIDTH;
         target.h = BOX_HEIGHT;
         SDL_RenderCopy(ren, box_texture, 0, &target);

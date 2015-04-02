@@ -870,7 +870,7 @@ int main(int argc, char *argv[])
 		printf("SDL init failed: %s\n", SDL_GetError());
 		return 1;
 	}
-	SDL_Window *win = SDL_CreateWindow("The Kartering", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_WINDOW_SHOWN);
+	SDL_Window *win = SDL_CreateWindow("The Kartering", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1920, 1080, SDL_WINDOW_SHOWN);
 	if (win == NULL){
 		printf("SDL error creating window: %s\n", SDL_GetError());
 		return 1;

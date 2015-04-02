@@ -20,6 +20,8 @@ static int shells_count = 0;
 static int shells_size = 0;
 static Shell *shells = 0;
 
+extern int ren_offset_x, ren_offset_y;
+
 void shell_destroy()
 {
 	free(shells);
@@ -29,8 +31,8 @@ void shells_render(SDL_Renderer *ren)
 {
 	ivec2 pos;
 	for (int i=0; i<shells_count; i++) {
-		pos.x = shells[i].pos.x;
-		pos.y = shells[i].pos.y;
+		pos.x = shells[i].pos.x + ren_offset_x;
+		pos.y = shells[i].pos.y + ren_offset_y;
 		switch(shells[i].type) {
 			case SHELL_BLUE:
 				powerup_render(ren, POWERUP_BLUE_SHELL, pos);

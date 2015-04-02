@@ -10,6 +10,8 @@ ivec2 background_dims;
 
 extern int screen_height, screen_width;
 
+int ren_offset_x, ren_offset_y;
+
 SDL_Texture *ren_load_image(const char *file)
 {
 	const char *prefix = "assets/";

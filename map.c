@@ -14,6 +14,8 @@
 unsigned map_tile_height = 64;
 unsigned map_tile_width = 64;
 
+extern int ren_offset_x, ren_offset_y;
+
 typedef enum {
 	TILE_HORIZONTAL = 0,
 	TILE_VERTICAL,
@@ -348,8 +350,8 @@ void map_render(SDL_Renderer *ren)
 	for (unsigned int x=0; x<map_width; x++) {
 		for (unsigned int y=0; y<map_height; y++) {
 			SDL_Rect target;
-			target.x = x * map_tile_width;
-			target.y = y * map_tile_height;
+			target.x = x * map_tile_width + ren_offset_x;
+			target.y = y * map_tile_height + ren_offset_y;
 			target.w = map_tile_width;
 			target.h = map_tile_height;
 			SDL_Texture *texture;
@@ -385,13 +387,17 @@ void map_render(SDL_Renderer *ren)
 		}
 	}
 	for (int i = 0; i < modifiers_count; i++) {
-		SDL_RenderCopy(ren, modifiers[i].texture, 0, &modifiers[i].rect);
+		SDL_Rect rect;
+		rect = modifiers[i].rect;
+		rect.x += ren_offset_x;
+		rect.y += ren_offset_y;
+		SDL_RenderCopy(ren, modifiers[i].texture, 0, &rect);
 	}
 
 	char strbuf[64]; //oversize or bust
 	for (int i = 0; i < map_path_length; i++) {
 		snprintf(strbuf, 64, "%d", i);
-		render_string(strbuf, map_path[i].x * map_tile_width + map_tile_width / 2, map_path[i].y * map_tile_height + map_tile_height / 2, 11);
+		render_string(strbuf, map_path[i].x * map_tile_width + map_tile_width / 2 + ren_offset_x, map_path[i].y * map_tile_height + map_tile_height / 2 + ren_offset_y, 11);
 	}
 }
 
@@ -667,7 +673,9 @@ void map_deserialize(cJSON *root)
 			scale = (float)screen_width / map_pixel_width;
 		}
 	}
-	printf("scale: %f\n", scale);
+	ren_offset_x = screen_width / 2 - map_pixel_width / 2 * scale;
+	ren_offset_y = screen_height / 2 - map_pixel_height / 2 * scale;
+	printf("scale: %f, offset x: %d, offset y: %d\n", scale, ren_offset_x, ren_offset_y);
 	SDL_RenderSetScale(ren, scale, scale);
 }
 
