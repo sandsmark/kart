@@ -574,10 +574,10 @@ void cars_render(SDL_Renderer *ren)
 
 		// Draw the car itself
 		SDL_Rect target;
-		target.x = cars[i].pos.x + ren_offset_x;
-		target.y = cars[i].pos.y + ren_offset_y;
-		target.w = cars[i].width;
-		target.h = cars[i].height;
+		target.x = cars[i].pos.x + ren_offset_x - cars[i].width;
+		target.y = cars[i].pos.y + ren_offset_y - cars[i].height;
+		target.w = cars[i].width * 2;
+		target.h = cars[i].height * 2;
 		SDL_RenderCopyEx(ren, cars[i].texture, 0, &target, vec_angle(car_start_dir, cars[i].direction), 0, 0);
 
 		// Draw list in top-left corner
