@@ -505,10 +505,11 @@ int run_client(SDL_Renderer *ren)
 
 int run_local(SDL_Renderer *ren)
 {
-	Car *cars[3];
+	Car *cars[4];
 	cars[0] = car_add();
 	cars[1] = car_add();
 	cars[2] = car_add();
+	cars[3] = car_add();
 
 	int quit = 0;
 	SDL_Event event;

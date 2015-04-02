@@ -556,7 +556,7 @@ void cars_render(SDL_Renderer *ren)
 		} else if (i == 2) {
 			r = 0; g = 0xff; b = 0xa0;
 		} else if (i == 3) {
-			r = 0xff; g = 0xff; b = 0xff;
+			r = 0xff; g = 0xff; b = 0x0;
 		}
 
 		// Draw trail
