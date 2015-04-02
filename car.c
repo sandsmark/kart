@@ -51,8 +51,6 @@ Car *car_add()
 	sprintf(filename, "car%d.bmp", i);
 	cars[i].texture = ren_load_image_with_dims(filename, &cars[i].width, &cars[i].height);
 
-	cars[i].width /= 1.5;
-	cars[i].height /= 1.5;
 	cars[i].name[0] = '0' + i;
 	cars[i].name[1] = 0;
 
