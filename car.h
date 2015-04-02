@@ -42,6 +42,8 @@ typedef struct {
 	Uint32 big_at;
 
 	vec2 trail[TRAIL_LENGTH];
+	vec2 trail_l[TRAIL_LENGTH];
+	vec2 trail_r[TRAIL_LENGTH];
 
 	char name[MAX_NAME_LENGTH];
 } Car;

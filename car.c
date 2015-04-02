@@ -57,6 +57,8 @@ Car *car_add()
 
 	for (int j=0; j<TRAIL_LENGTH; j++) {
 		cars[i].trail[j] = cars[i].pos;
+		cars[i].trail_l[j] = cars[i].pos;
+		cars[i].trail_r[j] = cars[i].pos;
 	}
 
 	cars[i].lap_started_at = SDL_GetTicks();
@@ -266,8 +268,24 @@ void car_move(Car *car)
 	// Update trail
 	for (int j=1; j<TRAIL_LENGTH; j++) {
 		car->trail[j-1] = car->trail[j];
+		car->trail_l[j-1] = car->trail_l[j];
+		car->trail_r[j-1] = car->trail_r[j];
 	}
-	car->trail[TRAIL_LENGTH-1] = car->pos;
+	vec2 c;
+	c.x = car->pos.x - car->width/2;
+	c.y = car->pos.y - car->height/2;
+	car->trail[TRAIL_LENGTH-1] = c;
+	car->trail_l[TRAIL_LENGTH-1] = c;
+	car->trail_r[TRAIL_LENGTH-1] = c;
+
+	float angle = vec_angle(car->direction, car_start_dir) / 180 * PI;
+	car->trail_r[TRAIL_LENGTH-1].x += sin(angle) * car->width;
+	car->trail_r[TRAIL_LENGTH-1].y += cos(angle) * car->width;
+
+	angle += PI;
+
+	car->trail_l[TRAIL_LENGTH-1].x += sin(angle) * car->width;
+	car->trail_l[TRAIL_LENGTH-1].y += cos(angle) * car->width;
 
 }
 
@@ -565,6 +583,20 @@ void cars_render(SDL_Renderer *ren)
 			SDL_SetRenderDrawColor(ren, r, g, b, j * 0xff / TRAIL_LENGTH);
 			vec2 pos1 = cars[i].trail[j];
 			vec2 pos2 = cars[i].trail[j+1];
+			pos1.x += ren_offset_x;
+			pos1.y += ren_offset_y;
+			pos2.x += ren_offset_x;
+			pos2.y += ren_offset_y;
+			SDL_RenderDrawLine(ren, pos1.x + ox, pos1.y + oy, pos2.x + ox, pos2.y + oy);
+			pos1 = cars[i].trail_l[j];
+			pos2 = cars[i].trail_l[j+1];
+			pos1.x += ren_offset_x;
+			pos1.y += ren_offset_y;
+			pos2.x += ren_offset_x;
+			pos2.y += ren_offset_y;
+			SDL_RenderDrawLine(ren, pos1.x + ox, pos1.y + oy, pos2.x + ox, pos2.y + oy);
+			pos1 = cars[i].trail_r[j];
+			pos2 = cars[i].trail_r[j+1];
 			pos1.x += ren_offset_x;
 			pos1.y += ren_offset_y;
 			pos2.x += ren_offset_x;
