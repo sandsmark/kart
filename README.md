@@ -91,6 +91,17 @@ map:
 }
 ```
 
+The types of powerups are:
+
+- "banana": a banana that you can drop, causes players that hit it to stop and spin
+- "greenshell": a shell you can shoot that subtly homes in on the nearest player
+- "blueshell": a shell that you can shoot that subtly homes in on the leading player
+- "oil": allows you to drop oil that causes players that drive over it to veer off course
+- "mushroom": gives you a speedup for 2500ms
+- "bigmushroom": gives you a speedup for 2500ms, doubles your size
+- "lightning": causes all causes all cars in front of you to halve in size, lose their powerups and lose 10% speed
+- "star": gives you a speedup for 2500ms, makes you invincible to all kinds of negative effects for 2500ms, causes cars that you collide with to stop and spin
+
 It should be self-explanatory (otherwise please file an issue here on
 github or contact us otherwise so we can explain better here).
 
