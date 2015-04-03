@@ -96,6 +96,7 @@ The types of powerups are:
 - "banana": a banana that you can drop, causes players that hit it to stop and spin
 - "greenshell": a shell you can shoot that subtly homes in on the nearest player
 - "blueshell": a shell that you can shoot that subtly homes in on the leading player
+- "redshell": a shell that you can shoot that just goes straight forward and bounces around
 - "oil": allows you to drop oil that causes players that drive over it to veer off course
 - "mushroom": gives you a speedup for 2500ms
 - "bigmushroom": gives you a speedup for 2500ms, doubles your size
