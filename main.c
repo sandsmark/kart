@@ -396,6 +396,17 @@ int run_server(SDL_Renderer *ren)
 		time0 = time1;
 	}
 
+	Car *sorted = cars_get_sorted();
+	FILE *scorefile = fopen("scores.log", "w");
+	for (int i=0; i<cars_count; i++) {
+		printf("%d: %s\n", i+1, sorted[i].name);
+		if (scorefile && !aborted) {
+			fprintf(scorefile, "%s\n", sorted[i].name);
+		}
+	}
+	fclose(scorefile);
+	free(sorted);
+
 	// FUCKUP: SDL hangs if we try to destroy threads before they are fully
 	// launched, so way a bit before killing shit
 	SDL_Delay(500);
