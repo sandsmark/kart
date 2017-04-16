@@ -112,7 +112,7 @@ void shell_move(Shell *shell)
 	next_pos.x = shell->pos.x + shell->direction.x;
 	next_pos.y = shell->pos.y + shell->direction.y;
 
-	AreaType type = map_get_type(next_pos);
+	AreaType type = map_get_type(next_pos, 0);
 	if (type == MAP_GRASS) { // bounce
 		vec2 direction = shell->direction;
 		vec_scale(&direction, -1);

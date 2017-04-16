@@ -176,7 +176,7 @@ static int get_corner(int rel_x, int rel_y)
 	return half_width; // we are in the middle, chill out!
 }
 
-AreaType map_get_type(const ivec2 pos)
+AreaType map_get_type(const ivec2 pos, int remove_banana)
 {
 	if (pos.x < 0 || pos.y < 0) {
 		return MAP_WALL;
@@ -188,7 +188,7 @@ AreaType map_get_type(const ivec2 pos)
 		const int mod_max_x = mod_min_x + modifiers[i].rect.w;
 		const int mod_max_y = mod_min_y + modifiers[i].rect.h;
 		if (pos.x > mod_min_x && pos.x < mod_max_x && pos.y > mod_min_y && pos.y < mod_max_y) {
-			if (modifiers[i].type == MAP_BANANA) {
+			if (modifiers[i].type == MAP_BANANA && remove_banana) {
 				remove_modifier(i);
 			}
 			return modifiers[i].type;

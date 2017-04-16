@@ -125,7 +125,7 @@ void car_move(Car *car)
 	center.x = car->pos.x + car->width/2;
 	center.y = car->pos.y + car->height/2;
 
-	AreaType type = map_get_type(center);
+	AreaType type = map_get_type(center, 1);
 
 	switch(type){
 	case MAP_WALL:
