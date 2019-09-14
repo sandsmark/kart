@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
+#include <alloca.h>
 
 #include "box.h"
 #include "car.h"
