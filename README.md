@@ -1,5 +1,7 @@
 #The Kartering (working title)
 
+![startscreen](/startscreen.png)
+
 ![screenshot](/screenshot.png)
 
 **tldr**; connect to the server at localhost over port 31337. You send a single
