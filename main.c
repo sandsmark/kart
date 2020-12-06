@@ -949,10 +949,11 @@ int main(int argc, char *argv[])
 		}
 		else if (strcmp(argv[1], "local") == 0)
 		{
-			if (argc != 2)
+			if (argc > 2)
 			{
-				printf("Usage: %s local\n", argv[0]);
-				return 1;
+				if (!map_load_file(argv[2])) {
+					printf("Usage: %s local [mapfile]\n", argv[0]);
+				}
 			}
 			run_local(ren);
 		}
